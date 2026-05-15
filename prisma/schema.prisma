@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  telegramId   BigInt     @unique
+  username     String?
+  firstName    String?
+  lastName     String?
+  languageCode String?
+  language     String     @default("uz_cyrillic") // uz_cyrillic | uz_latin | ru
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  drafts    Draft[]
+  documents Document[]
+  payments  Payment[]
+}
+
+model Template {
+  id          Int        @id @default(autoincrement())
+  code        String     @unique
+  category    String     @default("ariza")
+  title       String
+  subtitle    String?
+  description String?
+  filePath    String
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  documents Document[]
+  drafts    Draft[]
+}
+
+model Draft {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  templateId Int?
+  step       String   @default("start")
+  payload    String   @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template Template? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+
+model Document {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  templateId    Int
+  format        String
+  filePath      String
+  language      String   @default("uz_cyrillic")
+  paymentId     Int?
+  downloadToken String?  @unique
+  createdAt     DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  payment  Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+
+model Payment {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  amount          Int      // in soms
+  status          String   @default("pending") // pending | paid | failed | cancelled
+  provider        String   @default("click")
+  merchantTransId String   @unique             // our order id
+  providerTransId String?                       // click_trans_id
+  paidAt          DateTime?
+  meta            String   @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents Document[]
+
+  @@index([userId])
+  @@index([status])
+}

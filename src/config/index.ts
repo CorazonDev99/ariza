@@ -1,0 +1,79 @@
+import path from 'node:path';
+import { env } from './env';
+
+export interface AppConfig {
+  botToken: string;
+  nodeEnv: 'development' | 'production' | 'test';
+  logLevel: string;
+  templatesDir: string;
+  outputDir: string;
+  libreofficeBin: string;
+  payment: {
+    amount: number;
+    webhookPort: number;
+  };
+  click: {
+    testMode: boolean;
+    serviceId: string;
+    merchantId: string;
+    secretKey: string;
+    returnUrl: string;
+  };
+  payme: {
+    testMode: boolean;
+    merchantId: string;
+    key: string;
+    returnUrl: string;
+  };
+  publicBaseUrl: string;
+  botUsername: string;
+  /** Display name pushed via setMyName at startup. */
+  botDisplayName: string;
+  /** Telegram username for the support button (no leading "@"), or "". */
+  supportContact: string;
+  /** Telegram user IDs allowed into the admin panel. */
+  adminChatIds: number[];
+  ai: {
+    /** When empty, AI-assist UI is disabled. */
+    apiKey: string;
+    model: string;
+  };
+}
+
+export const config: AppConfig = {
+  botToken: env.BOT_TOKEN,
+  nodeEnv: env.NODE_ENV,
+  logLevel: env.LOG_LEVEL,
+  templatesDir: path.resolve(env.TEMPLATES_DIR),
+  outputDir: path.resolve(env.OUTPUT_DIR),
+  libreofficeBin: env.LIBREOFFICE_BIN,
+  payment: {
+    amount: env.PAYMENT_AMOUNT,
+    webhookPort: env.PAYMENT_WEBHOOK_PORT,
+  },
+  click: {
+    testMode: env.CLICK_TEST_MODE,
+    serviceId: env.CLICK_SERVICE_ID,
+    merchantId: env.CLICK_MERCHANT_ID,
+    secretKey: env.CLICK_SECRET_KEY,
+    returnUrl: env.CLICK_RETURN_URL,
+  },
+  payme: {
+    testMode: env.PAYME_TEST_MODE,
+    merchantId: env.PAYME_MERCHANT_ID,
+    key: env.PAYME_KEY,
+    returnUrl: env.PAYME_RETURN_URL,
+  },
+  publicBaseUrl: env.PUBLIC_BASE_URL.replace(/\/+$/, ''),
+  botUsername: env.BOT_USERNAME,
+  botDisplayName: env.BOT_DISPLAY_NAME,
+  supportContact: env.SUPPORT_CONTACT.trim().replace(/^@/, ''),
+  adminChatIds: env.ADMIN_CHAT_IDS.split(',')
+    .map((s) => s.trim())
+    .filter((s) => /^\d+$/.test(s))
+    .map((s) => Number(s)),
+  ai: {
+    apiKey: env.ANTHROPIC_API_KEY,
+    model: env.ANTHROPIC_MODEL,
+  },
+};

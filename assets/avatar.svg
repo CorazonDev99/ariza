@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ArizaPro bot avatar - 640x640 SVG.
+  Concept: white document with content lines + green checkmark on a deep
+  blue gradient background. Reads clearly at 40x40 in the chat list.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="640" height="640">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E40AF"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="14" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <rect width="640" height="640" rx="140" ry="140" fill="url(#bg)"/>
+
+  <g filter="url(#shadow)">
+    <path d="M170,130 L380,130 L470,220 L470,520 L170,520 Z" fill="white"/>
+    <path d="M380,130 L380,220 L470,220 Z" fill="#E0E7FF"/>
+    <path d="M380,130 L470,220" stroke="#C7D2FE" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <rect x="200" y="245" width="170" height="18" rx="5" fill="#3B82F6"/>
+  <rect x="200" y="285" width="240" height="11" rx="4" fill="#CBD5E1"/>
+  <rect x="200" y="310" width="220" height="11" rx="4" fill="#CBD5E1"/>
+  <rect x="200" y="335" width="240" height="11" rx="4" fill="#CBD5E1"/>
+  <rect x="200" y="360" width="180" height="11" rx="4" fill="#CBD5E1"/>
+  <rect x="200" y="385" width="230" height="11" rx="4" fill="#CBD5E1"/>
+
+  <g transform="translate(370, 390)">
+    <circle cx="70" cy="70" r="70" fill="#10B981" stroke="white" stroke-width="8"/>
+    <path d="M35,72 L60,98 L106,46" stroke="white" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>
