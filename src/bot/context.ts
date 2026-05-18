@@ -7,10 +7,36 @@ export interface SessionData extends Scenes.SceneSession<SceneSessionData> {
   /** Set by `/start tpl_<code>` deep-link, consumed by the wizard scene
    *  to skip the template picker. */
   pendingTemplateCode?: string;
+  /** Scratchpad for the "📖 Қўлланма" guide flow's multi-step picker
+   *  (court type → region → district → template). Lives outside the
+   *  scene because the guide doesn't enter the wizard scene until the
+   *  user clicks "Start filling". When that happens it's copied into
+   *  `pendingPicker` so the wizard can skip its own picker steps. */
+  guidePicker?: {
+    courtTypeCode?: string;
+    regionCode?: string;
+    districtCourtCode?: string;
+  };
+  /** Set when the user enters the wizard from a fully-picked guide
+   *  flow — tells `scene.enter` to skip court/region/district pickers
+   *  and start the field wizard immediately. Cleared on first read. */
+  pendingPicker?: {
+    courtTypeCode: string;
+    regionCode: string;
+    districtCourtCode: string;
+  };
 }
 
 export interface SceneSessionData extends Scenes.SceneSessionData {
   state?: WizardState;
+  /** Scratchpad for the multi-step entry pickers (court type → region →
+   *  district) BEFORE a template is chosen. Once the user picks a
+   *  template, these are copied into the persistent `WizardState`. */
+  picker?: {
+    courtTypeCode?: string;
+    regionCode?: string;
+    districtCourtCode?: string;
+  };
 }
 
 export interface BotContext extends Context {

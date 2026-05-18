@@ -13,6 +13,105 @@ import type { DocxService } from './docx.service';
 import type { PdfService } from './pdf.service';
 import type { TemplateService } from './template.service';
 
+/**
+ * Split a user-typed single-line address into two visual lines for the
+ * .docx template. Prefers breaking right after a "MFY" / "МФЙ" / "махалля"
+ * keyword (so part 1 = locality, part 2 = street/house); otherwise
+ * splits at the comma closest to the midpoint.
+ */
+export function splitAddressForDoc(addr: string): {
+  line1: string;
+  line2: string;
+} {
+  const trimmed = addr.trim();
+  if (!trimmed) return { line1: '', line2: '' };
+
+  // Keyword-based split — most reliable when present.
+  const kw = /^([\s\S]*?(?:MFY|МФЙ|махалл[аи]|МФЙи))\s*,\s*([\s\S]+)$/iu.exec(
+    trimmed,
+  );
+  if (kw) return { line1: kw[1]!.trim(), line2: kw[2]!.trim() };
+
+  // Fallback — split at the comma closest to the string midpoint so
+  // both halves end up roughly the same length.
+  const parts = trimmed.split(/\s*,\s*/);
+  if (parts.length < 2) return { line1: trimmed, line2: '' };
+  const mid = Math.ceil(parts.length / 2);
+  return {
+    line1: parts.slice(0, mid).join(', '),
+    line2: parts.slice(mid).join(', '),
+  };
+}
+
+/**
+ * Build the children-block sentence inserted as a single paragraph in
+ * the .docx output. Single-child case matches the sample form's wording
+ * ("Биргаликдаги турмушимиздан 1 нафар <DOB> туғилган <name> исмли
+ * фарзандим бор."). Multi-child case enumerates with "1) ...; 2) ...".
+ */
+function buildChildrenBlock(
+  values: Record<string, string>,
+  locale: Locale,
+): string {
+  type Child = { name: string; y?: string; m?: string; d?: string };
+  // Trust `children_count` as the authoritative number. Skipped child
+  // fields are filled with "—" by the wizard's skipIf logic; we must not
+  // include those in the rendered block.
+  const declared = Number(values.children_count ?? '0');
+  if (!Number.isFinite(declared) || declared <= 0) return '';
+  const kids: Child[] = [];
+  for (let i = 1; i <= declared && i <= 6; i++) {
+    const name = values[`child${i}_name`];
+    if (!name || name === '—' || /^_+$/.test(name)) continue;
+    kids.push({
+      name,
+      y: values[`child${i}_dob_year`],
+      m: values[`child${i}_dob_month`],
+      d: values[`child${i}_dob_day`],
+    });
+  }
+  if (kids.length === 0) return '';
+
+  const count = String(kids.length);
+
+  const dob = (k: Child): string => {
+    if (!k.y || !k.m || !k.d) return '';
+    switch (locale) {
+      case 'uz_cyrillic':
+        return `${k.y} йил ${k.m} ойининг ${k.d} кунида туғилган`;
+      case 'uz_latin':
+        return `${k.y} yil ${k.m} oyining ${k.d} kunida tug‘ilgan`;
+      case 'ru':
+        return `${k.d} ${k.m} ${k.y} года рождения`;
+    }
+  };
+
+  if (kids.length === 1) {
+    const k = kids[0]!;
+    const d = dob(k);
+    switch (locale) {
+      case 'uz_cyrillic':
+        return `Биргаликдаги турмушимиздан ${count} нафар ${d} ${k.name} исмли фарзандим бор.`;
+      case 'uz_latin':
+        return `Birgalikdagi turmushimizdan ${count} nafar ${d} ${k.name} ismli farzandim bor.`;
+      case 'ru':
+        return `От совместной жизни имеется ${count} ребёнок — ${k.name}, ${d}.`;
+    }
+  }
+
+  const list = kids
+    .map((k, i) => `${i + 1}) ${k.name}${dob(k) ? ', ' + dob(k) : ''}`)
+    .join('; ');
+  switch (locale) {
+    case 'uz_cyrillic':
+      return `Биргаликдаги турмушимиздан ${count} нафар фарзандларимиз бор: ${list}.`;
+    case 'uz_latin':
+      return `Birgalikdagi turmushimizdan ${count} nafar farzandlarimiz bor: ${list}.`;
+    case 'ru':
+      return `От совместной жизни имеется ${count} детей: ${list}.`;
+  }
+}
+
 export interface BuildDocumentInput {
   userId: number;
   templateDbId: number;
@@ -66,6 +165,37 @@ export class DocumentService {
       }
     }
 
+    // Split each single-line address into two `_line1` / `_line2`
+    // sub-keys so the .docx template can render the address on two
+    // visual lines (matches the printable form layout). Split point is
+    // the comma after a "MFY" / "МФЙ" / "махалля" keyword; if no such
+    // keyword is found, splits at the middle comma.
+    for (const base of ['collector', 'debtor', 'plaintiff', 'defendant']) {
+      const addr = input.values[`${base}_address`];
+      if (!addr) continue;
+      const { line1, line2 } = splitAddressForDoc(addr);
+      data[`${base}_address_line1`] = line1;
+      data[`${base}_address_line2`] = line2;
+    }
+
+    // Build the single combined `children_block` paragraph used by the
+    // .docx templates. Matches the sample form's wording for 1 child and
+    // enumerates for 2+. Legacy `children_names` / `children_birth_date`
+    // are still produced for older templates that haven't been migrated.
+    data.children_block = buildChildrenBlock(input.values, input.locale);
+    const declared = Number(input.values.children_count ?? '0');
+    const childNames: string[] = [];
+    const childDobs: string[] = [];
+    for (let i = 1; i <= declared && i <= 6; i++) {
+      const name = input.values[`child${i}_name`];
+      const dob = input.values[`child${i}_dob`];
+      if (!name || name === '—' || /^_+$/.test(name)) continue;
+      childNames.push(`${i}. ${name}`);
+      if (dob && dob !== '—') childDobs.push(`${name} — ${dob}`);
+    }
+    if (childNames.length) data.children_names = childNames.join('\n');
+    if (childDobs.length) data.children_birth_date = childDobs.join('; ');
+
     const downloadToken = crypto.randomBytes(16).toString('hex');
     const downloadUrl = buildDownloadUrl(downloadToken);
     const qrPng = await generateQrPng(downloadUrl);
@@ -77,10 +207,12 @@ export class DocumentService {
     );
     const docxPath = path.join(config.outputDir, `${fileBase}.docx`);
 
+    // QR is no longer embedded in the document — it's sent only as a
+    // separate photo message after the file. `qrPng` is still returned
+    // in BuildDocumentResult for that purpose.
     await this.docx.generate({
       templatePath,
       data,
-      images: { qr_code: qrPng },
       outputPath: docxPath,
     });
 

@@ -38,6 +38,13 @@ export interface AppConfig {
     apiKey: string;
     model: string;
   };
+  transcribe: {
+    /** When empty, voice messages in the wizard are silently ignored. */
+    apiKey: string;
+    /** Base URL of an OpenAI-compatible Audio API. */
+    baseUrl: string;
+    model: string;
+  };
 }
 
 export const config: AppConfig = {
@@ -75,5 +82,10 @@ export const config: AppConfig = {
   ai: {
     apiKey: env.ANTHROPIC_API_KEY,
     model: env.ANTHROPIC_MODEL,
+  },
+  transcribe: {
+    apiKey: env.OPENAI_API_KEY,
+    baseUrl: env.OPENAI_BASE_URL,
+    model: env.OPENAI_TRANSCRIBE_MODEL,
   },
 };

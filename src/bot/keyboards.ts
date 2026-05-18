@@ -2,6 +2,8 @@ import { Markup } from 'telegraf';
 import { LOCALE_META, LOCALES, t, type Locale } from '../i18n';
 import type { TemplateDef } from '../types';
 import type { RegionDef } from '../templates/regions';
+import type { CourtTypeDef } from '../templates/court-types';
+import type { DistrictCourtDef } from '../templates/district-courts';
 
 export function mainMenu(locale: Locale) {
   return Markup.keyboard([
@@ -48,6 +50,20 @@ export function templatesInline(
     ...templates.map((tpl) => [
       Markup.button.callback(tpl.title[locale], `tmpl:${tpl.code}`),
     ]),
+    [Markup.button.callback(t(locale, 'tmpl.back'), 'back-districts')],
+  ]);
+}
+
+/**
+ * Inline keyboard for the court-type picker — first step in the multi-
+ * step "submit an application" flow. One row per type so long Cyrillic
+ * labels don't get truncated.
+ */
+export function courtTypesInline(locale: Locale, types: CourtTypeDef[]) {
+  return Markup.inlineKeyboard([
+    ...types.map((c) => [
+      Markup.button.callback(c.label[locale], `ct:${c.code}`),
+    ]),
     [Markup.button.callback(t(locale, 'btn.main_menu'), 'wiz-exit')],
   ]);
 }
@@ -64,8 +80,25 @@ export function regionsInline(locale: Locale, regions: RegionDef[]) {
     if (next) row.push(Markup.button.callback(next.label[locale], `region:${next.code}`));
     rows.push(row);
   }
-  rows.push([Markup.button.callback(t(locale, 'region.back'), 'back-tmpls')]);
+  rows.push([Markup.button.callback(t(locale, 'region.back'), 'back-courts')]);
   return Markup.inlineKeyboard(rows);
+}
+
+/**
+ * Inline keyboard listing district courts within the selected region.
+ * Court names can be long (e.g. "Andijon tumanlararo fuqarolik sudi"),
+ * so each court gets its own row — two columns would truncate badly.
+ */
+export function districtCourtsInline(
+  locale: Locale,
+  courts: DistrictCourtDef[],
+) {
+  return Markup.inlineKeyboard([
+    ...courts.map((c) => [
+      Markup.button.callback(c.name[locale], `dc:${c.code}`),
+    ]),
+    [Markup.button.callback(t(locale, 'district.back'), 'back-regions')],
+  ]);
 }
 
 export function previewInline(locale: Locale) {
@@ -343,7 +376,9 @@ export function detectMenuAction(text: string): MenuAction | null {
   return null;
 }
 
-/** Inline keyboard: list of template choices for the "📖 Guide" flow. */
+/** Inline keyboard: list of template choices shown at the LAST step of
+ *  the guide picker (after the user picked court type → region →
+ *  district). Back button returns to the district picker. */
 export function instructionsListInline(
   locale: Locale,
   templates: TemplateDef[],
@@ -352,7 +387,7 @@ export function instructionsListInline(
     ...templates.map((tpl) => [
       Markup.button.callback(tpl.title[locale], `inst:${tpl.code}`),
     ]),
-    [Markup.button.callback(t(locale, 'btn.main_menu'), 'inst:close')],
+    [Markup.button.callback(t(locale, 'tmpl.back'), 'g-back-districts')],
   ]);
 }
 
@@ -361,6 +396,45 @@ export function instructionsDetailInline(locale: Locale, code: string) {
   return Markup.inlineKeyboard([
     [Markup.button.callback(t(locale, 'instructions.start_btn'), `inst-start:${code}`)],
     [Markup.button.callback(t(locale, 'instructions.back_btn'), 'inst-back')],
+  ]);
+}
+
+// =====================================================================
+// 📖 Guide flow: multi-step picker that mirrors the wizard's entry but
+// leads to instruction text (not field collection). Uses `g-` prefixes
+// to keep callbacks distinct from the wizard scene's `ct:`/`region:`/`dc:`.
+// =====================================================================
+
+export function guideCourtTypesInline(locale: Locale, types: CourtTypeDef[]) {
+  return Markup.inlineKeyboard([
+    ...types.map((c) => [
+      Markup.button.callback(c.label[locale], `g-ct:${c.code}`),
+    ]),
+    [Markup.button.callback(t(locale, 'btn.main_menu'), 'inst:close')],
+  ]);
+}
+
+export function guideRegionsInline(locale: Locale, regions: RegionDef[]) {
+  const rows: ReturnType<typeof Markup.button.callback>[][] = [];
+  for (let i = 0; i < regions.length; i += 2) {
+    const row = [Markup.button.callback(regions[i]!.label[locale], `g-region:${regions[i]!.code}`)];
+    const next = regions[i + 1];
+    if (next) row.push(Markup.button.callback(next.label[locale], `g-region:${next.code}`));
+    rows.push(row);
+  }
+  rows.push([Markup.button.callback(t(locale, 'region.back'), 'g-back-courts')]);
+  return Markup.inlineKeyboard(rows);
+}
+
+export function guideDistrictCourtsInline(
+  locale: Locale,
+  courts: DistrictCourtDef[],
+) {
+  return Markup.inlineKeyboard([
+    ...courts.map((c) => [
+      Markup.button.callback(c.name[locale], `g-dc:${c.code}`),
+    ]),
+    [Markup.button.callback(t(locale, 'district.back'), 'g-back-regions')],
   ]);
 }
 

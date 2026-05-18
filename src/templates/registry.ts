@@ -33,11 +33,12 @@ const F = {
     key,
     validator: 'address',
     multiline: true,
+    hintCopyable: true,
     label,
     hint: L(
-      'Шаҳар, туман, МФЙ, кўча, уй',
-      "Shahar, tuman, MFY, ko‘cha, uy",
-      'Город, район, махалля, улица, дом',
+      'Тошкент ш., Юнусобод т., Амир Темур МФЙ, Шарқ кўчаси, 12-уй',
+      "Toshkent sh., Yunusobod t., Amir Temur MFY, Sharq ko‘chasi, 12-uy",
+      'г. Ташкент, Юнусабадский р-н, МФЙ Амир Темур, ул. Шарк, дом 12',
     ),
   }),
   money: (key: string, label: Record<Locale, string>): FieldDef => ({
@@ -127,6 +128,50 @@ const F = {
   }),
 };
 
+/**
+ * Per-child name + date-of-birth fields. The wizard asks them one by one
+ * for as many children as `children_count` indicates (capped at MAX_KIDS).
+ * Document.service aggregates them into the legacy `children_names` and
+ * `children_birth_date` placeholders used by the .docx templates.
+ */
+const MAX_KIDS = 5;
+function childFields(): FieldDef[] {
+  const out: FieldDef[] = [];
+  for (let i = 1; i <= MAX_KIDS; i++) {
+    const idx = i;
+    out.push({
+      key: `child${idx}_name`,
+      validator: 'fio',
+      label: L(
+        `👶 ${idx}-фарзанд Ф.И.Ш.`,
+        `👶 ${idx}-farzand F.I.SH.`,
+        `👶 Ребёнок ${idx}: Ф.И.О.`,
+      ),
+      skipIf: (v) => Number(v.children_count ?? '0') < idx,
+    });
+    out.push({
+      key: `child${idx}_dob`,
+      validator: 'date',
+      // Also split into year/month/day sub-keys so the docx templates can
+      // render "<year> йил <month> ойининг <day> кунида туғилган" with the
+      // single-child case from the sample form.
+      splitDate: {
+        yearKey: `child${idx}_dob_year`,
+        monthKey: `child${idx}_dob_month`,
+        dayKey: `child${idx}_dob_day`,
+      },
+      label: L(
+        `🍼 ${idx}-фарзанд туғилган сана`,
+        `🍼 ${idx}-farzand tug‘ilgan sana`,
+        `🍼 Ребёнок ${idx}: дата рождения`,
+      ),
+      hint: L('Масалан: 12.05.2018', 'Masalan: 12.05.2018', 'Например: 12.05.2018'),
+      skipIf: (v) => Number(v.children_count ?? '0') < idx,
+    });
+  }
+  return out;
+}
+
 /* ============================================================ */
 /* 1. Алимент ундириш (суд буйруғи учун) */
 const T_ARIZA_ALIMENT: TemplateDef = {
@@ -156,21 +201,18 @@ const T_ARIZA_ALIMENT: TemplateDef = {
     F.fio('debtor_fio', L('👤 Қарздор Ф.И.Ш.', '👤 Qarzdor F.I.SH.', '👤 Должник (Ф.И.О.)')),
     F.address('debtor_address', L('🏠 Қарздор манзили', '🏠 Qarzdor manzili', '🏠 Адрес должника')),
     F.phone('debtor_phone', L('📱 Қарздор телефон', '📱 Qarzdor telefon', '📱 Телефон должника')),
-    F.date('marriage_date', L('💒 Никоҳ санаси', '💒 Nikoh sanasi', '💒 Дата брака')),
+    F.splitDate('marriage_date', L('💒 Никоҳ санаси', '💒 Nikoh sanasi', '💒 Дата брака'), {
+      yearKey: 'marriage_year', monthKey: 'marriage_month', dayKey: 'marriage_day',
+    }),
     F.num('children_count', L('👶 Фарзандлар сони', "👶 Farzandlar soni", '👶 Количество детей')),
+    ...childFields(),
     {
-      ...F.date('children_birth_date', L('🍼 Фарзанд(лар) туғилган сана', "🍼 Farzand(lar) tug‘ilgan sana", '🍼 Дата рождения детей')),
-      skipIf: (v) => v.children_count === '0',
+      key: 'separation_date',
+      validator: 'year-month',
+      splitYearMonth: { yearKey: 'separation_year', monthKey: 'separation_month' },
+      label: L('💔 Қачондан буён бирга яшамаяпсиз', "💔 Qachondan buyon birga yashamayapsiz", '💔 С какого момента живёте отдельно'),
+      hint: L('Календардан йил ва ойни танланг', 'Kalendardan yil va oyni tanlang', 'Выберите год и месяц из календаря'),
     },
-    {
-      ...F.multiline('children_names',
-        L('👨‍👩‍👧 Фарзанд(лар)нинг Ф.И.Ш.', "👨‍👩‍👧 Farzand(lar)ning F.I.SH.", '👨‍👩‍👧 Ф.И.О. детей'),
-      ),
-      skipIf: (v) => v.children_count === '0',
-    },
-    F.text('separation_date',
-      L('💔 Қачондан буён бирга яшамаяпсиз', "💔 Qachondan buyon birga yashamayapsiz", '💔 С какого момента живёте отдельно'),
-    ),
   ],
 };
 
@@ -203,23 +245,18 @@ const T_YOSHGACHA: TemplateDef = {
     F.fio('defendant_fio', L('👤 Жавобгар Ф.И.Ш.', '👤 Javobgar F.I.SH.', '👤 Ответчик (Ф.И.О.)')),
     F.address('defendant_address', L('🏠 Жавобгар манзили', '🏠 Javobgar manzili', '🏠 Адрес ответчика')),
     F.phone('defendant_phone', L('📱 Жавобгар телефон', '📱 Javobgar telefon', '📱 Телефон ответчика')),
-    F.date('marriage_date', L('💒 Никоҳ санаси', "💒 Nikoh sanasi", '💒 Дата брака')),
+    F.splitDate('marriage_date', L('💒 Никоҳ санаси', "💒 Nikoh sanasi", '💒 Дата брака'), {
+      yearKey: 'marriage_year', monthKey: 'marriage_month', dayKey: 'marriage_day',
+    }),
     F.num('children_count', L('👶 Фарзандлар сони', "👶 Farzandlar soni", '👶 Количество детей')),
+    ...childFields(),
     {
-      ...F.date('children_birth_date', L('🍼 Фарзанд(лар) туғилган сана', "🍼 Farzand(lar) tug‘ilgan sana", '🍼 Дата рождения детей')),
-      skipIf: (v) => v.children_count === '0',
+      key: 'separation_date',
+      validator: 'year-month',
+      splitYearMonth: { yearKey: 'separation_year', monthKey: 'separation_month' },
+      label: L('💔 Қачондан буён бирга яшамаяпсиз', "💔 Qachondan buyon birga yashamayapsiz", '💔 С какого момента живёте отдельно'),
+      hint: L('Календардан йил ва ойни танланг', 'Kalendardan yil va oyni tanlang', 'Выберите год и месяц из календаря'),
     },
-    {
-      ...F.multiline('children_names',
-        L('👨‍👩‍👧 Фарзанд(лар)нинг Ф.И.Ш.', "👨‍👩‍👧 Farzand(lar)ning F.I.SH.", '👨‍👩‍👧 Ф.И.О. детей'),
-        L('Ҳар бирини янги қаторда', "Har birini yangi qatorda", 'Каждый с новой строки'),
-      ),
-      skipIf: (v) => v.children_count === '0',
-    },
-    F.text('separation_date',
-      L('💔 Қачондан буён бирга яшамаяпсиз', "💔 Qachondan buyon birga yashamayapsiz", '💔 С какого момента живёте отдельно'),
-      L('Масалан: 2024 йил январ', "Masalan: 2024 yil yanvar", 'Например: январь 2024'),
-    ),
     F.money('amount', L('💰 Талаб қилинаётган миқдор (сўмда)', "💰 Talab qilinayotgan miqdor (so‘mda)", '💰 Запрашиваемая сумма (в сумах)')),
   ],
 };
@@ -253,12 +290,14 @@ const T_ETIROZ: TemplateDef = {
       L('Масалан: А.А. Каримов', 'Masalan: A.A. Karimov', 'Например: А.А. Каримов'),
     ),
     F.address('plaintiff_address', L('🏠 Аризачи манзили', '🏠 Arizachi manzili', '🏠 Адрес заявителя')),
+    F.phone('plaintiff_phone', L('📱 Аризачи телефон', '📱 Arizachi telefon', '📱 Телефон заявителя')),
     F.splitDate(
       'order_date',
       L('📅 Суд буйруғи санаси', "📅 Sud buyrug‘i sanasi", '📅 Дата судебного приказа'),
       { yearKey: 'order_year', monthKey: 'order_month', dayKey: 'order_day' },
     ),
-    F.orderNum('order_number', L('🔢 Суд буйруғи рақами', "🔢 Sud buyrug‘i raqami", '🔢 Номер приказа')),
+    // order_number is intentionally not asked — left blank in the document
+    // so the user can fill the number by hand on the printed form.
     F.text('creditor_name',
       L('🏪 Ундирувчи (савдо дўкони)', "🏪 Undiruvchi (savdo do‘koni)", '🏪 Взыскатель (магазин)'),
       L('Масалан: "ХАЙРИЯТ" савдо дўкони', "Masalan: «XAYRIYAT» savdo do‘koni", 'Например: «ХАЙРИЯТ» магазин'),
@@ -268,10 +307,8 @@ const T_ETIROZ: TemplateDef = {
       L('📅 Хабар топган санангиз', "📅 Xabar topgan sanangiz", '📅 Дата, когда узнали'),
       { monthKey: 'learned_month', dayKey: 'learned_day' },
     ),
-    F.multiline('objection_reasons',
-      L('📝 Эътироз сабаблари', "📝 E'tiroz sabablari", '📝 Причины возражения'),
-      L('Нима учун буйруғга қаршисиз', "Nima uchun buyruqqa qarshisiz", 'Почему вы против приказа'),
-    ),
+    // objection_reasons is intentionally not asked — two blank lines are
+    // rendered in the document for the user to write reasons by hand.
   ],
 };
 
@@ -306,11 +343,15 @@ const T_KAMAYTIRISH: TemplateDef = {
     F.phone('defendant_phone', L('📱 Жавобгар телефон', '📱 Javobgar telefon', '📱 Телефон ответчика')),
     F.fio('first_spouse_fio', L('💍 Биринчи турмуш ўртоғи Ф.И.Ш.', "💍 Birinchi turmush o‘rtog‘i F.I.SH.", '💍 Первый супруг(а) (Ф.И.О.)')),
     F.num('first_children_count', L('👶 Биринчи никоҳдан фарзандлар сони', "👶 Birinchi nikohdan farzandlar soni", '👶 Детей от первого брака')),
-    F.date('first_order_date', L('📅 Биринчи суд буйруғи санаси', "📅 Birinchi sud buyrug‘i sanasi", '📅 Дата первого приказа')),
+    F.splitDate('first_order_date', L('📅 Биринчи суд буйруғи санаси', "📅 Birinchi sud buyrug‘i sanasi", '📅 Дата первого приказа'), {
+      yearKey: 'first_order_year', monthKey: 'first_order_month', dayKey: 'first_order_day',
+    }),
     F.share('first_alimony_share', L('📊 Биринчи буйруғ улуши', "📊 Birinchi buyruq ulushi", '📊 Доля по первому приказу')),
     F.fio('second_spouse_fio', L('💍 Иккинчи турмуш ўртоғи Ф.И.Ш.', "💍 Ikkinchi turmush o‘rtog‘i F.I.SH.", '💍 Второй супруг(а) (Ф.И.О.)')),
     F.num('second_children_count', L('👶 Иккинчи никоҳдан фарзандлар сони', "👶 Ikkinchi nikohdan farzandlar soni", '👶 Детей от второго брака')),
-    F.date('second_order_date', L('📅 Иккинчи суд буйруғи санаси', "📅 Ikkinchi sud buyrug‘i sanasi", '📅 Дата второго приказа')),
+    F.splitDate('second_order_date', L('📅 Иккинчи суд буйруғи санаси', "📅 Ikkinchi sud buyrug‘i sanasi", '📅 Дата второго приказа'), {
+      yearKey: 'second_order_year', monthKey: 'second_order_month', dayKey: 'second_order_day',
+    }),
     F.share('second_alimony_share', L('📊 Иккинчи буйруғ улуши', "📊 Ikkinchi buyruq ulushi", '📊 Доля по второму приказу')),
     F.num('total_children_count', L('👨‍👩‍👧‍👦 Жами фарзандлар сони', "👨‍👩‍👧‍👦 Jami farzandlar soni", '👨‍👩‍👧‍👦 Всего детей')),
   ],

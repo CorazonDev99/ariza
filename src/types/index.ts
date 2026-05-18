@@ -15,6 +15,10 @@ export interface FieldDef extends LocalizedField {
   validator: ValidatorKind;
   defaultValue?: string;
   multiline?: boolean;
+  /** When true, the hint is rendered inside a Telegram `<code>` block
+   *  so the user can tap to copy it (then paste & edit). Useful for
+   *  fields whose hint is a sample value (e.g. address). */
+  hintCopyable?: boolean;
   /**
    * Skip this field if predicate returns true given values
    * already collected. Useful for "no children" branches.
@@ -37,6 +41,16 @@ export interface FieldDef extends LocalizedField {
     yearKey?: string;
     monthKey: string;
     dayKey: string;
+  };
+  /**
+   * For `year-month` fields, optionally write the picked year and month
+   * into two separate value keys (in addition to the combined display
+   * string under `f.key`). Lets templates use `{{separation_year}}` and
+   * `{{separation_month}}` instead of one inline placeholder.
+   */
+  splitYearMonth?: {
+    yearKey: string;
+    monthKey: string;
   };
 }
 
@@ -63,8 +77,14 @@ export interface TemplateDef {
 export interface WizardState {
   templateCode: string;
   templateDbId: number;
+  /** Court type chosen at the very first step of the multi-step flow
+   *  (see `templates/court-types.ts`). */
+  courtTypeCode?: string;
   /** Selected region code (see `templates/regions.ts`). */
   regionCode?: string;
+  /** Selected district / interdistrict court (see `templates/district-courts.ts`).
+   *  Its name is also written into `values.court_name` for the document. */
+  districtCourtCode?: string;
   currentFieldIndex: number;
   values: Record<string, string>;
   status: 'collecting' | 'preview' | 'awaiting_payment' | 'done';

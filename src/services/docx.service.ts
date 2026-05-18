@@ -52,7 +52,7 @@ export class DocxService {
             `Image tag value is not a Buffer: ${typeof tagValue}`,
           );
         },
-        getSize: (): [number, number] => [180, 180],
+        getSize: (): [number, number] => [70, 70],
       });
 
       const doc = new Docxtemplater(zip, {

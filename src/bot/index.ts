@@ -14,6 +14,7 @@ import { DocumentService } from '../services/document.service';
 import { PaymentService } from '../services/payment.service';
 import { BroadcastService } from '../services/broadcast.service';
 import { AiAssistService } from '../services/ai-assist.service';
+import { TranscriptionService } from '../services/transcription.service';
 import { AdminRepository } from '../repositories/admin.repository';
 import { buildArizaWizardScene, buildBroadcastScene } from '../scenes';
 import { registerCommands } from './commands';
@@ -53,6 +54,17 @@ export function createBot(): BotBundle {
   if (aiAssist.isEnabled()) {
     logger.info({ model: config.ai.model }, 'AI-assist enabled');
   }
+  const transcription = new TranscriptionService(
+    config.transcribe.apiKey,
+    config.transcribe.baseUrl,
+    config.transcribe.model,
+  );
+  if (transcription.isEnabled()) {
+    logger.info(
+      { baseUrl: config.transcribe.baseUrl, model: config.transcribe.model },
+      'Voice transcription enabled',
+    );
+  }
 
   const bot = new Telegraf<BotContext>(config.botToken);
 
@@ -69,6 +81,7 @@ export function createBot(): BotBundle {
     draftRepo,
     paymentService,
     aiAssist,
+    transcription,
   });
   const broadcastScene = buildBroadcastScene({
     broadcast: broadcastService,

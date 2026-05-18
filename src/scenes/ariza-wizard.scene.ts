@@ -5,12 +5,18 @@ import type { DraftRepository } from '../repositories/draft.repository';
 import type { TemplateRepository } from '../repositories/template.repository';
 import type { PaymentService } from '../services/payment.service';
 import type { AiAssistService } from '../services/ai-assist.service';
+import type { TranscriptionService } from '../services/transcription.service';
 import type { BotContext } from '../bot/context';
 import {
   TEMPLATES,
   getTemplateByCode,
 } from '../templates/registry';
 import { REGIONS, getRegionByCode } from '../templates/regions';
+import { COURT_TYPES, getCourtTypeByCode } from '../templates/court-types';
+import {
+  getDistrictCourtByCode,
+  getDistrictCourtsFor,
+} from '../templates/district-courts';
 import { t } from '../i18n';
 import type { FieldDef, WizardState } from '../types';
 import {
@@ -18,8 +24,10 @@ import {
   aiAssistRewrittenInline,
   calendarInline,
   calendarYearInline,
+  courtTypesInline,
   dayPickerInline,
   detectMenuAction,
+  districtCourtsInline,
   formatAmount,
   mainMenu,
   monthPickerInline,
@@ -45,6 +53,7 @@ interface WizardDeps {
   draftRepo: DraftRepository;
   paymentService: PaymentService;
   aiAssist: AiAssistService;
+  transcription: TranscriptionService;
 }
 
 export function buildArizaWizardScene(
@@ -111,24 +120,6 @@ export function buildArizaWizardScene(
       .replace(/>/g, '&gt;');
   }
 
-  // Field keys where the value is the *user's own* FIO — for those we can
-  // offer a one-tap prefill from their Telegram profile.
-  const SELF_FIO_KEYS = new Set<string>([
-    'collector_fio',     // взыскатель (#1)
-    'plaintiff_fio',     // истец/заявитель (#2 #3 #4)
-  ]);
-
-  function buildFioFromTelegram(ctx: BotContext): string | null {
-    const first = (ctx.from?.first_name ?? '').trim();
-    const last = (ctx.from?.last_name ?? '').trim();
-    const full = [last, first].filter(Boolean).join(' ').trim();
-    // Validator requires 5+ chars and letters only — be cautious about
-    // Telegram first names that are emoji-only or single Latin letters.
-    if (full.length < 5) return null;
-    if (!/^[A-Za-zА-Яа-яЁёҚқҲҳҒғ\s.\-‘'ʼ’]+$/u.test(full)) return null;
-    return full;
-  }
-
   // ----------- rendering -----------
 
   async function renderField(ctx: BotContext): Promise<void> {
@@ -166,37 +157,35 @@ export function buildArizaWizardScene(
       total: visibleTotal,
     });
     const label = `<b>${escapeHtml(f.label[ctx.locale])}</b>`;
-    const hint = f.hint?.[ctx.locale]
-      ? `\n💡 <i>${escapeHtml(f.hint[ctx.locale])}</i>`
+    const hintText = f.hint?.[ctx.locale];
+    const hint = hintText
+      ? f.hintCopyable
+        ? `\n💡 <code>${escapeHtml(hintText)}</code>`
+        : `\n💡 <i>${escapeHtml(hintText)}</i>`
       : '';
     const dft = f.defaultValue
       ? `\n${t(ctx.locale, 'wiz.use-default')}`
       : '';
 
+    // Free-form fields accept a voice message — Whisper turns it into
+    // text and runs the same validation pipe. Only show the hint when
+    // transcription is actually configured AND the field is a kind
+    // where voice is a sensible alternative to typing.
+    const voiceField =
+      f.validator === 'multiline' ||
+      f.validator === 'text' ||
+      f.validator === 'fio' ||
+      f.validator === 'address';
+    const voiceHint =
+      voiceField && deps.transcription.isEnabled()
+        ? `\n${t(ctx.locale, 'wiz.voice.hint')}`
+        : '';
+
     // First send the question + reply keyboard (Back/Cancel always available).
     await ctx.reply(
-      `${progress}\n\n${label}${hint}${dft}`,
+      `${progress}\n\n${label}${hint}${dft}${voiceHint}`,
       { parse_mode: 'HTML', ...wizardMenu(ctx.locale) },
     );
-
-    // For the user's own FIO fields, offer a one-tap prefill from Telegram.
-    if (f.validator === 'fio' && SELF_FIO_KEYS.has(f.key)) {
-      const fio = buildFioFromTelegram(ctx);
-      if (fio) {
-        await ctx.reply(t(ctx.locale, 'prefill.fio.hint'), {
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: t(ctx.locale, 'prefill.fio.btn', { name: fio }),
-                  callback_data: 'prefill:fio',
-                },
-              ],
-            ],
-          },
-        });
-      }
-    }
 
     // For date fields (including composite splitDate) — show real
     // month-view calendar. Typing still works (text handler validates).
@@ -216,7 +205,7 @@ export function buildArizaWizardScene(
       state.calendarPicker.messageId = sent.message_id;
       setState(ctx, state);
       await persist(ctx);
-    } else if (f.validator === 'year') {
+    } else if (f.validator === 'year' || f.validator === 'year-month') {
       await ctx.reply(t(ctx.locale, 'dp.year.pick'), {
         ...yearPickerInline(ctx.locale, 0),
       });
@@ -253,27 +242,153 @@ export function buildArizaWizardScene(
     );
   }
 
-  // ----------- entry: show the 4 templates directly -----------
+  // ----------- entry: multi-step picker (courtType → region → district → template) -----------
 
   scene.enter(async (ctx) => {
-    // Deep-link path: user came via /start tpl_<code> — skip the picker.
+    // Wipe the picker scratchpad so a re-entry doesn't reuse stale picks.
+    ctx.scene.session.picker = {};
+
+    // Guide-flow path: court type, region, and district were ALL picked
+    // in the "📖 Қўлланма" flow before entering the wizard. Skip every
+    // picker step and go straight to template selection / field wizard.
+    const prePicked = ctx.session.pendingPicker;
+    const pending = ctx.session.pendingTemplateCode;
+    if (prePicked) {
+      ctx.session.pendingPicker = undefined;
+      ctx.scene.session.picker = {
+        courtTypeCode: prePicked.courtTypeCode,
+        regionCode: prePicked.regionCode,
+        districtCourtCode: prePicked.districtCourtCode,
+      };
+      if (pending) {
+        ctx.session.pendingTemplateCode = undefined;
+        await selectTemplate(ctx, pending, false);
+        return;
+      }
+      // No template chosen yet — show the template picker.
+      await ctx.reply(t(ctx.locale, 'tmpl.pick'), {
+        parse_mode: 'HTML',
+        ...templatesInline(ctx.locale, TEMPLATES),
+      });
+      return;
+    }
+
+    if (pending) {
+      // Deep-link path: the template is fixed, but the user still needs
+      // to pick a region + district. All current templates are Fuqarolik,
+      // so pre-select that court type and jump to the region picker.
+      ctx.scene.session.picker.courtTypeCode = 'fuqarolik';
+      await ctx.reply(t(ctx.locale, 'region.pick'), {
+        parse_mode: 'HTML',
+        ...regionsInline(ctx.locale, REGIONS),
+      });
+      return;
+    }
+
+    await ctx.reply(t(ctx.locale, 'court-type.pick'), {
+      parse_mode: 'HTML',
+      ...courtTypesInline(ctx.locale, COURT_TYPES),
+    });
+  });
+
+  // ----------- court type pick -----------
+  scene.action(/^ct:(.+)$/, async (ctx) => {
+    const code = ctx.match[1]!;
+    const ct = getCourtTypeByCode(code);
+    if (!ct) {
+      await ctx.answerCbQuery();
+      return;
+    }
+
+    if (!ct.active) {
+      // Pop-up alert; keyboard stays so the user can pick another type.
+      await ctx.answerCbQuery(t(ctx.locale, 'court-type.coming-soon'), {
+        show_alert: true,
+      });
+      return;
+    }
+
+    ctx.scene.session.picker = { courtTypeCode: ct.code };
+
+    await ctx.answerCbQuery();
+    await ctx.editMessageText(
+      t(ctx.locale, 'court-type.chosen', { type: ct.label[ctx.locale] }),
+      { parse_mode: 'HTML' },
+    );
+    await ctx.reply(t(ctx.locale, 'region.pick'), {
+      parse_mode: 'HTML',
+      ...regionsInline(ctx.locale, REGIONS),
+    });
+  });
+
+  // ----------- region pick → show district courts -----------
+  scene.action(/^region:(.+)$/, async (ctx) => {
+    const code = ctx.match[1]!;
+    const region = getRegionByCode(code);
+    const picker = ctx.scene.session.picker;
+    if (!region || !picker?.courtTypeCode) {
+      await ctx.answerCbQuery();
+      return;
+    }
+
+    picker.regionCode = region.code;
+    picker.districtCourtCode = undefined;
+
+    await ctx.answerCbQuery();
+    await ctx.editMessageText(
+      t(ctx.locale, 'region.chosen', { region: region.label[ctx.locale] }),
+      { parse_mode: 'HTML' },
+    );
+
+    const courts = getDistrictCourtsFor(picker.courtTypeCode, region.code);
+    await ctx.reply(
+      t(ctx.locale, 'district.pick', { region: region.label[ctx.locale] }),
+      {
+        parse_mode: 'HTML',
+        ...districtCourtsInline(ctx.locale, courts),
+      },
+    );
+  });
+
+  // ----------- district court pick → show templates (or jump to deep-linked one) -----------
+  scene.action(/^dc:(.+)$/, async (ctx) => {
+    const code = ctx.match[1]!;
+    const dc = getDistrictCourtByCode(code);
+    const picker = ctx.scene.session.picker;
+    if (!dc || !picker?.regionCode) {
+      await ctx.answerCbQuery();
+      return;
+    }
+
+    picker.districtCourtCode = dc.code;
+
+    await ctx.answerCbQuery();
+    await ctx.editMessageText(
+      t(ctx.locale, 'district.chosen', { court: dc.name[ctx.locale] }),
+      { parse_mode: 'HTML' },
+    );
+
+    // Deep-link path: template already known — go straight to fields.
     const pending = ctx.session.pendingTemplateCode;
     if (pending) {
       ctx.session.pendingTemplateCode = undefined;
       await selectTemplate(ctx, pending, false);
       return;
     }
+
     await ctx.reply(t(ctx.locale, 'tmpl.pick'), {
       parse_mode: 'HTML',
       ...templatesInline(ctx.locale, TEMPLATES),
     });
   });
 
-  // ----------- template → region selection -----------
+  // ----------- template pick → create WizardState and start field wizard -----------
   //
   // Shared between two entry points:
   //   - inline button click `tmpl:<code>` (use editMessageText)
-  //   - deep-link `/start tpl_<code>` (use plain reply, no callback to ack)
+  //   - deep-link `/start tpl_<code>` after district pick (use plain reply,
+  //     no callback to ack — the district pick already answered the
+  //     callback query).
   async function selectTemplate(
     ctx: BotContext,
     code: string,
@@ -292,13 +407,32 @@ export function buildArizaWizardScene(
       return;
     }
 
+    const picker = ctx.scene.session.picker ?? {};
+    const region = picker.regionCode
+      ? getRegionByCode(picker.regionCode)
+      : undefined;
+    const district = picker.districtCourtCode
+      ? getDistrictCourtByCode(picker.districtCourtCode)
+      : undefined;
+
     const state: WizardState = {
       templateCode: def.code,
       templateDbId: dbTemplate.id,
+      courtTypeCode: picker.courtTypeCode,
+      regionCode: picker.regionCode,
+      districtCourtCode: picker.districtCourtCode,
       currentFieldIndex: 0,
       values: {},
       status: 'collecting',
     };
+    // `court_name` in the document is the region's *short* name (so the
+    // header reads "Fuqarolik ishlari boʻyicha <region> tumanlararo sudi
+    // raisi" naturally — see sample form). The full district court name
+    // is stored separately for templates that need it.
+    if (region) state.values.court_name = region.courtName[ctx.locale];
+    if (district) state.values.district_court_name = district.name[ctx.locale];
+    if (region) state.values.judge_name = region.judgeName[ctx.locale];
+
     setState(ctx, state);
     await persist(ctx);
 
@@ -313,26 +447,69 @@ export function buildArizaWizardScene(
     } else {
       await ctx.reply(chosenMsg, { parse_mode: 'HTML' });
     }
-    await ctx.reply(t(ctx.locale, 'region.pick'), {
+    await ctx.reply(t(ctx.locale, 'wiz.intro'), {
       parse_mode: 'HTML',
-      ...regionsInline(ctx.locale, REGIONS),
+      ...wizardMenu(ctx.locale),
     });
+    await renderField(ctx);
   }
 
   scene.action(/^tmpl:(.+)$/, async (ctx) => {
-    await selectTemplate(ctx, ctx.match[1], true);
+    await selectTemplate(ctx, ctx.match[1]!, true);
   });
 
-  // Back from region picker → template list
-  scene.action('back-tmpls', async (ctx) => {
+  // ----------- back navigation between picker steps -----------
+
+  // From region picker → court types
+  scene.action('back-courts', async (ctx) => {
     await ctx.answerCbQuery();
-    await ctx.editMessageText(t(ctx.locale, 'tmpl.pick'), {
+    ctx.scene.session.picker = {};
+    await ctx.editMessageText(t(ctx.locale, 'court-type.pick'), {
       parse_mode: 'HTML',
-      ...templatesInline(ctx.locale, TEMPLATES),
+      ...courtTypesInline(ctx.locale, COURT_TYPES),
     });
   });
 
-  // 🏠 Exit the wizard from the template picker → drop the inline message,
+  // From district picker → regions
+  scene.action('back-regions', async (ctx) => {
+    await ctx.answerCbQuery();
+    if (ctx.scene.session.picker) {
+      ctx.scene.session.picker.regionCode = undefined;
+      ctx.scene.session.picker.districtCourtCode = undefined;
+    }
+    await ctx.editMessageText(t(ctx.locale, 'region.pick'), {
+      parse_mode: 'HTML',
+      ...regionsInline(ctx.locale, REGIONS),
+    });
+  });
+
+  // From template picker → district courts
+  scene.action('back-districts', async (ctx) => {
+    await ctx.answerCbQuery();
+    const picker = ctx.scene.session.picker;
+    if (!picker?.courtTypeCode || !picker?.regionCode) {
+      // Picker scratchpad was lost — restart from the top.
+      await ctx.editMessageText(t(ctx.locale, 'court-type.pick'), {
+        parse_mode: 'HTML',
+        ...courtTypesInline(ctx.locale, COURT_TYPES),
+      });
+      return;
+    }
+    picker.districtCourtCode = undefined;
+    const region = getRegionByCode(picker.regionCode);
+    const courts = getDistrictCourtsFor(picker.courtTypeCode, picker.regionCode);
+    await ctx.editMessageText(
+      t(ctx.locale, 'district.pick', {
+        region: region ? region.label[ctx.locale] : picker.regionCode,
+      }),
+      {
+        parse_mode: 'HTML',
+        ...districtCourtsInline(ctx.locale, courts),
+      },
+    );
+  });
+
+  // 🏠 Exit the wizard from any picker step → drop the inline message,
   // reset any partial draft, and return to the persistent main menu.
   scene.action('wiz-exit', async (ctx) => {
     await ctx.answerCbQuery();
@@ -343,33 +520,6 @@ export function buildArizaWizardScene(
       /* message too old to delete — ignore */
     }
     await ctx.scene.leave();
-  });
-
-  // Region selection → pre-fill court/judge, then start the field wizard
-  scene.action(/^region:(.+)$/, async (ctx) => {
-    const code = ctx.match[1];
-    const region = getRegionByCode(code);
-    const state = getState(ctx);
-    if (!region || !state) {
-      await ctx.answerCbQuery();
-      return;
-    }
-    state.regionCode = region.code;
-    state.values.court_name = region.courtName[ctx.locale];
-    state.values.judge_name = region.judgeName[ctx.locale];
-    setState(ctx, state);
-    await persist(ctx);
-
-    await ctx.answerCbQuery();
-    await ctx.editMessageText(
-      t(ctx.locale, 'region.chosen', { region: region.label[ctx.locale] }),
-      { parse_mode: 'HTML' },
-    );
-    await ctx.reply(t(ctx.locale, 'wiz.intro'), {
-      parse_mode: 'HTML',
-      ...wizardMenu(ctx.locale),
-    });
-    await renderField(ctx);
   });
 
   // ----------- preview actions -----------
@@ -504,6 +654,25 @@ export function buildArizaWizardScene(
     const f = fields[state.currentFieldIndex];
     if (!f) return;
 
+    // year-month input arrives as canonical "MM.YYYY" (from both the
+    // text validator and the picker). Turn it into a locale-friendly
+    // "<month_name> <year>" for storage AND, if `splitYearMonth` is set,
+    // write the year + month parts into separate keys for templates that
+    // need them inline.
+    if (
+      f.validator === 'year-month' &&
+      /^\d{2}\.\d{4}$/.test(value)
+    ) {
+      const m = /^(\d{2})\.(\d{4})$/.exec(value)!;
+      const mm = +m[1]!;
+      const yyyy = m[2]!;
+      if (f.splitYearMonth) {
+        state.values[f.splitYearMonth.yearKey] = yyyy;
+        state.values[f.splitYearMonth.monthKey] = t(ctx.locale, `month.${mm}`);
+      }
+      value = `${t(ctx.locale, `month.${mm}`)} ${yyyy}`;
+    }
+
     if (f.splitDate) {
       // Parse canonical DD.MM.YYYY
       const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value);
@@ -574,7 +743,7 @@ export function buildArizaWizardScene(
       await commitFieldValue(ctx, String(year));
       return;
     }
-    if (f.validator === 'date') {
+    if (f.validator === 'date' || f.validator === 'year-month') {
       state.datePicker = { step: 'month', year };
       setState(ctx, state);
       await persist(ctx);
@@ -602,6 +771,17 @@ export function buildArizaWizardScene(
 
     if (f.validator === 'month') {
       await commitFieldValue(ctx, t(ctx.locale, `month.${month}`));
+      return;
+    }
+    if (
+      f.validator === 'year-month' &&
+      state.datePicker?.year !== undefined
+    ) {
+      const year = state.datePicker.year;
+      // Canonical "MM.YYYY" — commitFieldValue normalises it to a
+      // locale-friendly display string AND writes year/month sub-keys
+      // for templates that need them.
+      await commitFieldValue(ctx, `${pad2(month)}.${year}`);
       return;
     }
     if (f.validator === 'date' && state.datePicker?.year !== undefined) {
@@ -771,23 +951,6 @@ export function buildArizaWizardScene(
     setState(ctx, state);
     await persist(ctx);
     await renderField(ctx);
-  });
-
-  // One-tap FIO prefill from Telegram first_name + last_name.
-  scene.action('prefill:fio', async (ctx) => {
-    await ctx.answerCbQuery();
-    const state = getState(ctx);
-    if (!state) return;
-    const fields = getFields(state);
-    const f = fields[state.currentFieldIndex];
-    if (!f || f.validator !== 'fio') return;
-    const fio = buildFioFromTelegram(ctx);
-    if (!fio) return;
-    // Validate against the same regex the text handler uses, so we never
-    // commit an invalid value (e.g. emoji-only Telegram name).
-    const result = validate(f.validator, fio);
-    if (!result.ok) return;
-    await commitFieldValue(ctx, result.value);
   });
 
   // Back one step inside the multi-step date picker.
@@ -1015,6 +1178,75 @@ export function buildArizaWizardScene(
 
   // ----------- text handler (drives the FSM) -----------
 
+  /**
+   * Submit a raw user answer (typed or transcribed from voice) for the
+   * current field. Runs validation, the multiline AI-rewrite offer, and
+   * commits via `commitFieldValue` on success. Returns true if the
+   * answer was accepted (and the wizard advanced).
+   *
+   * Pre-conditions: caller has already confirmed `state.status` is
+   * 'collecting' and that there IS a current field. The aiAssist guard
+   * and "-" shortcut are checked here.
+   */
+  async function submitAnswer(
+    ctx: BotContext,
+    rawText: string,
+  ): Promise<boolean> {
+    const state = getState(ctx);
+    if (!state) return false;
+    const fields = getFields(state);
+    const f = fields[state.currentFieldIndex];
+    if (!f) return false;
+
+    const trimmed = rawText.trim();
+
+    // Allow "-" as shortcut to use default value
+    if (trimmed === '-' && f.defaultValue) {
+      state.values[f.key] = f.defaultValue;
+      state.currentFieldIndex += 1;
+      setState(ctx, state);
+      await persist(ctx);
+      await renderField(ctx);
+      return true;
+    }
+
+    // While an AI-assist confirm/improve prompt is up for the current
+    // field, plain text input is meaningless — guide the user to the
+    // buttons instead of treating their reply as a new draft.
+    if (state.aiAssist && state.aiAssist.fieldKey === f.key) {
+      await ctx.reply(t(ctx.locale, 'wiz.use-buttons'));
+      return false;
+    }
+
+    const result = validate(f.validator, rawText);
+    if (!result.ok) {
+      await ctx.reply(
+        explainError(f.validator, result.errorKey ?? 'val.text', ctx.locale),
+        { parse_mode: 'HTML', ...wizardMenu(ctx.locale) },
+      );
+      return false;
+    }
+
+    // For free-form `multiline` fields, offer an optional AI rewrite
+    // before committing. Disabled (immediate commit) when the API key
+    // isn't configured.
+    if (f.validator === 'multiline' && deps.aiAssist.isEnabled()) {
+      state.aiAssist = { fieldKey: f.key, original: result.value };
+      setState(ctx, state);
+      await persist(ctx);
+      await ctx.reply(
+        t(ctx.locale, 'ai.offer', { text: escapeHtml(result.value) }),
+        { parse_mode: 'HTML', ...aiAssistRawInline(ctx.locale) },
+      );
+      return true;
+    }
+
+    // Go through commitFieldValue so splitDate composites get expanded
+    // into their sub-keys consistently whether the user typed or picked.
+    await commitFieldValue(ctx, result.value);
+    return true;
+  }
+
   scene.on('text', async (ctx) => {
     const text = (ctx.message as Message.TextMessage).text;
     const trimmed = text.trim();
@@ -1064,54 +1296,155 @@ export function buildArizaWizardScene(
       return;
     }
 
-    // Allow "-" as shortcut to use default value
-    if (trimmed === '-' && f.defaultValue) {
-      state.values[f.key] = f.defaultValue;
-      state.currentFieldIndex += 1;
-      setState(ctx, state);
-      await persist(ctx);
-      await renderField(ctx);
+    await submitAnswer(ctx, text);
+  });
+
+  // ----------- voice handler — Whisper transcription on free-form fields -----------
+
+  /**
+   * Voice/audio messages are accepted ONLY on free-form text fields
+   * (fio / address / text / multiline). Structured fields (dates,
+   * phones, monetary amounts, fixed-format codes) need pickers or
+   * typed precision — voice would just frustrate the user.
+   */
+  const VOICE_OK_VALIDATORS = new Set([
+    'multiline',
+    'text',
+    'fio',
+    'address',
+  ]);
+
+  async function handleVoice(ctx: BotContext, fileId: string, mimeType: string): Promise<void> {
+    const state = getState(ctx);
+    if (!state) {
+      await ctx.reply(
+        t(ctx.locale, 'cmd.session.expired'),
+        mainMenu(ctx.locale),
+      );
+      return;
+    }
+    if (state.status !== 'collecting') {
+      await ctx.reply(t(ctx.locale, 'wiz.use-buttons'));
+      return;
+    }
+    const fields = getFields(state);
+    const f = fields[state.currentFieldIndex];
+    if (!f) return;
+
+    if (!VOICE_OK_VALIDATORS.has(f.validator)) {
+      await ctx.reply(t(ctx.locale, 'wiz.voice.not-supported-field'));
       return;
     }
 
-    // While an AI-assist confirm/improve prompt is up for the current
-    // field, plain text input is meaningless — guide the user to the
-    // buttons instead of treating their reply as a new draft.
+    if (!deps.transcription.isEnabled()) {
+      await ctx.reply(t(ctx.locale, 'wiz.voice.disabled'));
+      return;
+    }
+
+    // While an AI rewrite is up, ignore voice the same way we ignore text.
     if (state.aiAssist && state.aiAssist.fieldKey === f.key) {
       await ctx.reply(t(ctx.locale, 'wiz.use-buttons'));
       return;
     }
 
-    const result = validate(f.validator, text);
-    if (!result.ok) {
-      await ctx.reply(
-        explainError(f.validator, result.errorKey ?? 'val.text', ctx.locale),
-        { parse_mode: 'HTML', ...wizardMenu(ctx.locale) },
-      );
+    // "Processing" placeholder — Whisper usually returns in 1-3s but
+    // network jitter on the user side makes feedback worthwhile.
+    let placeholderId: number | undefined;
+    try {
+      const placeholder = await ctx.reply(t(ctx.locale, 'wiz.voice.processing'));
+      placeholderId = placeholder.message_id;
+    } catch {
+      /* non-fatal */
+    }
+
+    let transcribed: string;
+    try {
+      const link = await ctx.telegram.getFileLink(fileId);
+      const resp = await fetch(link.toString());
+      if (!resp.ok) throw new Error(`telegram_file_fetch_${resp.status}`);
+      const arrayBuf = await resp.arrayBuffer();
+      const audio = Buffer.from(arrayBuf);
+
+      transcribed = await deps.transcription.transcribe({
+        audio,
+        mimeType,
+        filename: mimeType.includes('ogg') ? 'voice.ogg' : 'voice.bin',
+        locale: ctx.locale,
+      });
+    } catch (err) {
+      logger.error({ err }, 'Voice transcription failed');
+      const key =
+        err instanceof Error && err.message === 'audio_too_large'
+          ? 'wiz.voice.too-long'
+          : 'wiz.voice.failed';
+      // In dev mode append the raw error code so the user can debug
+      // without opening logs (e.g. `whisper_http_401` → bad API key,
+      // `whisper_http_429` → rate-limit / no credits,
+      // `whisper_network` → DNS / firewall blocking api.openai.com).
+      const errCode =
+        config.nodeEnv === 'development' && err instanceof Error
+          ? `\n<code>${escapeHtml(err.message)}</code>`
+          : '';
+      const text = t(ctx.locale, key) + errCode;
+      if (placeholderId !== undefined) {
+        try {
+          await ctx.telegram.editMessageText(
+            ctx.chat!.id,
+            placeholderId,
+            undefined,
+            text,
+            { parse_mode: 'HTML' },
+          );
+        } catch {
+          await ctx.reply(text, { parse_mode: 'HTML' });
+        }
+      } else {
+        await ctx.reply(text, { parse_mode: 'HTML' });
+      }
       return;
     }
 
-    // For free-form `multiline` fields, offer an optional AI rewrite
-    // before committing. Disabled (immediate commit) when the API key
-    // isn't configured.
-    if (f.validator === 'multiline' && deps.aiAssist.isEnabled()) {
-      state.aiAssist = { fieldKey: f.key, original: result.value };
-      setState(ctx, state);
-      await persist(ctx);
+    // Show the user what we heard, then push it through the same
+    // validation/AI-rewrite path as typed text. If validation fails the
+    // user just sees the usual error and can re-record.
+    if (placeholderId !== undefined) {
+      try {
+        await ctx.telegram.editMessageText(
+          ctx.chat!.id,
+          placeholderId,
+          undefined,
+          t(ctx.locale, 'wiz.voice.transcribed', { text: escapeHtml(transcribed) }),
+          { parse_mode: 'HTML' },
+        );
+      } catch {
+        await ctx.reply(
+          t(ctx.locale, 'wiz.voice.transcribed', { text: escapeHtml(transcribed) }),
+          { parse_mode: 'HTML' },
+        );
+      }
+    } else {
       await ctx.reply(
-        t(ctx.locale, 'ai.offer', { text: escapeHtml(result.value) }),
-        { parse_mode: 'HTML', ...aiAssistRawInline(ctx.locale) },
+        t(ctx.locale, 'wiz.voice.transcribed', { text: escapeHtml(transcribed) }),
+        { parse_mode: 'HTML' },
       );
-      return;
     }
 
-    // Go through commitFieldValue so splitDate composites get expanded
-    // into their sub-keys consistently whether the user typed or picked.
-    await commitFieldValue(ctx, result.value);
+    await submitAnswer(ctx, transcribed);
+  }
+
+  scene.on('voice', async (ctx) => {
+    const v = (ctx.message as Message.VoiceMessage).voice;
+    await handleVoice(ctx, v.file_id, v.mime_type ?? 'audio/ogg');
+  });
+
+  scene.on('audio', async (ctx) => {
+    const a = (ctx.message as Message.AudioMessage).audio;
+    await handleVoice(ctx, a.file_id, a.mime_type ?? 'audio/mpeg');
   });
 
   scene.leave(async (ctx) => {
     ctx.scene.session.state = undefined;
+    ctx.scene.session.picker = undefined;
   });
 
   return scene;

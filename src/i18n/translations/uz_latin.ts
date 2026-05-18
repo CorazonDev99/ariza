@@ -1,8 +1,8 @@
 import type { Dict } from '../index';
 
 export const uz_latin: Dict = {
-  'cmd.start.greeting': "👋 Assalomu alaykum, <b>{name}</b>!\n\n📝 Bu bot quyidagi arizalarni tayyorlaydi:\n• 📄 Aliment undirish\n• 🍼 3 yoshgacha ta'minot undirish\n• 🛡️ E'tiroznoma\n• ⚖️ Aliment miqdorini kamaytirish\n\nIshni boshlash uchun menyudan tanlang 👇",
-  'cmd.about': "<b>ℹ️ Bot haqida</b>\n\nUshbu bot sud arizalarini avtomatik ravishda tayyorlaydi. Siz faqat ma'lumotlaringizni kiritasiz, bot esa tayyor PDF hujjatni yuboradi.\n\n<b>📄 Tayyorlanadigan arizalar:</b>\n• Aliment undirish\n• 3 yoshgacha ta'minot undirish\n• E'tiroznoma\n• Aliment miqdorini kamaytirish\n\n<b>🛠 Qanday foydalanish:</b>\n1️⃣ «📄 Yangi hujjat» tugmasini bosing\n2️⃣ Kerakli arizani tanlang\n3️⃣ Sud joylashgan hududni tanlang\n4️⃣ Ma'lumotlarni ketma-ket kiriting\n5️⃣ To‘lovni amalga oshiring\n6️⃣ Tayyor PDF hujjatni yuklab oling\n\n<b>⌨️ Buyruqlar:</b>\n/start — menyuga qaytish\n/new — yangi hujjat\n/guide — arizalar bo‘yicha yo‘riqnoma\n/lang — tilni o‘zgartirish\n/cancel — jarayonni bekor qilish\n/about — ushbu ma'lumot\n\nSavol yoki takliflar uchun quyidagi tugma orqali biz bilan bog‘laning 👇",
+  'cmd.start.greeting': "👋 Assalomu alaykum, <b>{name}</b>!\n\n📄 Bu bot sud uchun rasmiy arizalarni 1 daqiqada tayyorlab beradi — bosma shaklda, imzo va sanaga tayyor.\n\n🧭 <b>Qanday ishlaydi:</b>\n1️⃣ Sud turini tanlang (hozircha — fuqarolik)\n2️⃣ Viloyat va tumanlararo sudni tanlang\n3️⃣ Ariza turini tanlang\n4️⃣ Bir nechta savolga javob bering — tayyor!\n\n🎙 Ism, manzil va boshqa erkin maydonlarni <b>ovozli xabar</b> bilan ham yuborsangiz bo‘ladi — bot o‘zi matnga aylantiradi.\n\n📖 Birinchi marta foydalanyapsizmi? <b>Qo‘llanma</b> bo‘limini oching — har bir ariza qachon, qaerga va qanday topshirilishi tushuntirilgan.\n\nBoshlash uchun menyudan tanlang 👇",
+  'cmd.about': "<b>ℹ️ Bot haqida</b>\n\nUshbu bot sud arizalarini avtomatik ravishda tayyorlaydi. Siz faqat ma'lumotlaringizni kiritasiz, bot esa tayyor PDF hujjatni yuboradi.\n\n<b>📄 Tayyorlanadigan arizalar:</b>\n• Aliment undirish\n• 3 yoshgacha ta'minot undirish\n• E'tiroznoma\n• Aliment miqdorini kamaytirish\n\n<b>🛠 Qanday foydalanish:</b>\n1️⃣ «📄 Ariza topshirish» tugmasini bosing\n2️⃣ Kerakli arizani tanlang\n3️⃣ Sud joylashgan hududni tanlang\n4️⃣ Ma'lumotlarni ketma-ket kiriting\n5️⃣ To‘lovni amalga oshiring\n6️⃣ Tayyor PDF hujjatni yuklab oling\n\n<b>⌨️ Buyruqlar:</b>\n/start — menyuga qaytish\n/new — yangi hujjat\n/guide — arizalar bo‘yicha yo‘riqnoma\n/lang — tilni o‘zgartirish\n/cancel — jarayonni bekor qilish\n/about — ushbu ma'lumot\n\nSavol yoki takliflar uchun quyidagi tugma orqali biz bilan bog‘laning 👇",
   'about.support_btn': "💬 Qo‘llab-quvvatlash",
   'about.no_contact': "ℹ️ Qo‘llab-quvvatlash kontakti hozircha mavjud emas.",
   'about.stats':
@@ -13,7 +13,7 @@ export const uz_latin: Dict = {
   'lang.pick': '🌐 <b>Tilni tanlang / Тилни танланг / Выберите язык</b>',
   'lang.changed': '✅ Til saqlandi: <b>{lang}</b>',
 
-  'menu.new': '📄 Yangi hujjat',
+  'menu.new': '📄 Ariza topshirish',
   'menu.instructions': "📖 Yo‘riqnoma",
   'menu.about': 'ℹ️ Bot haqida',
   'menu.lang': '🌐 Til',
@@ -36,6 +36,7 @@ export const uz_latin: Dict = {
   'btn.main_menu': '🏠 Asosiy menyu',
 
   'tmpl.pick': '📄 <b>Ariza turini tanlang:</b>',
+  'tmpl.back': '⬅️ Sudlar',
 
   'instructions.pick': "📖 <b>Yo‘riqnoma</b>\n\nBatafsil ma'lumot uchun ariza turini tanlang:",
   'instructions.start_btn': "▶️ Tayyorlashni boshlash",
@@ -43,9 +44,17 @@ export const uz_latin: Dict = {
   'tmpl.chosen': '✅ <b>Shablon:</b> {title}\n<i>{subtitle}</i>',
   'tmpl.not-in-db': "⚠️ Shablon ma'lumotlar bazasida ro‘yxatdan o‘tmagan. Botni qayta ishga tushirishni kuting.",
 
+  'court-type.pick': '🏛️ <b>Sud turini tanlang:</b>',
+  'court-type.chosen': '✅ <b>Sud turi:</b> {type}',
+  'court-type.coming-soon': "🚧 Bu yo‘nalish bo‘yicha arizalar hozircha mavjud emas. Tez orada qo‘shamiz.",
+
   'region.pick': "🏛️ <b>Sud joylashgan hududni tanlang:</b>",
-  'region.back': '⬅️ Ariza turlari',
+  'region.back': '⬅️ Sud turlari',
   'region.chosen': '✅ <b>Hudud:</b> {region}',
+
+  'district.pick': "⚖️ <b>{region}</b>\n\nSudni tanlang:",
+  'district.back': '⬅️ Hududlar',
+  'district.chosen': '✅ <b>Sud:</b> {court}',
 
   'wiz.intro': "📝 <b>Ma'lumotlarni to‘ldiring</b>\n\n⬅️ <i>Orqaga</i> — oldingi savol\n❌ <i>Bekor qilish</i> — sessiyani yopish",
   'wiz.progress': '📊 {bar} {current}/{total}',
@@ -55,6 +64,15 @@ export const uz_latin: Dict = {
   'wiz.preview.title': "🧾 <b>Ma'lumotlarni tekshiring</b>",
   'wiz.preview.confirm-hint': '👇 Hammasi to‘g‘rimi?',
   'wiz.use-buttons': '👆 Tugmalardan foydalaning.',
+
+  // voice → text on free-form fields
+  'wiz.voice.hint': '🎙️ Yoki ovozli xabar yuboring — biz matnga aylantiramiz',
+  'wiz.voice.processing': '🎙️ Ovoz matnga aylantirilmoqda...',
+  'wiz.voice.transcribed': '🎙️ <b>Eshitilgan matn:</b>\n<i>{text}</i>',
+  'wiz.voice.failed': "⚠️ Ovozni matnga aylantirib bo‘lmadi. Qaytadan urinib ko‘ring yoki matn yozing.",
+  'wiz.voice.too-long': '⚠️ Ovozli xabar juda uzun. Qisqaroq qilib qayta yuboring.',
+  'wiz.voice.not-supported-field': "🎙️ Ovoz bu maydonga mos emas. Iltimos, matn yozing.",
+  'wiz.voice.disabled': "🎙️ Ovozni matnga aylantirish funksiyasi hozircha yoqilmagan. Matn yozing.",
 
   'val.fail': "⚠️ <b>Noto‘g‘ri qiymat</b>\n{reason}\n\nQayta kiriting 👇",
   'val.text': 'Kamida 2 ta belgi bo‘lishi kerak.',
@@ -66,6 +84,7 @@ export const uz_latin: Dict = {
   'val.day': '1 dan 31 gacha butun son.',
   'val.month': 'Oy nomini yozing: yanvar, fevral, mart...',
   'val.date': 'Sana formati: 12.05.2015 yoki 2015 yil 12 may',
+  'val.year-month': 'Yil va oy formati: yanvar 2024 yoki 01.2024',
   'val.share': 'Ulush formati: 1/4, 1/3, 2/3',
   'val.address': 'Manzil kamida 10 ta belgidan iborat bo‘lsin.',
   'val.order-number': "Sud buyrug‘i raqami formati: 2-1301-2506/20479",

@@ -61,6 +61,21 @@ const envSchema = z.object({
   // fields (e.g. objection_reasons). When empty the AI button is hidden.
   ANTHROPIC_API_KEY: z.string().default(''),
   ANTHROPIC_MODEL: z.string().default('claude-haiku-4-5-20251001'),
+
+  // OpenAI-COMPATIBLE Whisper endpoint for voice-to-text on free-form
+  // text fields. Works with any provider that exposes the OpenAI Audio
+  // Transcriptions API at <BASE>/audio/transcriptions:
+  //   - OpenAI:    BASE=https://api.openai.com/v1     MODEL=whisper-1
+  //   - Groq:      BASE=https://api.groq.com/openai/v1 MODEL=whisper-large-v3
+  //                (free tier — recommended)
+  //   - DeepInfra: BASE=https://api.deepinfra.com/v1/openai
+  // Empty API key disables the feature.
+  OPENAI_API_KEY: z.string().default(''),
+  OPENAI_BASE_URL: z
+    .string()
+    .default('https://api.openai.com/v1')
+    .transform((s) => s.replace(/\/+$/, '')),
+  OPENAI_TRANSCRIBE_MODEL: z.string().default('whisper-1'),
 });
 
 export type Env = z.infer<typeof envSchema>;

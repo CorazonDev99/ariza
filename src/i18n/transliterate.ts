@@ -19,21 +19,53 @@ function isUpperCyr(ch: string): boolean {
   return ch.length === 1 && ch.toLowerCase() !== ch && /[А-ЯЁЎҚҲҒ]/u.test(ch);
 }
 
+function isCyrLetter(ch: string): boolean {
+  return /[А-ЯЁЎҚҲҒа-яёўқҳғ]/u.test(ch);
+}
+
 function capitalizeFirst(s: string): string {
   if (s.length === 0) return s;
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+/**
+ * For an uppercase Cyrillic char at `i`, decide whether the Latin
+ * digraph (yo/sh/ch/...) should be fully uppercased (ALL-CAPS word)
+ * or just title-cased (mixed-case word). Looks at the nearest
+ * Cyrillic letter in the same word — next first, then previous.
+ */
+function neighborIsUpper(chars: string[], i: number): boolean {
+  for (let j = i + 1; j < chars.length; j++) {
+    const c = chars[j]!;
+    if (isCyrLetter(c)) return isUpperCyr(c);
+    if (!/\p{L}/u.test(c)) break;
+  }
+  for (let j = i - 1; j >= 0; j--) {
+    const c = chars[j]!;
+    if (isCyrLetter(c)) return isUpperCyr(c);
+    if (!/\p{L}/u.test(c)) break;
+  }
+  return false;
+}
+
 export function cyrillicToLatin(text: string): string {
+  const chars = Array.from(text);
   let out = '';
-  for (const ch of text) {
+  for (let i = 0; i < chars.length; i++) {
+    const ch = chars[i]!;
     const lower = ch.toLowerCase();
     const replacement = MAP_LOWER[lower];
     if (replacement === undefined) {
       out += ch;
-    } else {
-      out += isUpperCyr(ch) ? capitalizeFirst(replacement) : replacement;
+      continue;
     }
+    if (!isUpperCyr(ch)) {
+      out += replacement;
+      continue;
+    }
+    out += neighborIsUpper(chars, i)
+      ? replacement.toUpperCase()
+      : capitalizeFirst(replacement);
   }
   return out;
 }

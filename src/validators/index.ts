@@ -11,6 +11,7 @@ export type ValidatorKind =
   | 'day'
   | 'month'
   | 'date'
+  | 'year-month'
   | 'share'
   | 'address'
   | 'order-number'
@@ -24,10 +25,23 @@ export interface ValidationResult {
   errorKey?: string;
 }
 
-const RU_UZ_LETTERS = "A-Za-zА-Яа-яЁёЎўҚқҲҳҒғ‘'ʼ’.\\-";
+// Apostrophe-like characters accepted inside a name. Uzbek Latin uses
+// these for `oʻ` / `gʻ` digraphs and people enter them in many wildly
+// different ways depending on keyboard layout / IME / autocorrect:
+//   '  U+0027  APOSTROPHE                (ASCII keyboard)
+//   `  U+0060  GRAVE ACCENT              (frequent fat-finger swap)
+//   ʻ  U+02BB  MODIFIER LETTER TURNED COMMA  (OFFICIAL Uzbek Latin)
+//   ʼ  U+02BC  MODIFIER LETTER APOSTROPHE
+//   ʹ  U+02B9  MODIFIER LETTER PRIME
+//   ‘  U+2018  LEFT SINGLE QUOTATION MARK    (smart-quote left)
+//   ’  U+2019  RIGHT SINGLE QUOTATION MARK   (smart-quote right; iOS default)
+// All seven are visually equivalent for a personal name — the validator
+// must accept any of them.
+const APOSTROPHES = "'`ʻʼʹ‘’";
+const RU_UZ_LETTERS = `A-Za-zА-Яа-яЁёЎўҚқҲҳҒғ${APOSTROPHES}.\\-`;
 
 const PATTERNS: Record<
-  Exclude<ValidatorKind, 'text' | 'multiline' | 'date'>,
+  Exclude<ValidatorKind, 'text' | 'multiline' | 'date' | 'year-month'>,
   RegExp
 > = {
   fio: new RegExp(`^[${RU_UZ_LETTERS}][${RU_UZ_LETTERS}\\s]{4,}$`, 'u'),
@@ -104,6 +118,55 @@ export function parseUserDate(input: string): string | null {
   return null;
 }
 
+const MONTH_NAME_TO_INDEX: Record<string, number> = {
+  // uz_cyrillic
+  'январ': 1, 'феврал': 2, 'март': 3, 'апрел': 4, 'май': 5, 'июн': 6,
+  'июл': 7, 'август': 8, 'сентябр': 9, 'октябр': 10, 'ноябр': 11, 'декабр': 12,
+  // uz_latin
+  'yanvar': 1, 'fevral': 2, 'aprel': 4, 'iyun': 6, 'iyul': 7, 'avgust': 8,
+  'sentabr': 9, 'oktabr': 10, 'noyabr': 11, 'dekabr': 12,
+  // ru (nominative + genitive)
+  'январь': 1, 'января': 1, 'февраль': 2, 'февраля': 2, 'марта': 3,
+  'апрель': 4, 'апреля': 4, 'мая': 5, 'июнь': 6, 'июня': 6,
+  'июль': 7, 'июля': 7, 'августа': 8, 'сентябрь': 9, 'сентября': 9,
+  'октябрь': 10, 'октября': 10, 'ноябрь': 11, 'ноября': 11,
+  'декабрь': 12, 'декабря': 12,
+};
+
+/**
+ * Parse a user-typed year-month into canonical "MM.YYYY".
+ * Accepted forms:
+ *   "yanvar 2024" / "январ 2024" / "январь 2024" / "2024 yanvar" / "2024 yil yanvar"
+ *   "01.2024" / "01/2024" / "1.2024"
+ */
+export function parseUserYearMonth(input: string): string | null {
+  const trimmed = input.trim();
+
+  // Numeric form: MM<sep>YYYY
+  const num = /^(\d{1,2})[\.\/\-](\d{4})$/u.exec(trimmed);
+  if (num) {
+    const m = +num[1]!;
+    const y = +num[2]!;
+    if (y < 1900 || y > 2100) return null;
+    if (m < 1 || m > 12) return null;
+    return `${pad2(m)}.${y}`;
+  }
+
+  // Natural form with optional "yil"/"йил" filler between/around.
+  const lower = trimmed.toLowerCase();
+  const yearMatch = lower.match(/\b(\d{4})\b/);
+  if (!yearMatch) return null;
+  const y = +yearMatch[1]!;
+  if (y < 1900 || y > 2100) return null;
+
+  for (const [name, idx] of Object.entries(MONTH_NAME_TO_INDEX)) {
+    if (lower.includes(name)) {
+      return `${pad2(idx)}.${y}`;
+    }
+  }
+  return null;
+}
+
 /**
  * Normalize a phone number to E.164 (+998901234567 form).
  * Default country is Uzbekistan, so the user can enter:
@@ -168,6 +231,12 @@ export function validate(
       return canonical !== null
         ? { ok: true, value: canonical }
         : { ok: false, value: trimmed, errorKey: 'val.date' };
+    }
+    case 'year-month': {
+      const canonical = parseUserYearMonth(trimmed);
+      return canonical !== null
+        ? { ok: true, value: canonical }
+        : { ok: false, value: trimmed, errorKey: 'val.year-month' };
     }
     default: {
       const pattern = PATTERNS[kind];

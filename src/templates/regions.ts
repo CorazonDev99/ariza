@@ -104,12 +104,6 @@ export const REGIONS: RegionDef[] = [
     courtName: L('Хоразм', 'Xorazm', 'Хорезм'),
     judgeName: L('___________', '___________', '___________'),
   },
-  {
-    code: 'supreme',
-    label: L('Олий суд', 'Oliy sud', 'Верховный суд'),
-    courtName: L('Олий', 'Oliy', 'Верховный'),
-    judgeName: L('___________', '___________', '___________'),
-  },
 ];
 
 export function getRegionByCode(code: string): RegionDef | undefined {
