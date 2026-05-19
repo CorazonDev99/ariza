@@ -9,6 +9,11 @@ export interface AppConfig {
   outputDir: string;
   libreofficeBin: string;
   payment: {
+    /** When false, the wizard skips the provider picker and pay
+     *  buttons and sends the PDF straight after preview confirmation.
+     *  Existing payment handlers stay registered (no-op) so re-enabling
+     *  is a single env flip with no code change. */
+    enabled: boolean;
     amount: number;
     webhookPort: number;
   };
@@ -55,6 +60,7 @@ export const config: AppConfig = {
   outputDir: path.resolve(env.OUTPUT_DIR),
   libreofficeBin: env.LIBREOFFICE_BIN,
   payment: {
+    enabled: env.PAYMENT_ENABLED,
     amount: env.PAYMENT_AMOUNT,
     webhookPort: env.PAYMENT_WEBHOOK_PORT,
   },

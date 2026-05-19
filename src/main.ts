@@ -157,6 +157,15 @@ async function registerBotProfile(bot: Telegraf<BotContext>): Promise<void> {
   ];
 
   for (const e of entries) {
+    // Inline price line — "💳 18 000 …" when payments are enabled,
+    // "🎁 Free for now" otherwise. Spliced into `bot.description` so
+    // the Telegram profile reflects the current monetisation state.
+    const priceLine = t(
+      e.locale,
+      config.payment.enabled ? 'bot.price_line.paid' : 'bot.price_line.free',
+      { amount },
+    );
+
     try {
       await bot.telegram.setMyName(name, e.lang_code);
     } catch (err) {
@@ -172,14 +181,17 @@ async function registerBotProfile(bot: Telegraf<BotContext>): Promise<void> {
     }
     try {
       await bot.telegram.setMyDescription(
-        t(e.locale, 'bot.description', { amount }),
+        t(e.locale, 'bot.description', { price_line: priceLine }),
         e.lang_code,
       );
     } catch (err) {
       logger.warn({ err, lang: e.lang_code }, 'setMyDescription failed');
     }
   }
-  logger.info({ name, amount }, 'Bot profile (name + descriptions) registered');
+  logger.info(
+    { name, amount, paymentEnabled: config.payment.enabled },
+    'Bot profile (name + descriptions) registered',
+  );
 }
 
 main().catch(async (err) => {

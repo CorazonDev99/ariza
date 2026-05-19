@@ -5,14 +5,16 @@ import type { RegionDef } from '../templates/regions';
 import type { CourtTypeDef } from '../templates/court-types';
 import type { DistrictCourtDef } from '../templates/district-courts';
 
+// Main reply keyboard. Intentionally NOT persistent — the user can
+// collapse it with the chevron / Android back button when they want to
+// see more of the conversation history. The keyboard re-appears on the
+// next bot message.
 export function mainMenu(locale: Locale) {
   return Markup.keyboard([
     [t(locale, 'menu.new')],
     [t(locale, 'menu.instructions'), t(locale, 'menu.about')],
     [t(locale, 'menu.lang')],
-  ])
-    .resize()
-    .persistent();
+  ]).resize();
 }
 
 /**
@@ -59,13 +61,14 @@ export function templatesInline(
  * step "submit an application" flow. One row per type so long Cyrillic
  * labels don't get truncated.
  */
+// No "🏠 Main menu" inline button — the persistent reply keyboard at
+// the bottom of the chat already gives the user one-tap access to every
+// menu action, and /-commands work everywhere too (see scene.command in
+// the wizard scene). An extra inline button just clutters the picker.
 export function courtTypesInline(locale: Locale, types: CourtTypeDef[]) {
-  return Markup.inlineKeyboard([
-    ...types.map((c) => [
-      Markup.button.callback(c.label[locale], `ct:${c.code}`),
-    ]),
-    [Markup.button.callback(t(locale, 'btn.main_menu'), 'wiz-exit')],
-  ]);
+  return Markup.inlineKeyboard(
+    types.map((c) => [Markup.button.callback(c.label[locale], `ct:${c.code}`)]),
+  );
 }
 
 /**
@@ -101,6 +104,24 @@ export function districtCourtsInline(
   ]);
 }
 
+/**
+ * Inline keyboard for `choice`-validator fields. One button per option,
+ * each on its own row so long Cyrillic labels don't get truncated. The
+ * callback id encodes both the field key and the chosen value so the
+ * scene handler can route the click back through `commitFieldValue`.
+ */
+export function choiceInline(
+  locale: Locale,
+  fieldKey: string,
+  choices: NonNullable<import('../types').FieldDef['choices']>,
+) {
+  return Markup.inlineKeyboard(
+    choices.map((c) => [
+      Markup.button.callback(c.label[locale], `choice:${fieldKey}:${c.value}`),
+    ]),
+  );
+}
+
 export function previewInline(locale: Locale) {
   return Markup.inlineKeyboard([
     [Markup.button.callback(t(locale, 'preview.confirm'), 'preview:confirm')],
@@ -133,16 +154,18 @@ export function providerInline(locale: Locale) {
   ]);
 }
 
-export function languageInline(locale: Locale) {
-  return Markup.inlineKeyboard([
-    ...LOCALES.map((code) => [
+// No "🏠 Main menu" button — the persistent reply keyboard already
+// provides one-tap access to everything, and the user can just ignore
+// this picker if they decided not to switch language.
+export function languageInline(_locale: Locale) {
+  return Markup.inlineKeyboard(
+    LOCALES.map((code) => [
       Markup.button.callback(
         `${LOCALE_META[code].flag} ${LOCALE_META[code].label}`,
         `lang:${code}`,
       ),
     ]),
-    [Markup.button.callback(t(locale, 'btn.main_menu'), 'lang:cancel')],
-  ]);
+  );
 }
 
 // =====================================================================
@@ -405,13 +428,11 @@ export function instructionsDetailInline(locale: Locale, code: string) {
 // to keep callbacks distinct from the wizard scene's `ct:`/`region:`/`dc:`.
 // =====================================================================
 
+// See note on courtTypesInline — no "🏠 Main menu" button.
 export function guideCourtTypesInline(locale: Locale, types: CourtTypeDef[]) {
-  return Markup.inlineKeyboard([
-    ...types.map((c) => [
-      Markup.button.callback(c.label[locale], `g-ct:${c.code}`),
-    ]),
-    [Markup.button.callback(t(locale, 'btn.main_menu'), 'inst:close')],
-  ]);
+  return Markup.inlineKeyboard(
+    types.map((c) => [Markup.button.callback(c.label[locale], `g-ct:${c.code}`)]),
+  );
 }
 
 export function guideRegionsInline(locale: Locale, regions: RegionDef[]) {

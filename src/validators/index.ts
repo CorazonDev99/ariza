@@ -15,6 +15,9 @@ export type ValidatorKind =
   | 'share'
   | 'address'
   | 'order-number'
+  | 'stir'
+  | 'pinfl'
+  | 'choice'
   | 'multiline';
 
 export interface ValidationResult {
@@ -41,7 +44,7 @@ const APOSTROPHES = "'`ʻʼʹ‘’";
 const RU_UZ_LETTERS = `A-Za-zА-Яа-яЁёЎўҚқҲҳҒғ${APOSTROPHES}.\\-`;
 
 const PATTERNS: Record<
-  Exclude<ValidatorKind, 'text' | 'multiline' | 'date' | 'year-month'>,
+  Exclude<ValidatorKind, 'text' | 'multiline' | 'date' | 'year-month' | 'choice'>,
   RegExp
 > = {
   fio: new RegExp(`^[${RU_UZ_LETTERS}][${RU_UZ_LETTERS}\\s]{4,}$`, 'u'),
@@ -54,6 +57,13 @@ const PATTERNS: Record<
   share: /^\d{1,2}\/\d{1,2}$/,
   address: /^.{10,}$/u,
   'order-number': /^\d{1,3}-\d{2,5}-\d{2,5}\/\d{2,8}$/,
+  // STIR — taxpayer ID for legal entities in Uzbekistan, exactly 9
+  // digits. Whitespace inside the input is tolerated (validate after
+  // stripping spaces).
+  stir: /^\d{9}$/,
+  // ЖШШИР / PINFL — personal identification number for natural
+  // persons in Uzbekistan, exactly 14 digits.
+  pinfl: /^\d{14}$/,
 };
 
 function daysInMonth(year: number, month: number): number {
@@ -237,6 +247,29 @@ export function validate(
       return canonical !== null
         ? { ok: true, value: canonical }
         : { ok: false, value: trimmed, errorKey: 'val.year-month' };
+    }
+    case 'choice': {
+      // Used for explicit 1/2 enum questions ("Plaintiff: 1=org, 2=person").
+      // The wizard relies on it to drive `skipIf` on the conditional
+      // field branches; only "1" or "2" make sense here.
+      const ok = trimmed === '1' || trimmed === '2';
+      return {
+        ok,
+        value: trimmed,
+        errorKey: ok ? undefined : 'val.choice',
+      };
+    }
+    case 'stir':
+    case 'pinfl': {
+      // Allow spaces between digit groups ("201 988 537" / "31008 911 831 636")
+      // — strip them, then check the digit-only pattern.
+      const cleaned = trimmed.replace(/\s+/g, '');
+      const ok = PATTERNS[kind].test(cleaned);
+      return {
+        ok,
+        value: cleaned,
+        errorKey: ok ? undefined : `val.${kind}`,
+      };
     }
     default: {
       const pattern = PATTERNS[kind];

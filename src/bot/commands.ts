@@ -1,15 +1,12 @@
 import type { Telegraf } from 'telegraf';
 import { LOCALE_META, t, type Locale } from '../i18n';
-import { config } from '../config';
 import {
-  aboutInline,
   detectMenuAction,
-  guideCourtTypesInline,
   guideDistrictCourtsInline,
   guideRegionsInline,
   instructionsDetailInline,
   instructionsListInline,
-  languageInline,
+  guideCourtTypesInline,
   mainMenu,
 } from './keyboards';
 import { ARIZA_WIZARD_ID } from '../scenes';
@@ -24,6 +21,7 @@ import type { BotContext } from './context';
 import type { DocumentRepository } from '../repositories/document.repository';
 import type { DraftRepository } from '../repositories/draft.repository';
 import type { UserRepository } from '../repositories/user.repository';
+import { actions, type ActionDeps } from './actions';
 
 export interface CommandDeps {
   documents: DocumentRepository;
@@ -35,6 +33,11 @@ export function registerCommands(
   bot: Telegraf<BotContext>,
   deps: CommandDeps,
 ): void {
+  const actionDeps: ActionDeps = {
+    documents: deps.documents,
+    drafts: deps.drafts,
+  };
+
   bot.start(async (ctx) => {
     const payload = (ctx as { startPayload?: string }).startPayload;
 
@@ -64,67 +67,26 @@ export function registerCommands(
       return;
     }
 
-    const name = ctx.from?.first_name ?? ctx.from?.username ?? '—';
-    await ctx.reply(
-      t(ctx.locale, 'cmd.start.greeting', { name }),
-      { parse_mode: 'HTML', ...mainMenu(ctx.locale) },
-    );
+    await actions.start(ctx);
   });
 
-  const sendAbout = async (ctx: BotContext): Promise<void> => {
-    const stats = await loadAboutStats(deps.documents);
-    const statsLine = stats
-      ? `\n\n${t(ctx.locale, 'about.stats', stats)}`
-      : '';
-    const aboutText = `${t(ctx.locale, 'cmd.about')}${statsLine}`;
-    if (config.supportContact) {
-      // Inline button is attached to the same message as the bot description.
-      // The persistent reply keyboard (mainMenu) is already on screen.
-      await ctx.reply(aboutText, {
-        parse_mode: 'HTML',
-        link_preview_options: { is_disabled: true },
-        ...aboutInline(ctx.locale, config.supportContact),
-      });
-    } else {
-      await ctx.reply(
-        `${aboutText}\n\n${t(ctx.locale, 'about.no_contact')}`,
-        {
-          parse_mode: 'HTML',
-          link_preview_options: { is_disabled: true },
-          ...mainMenu(ctx.locale),
-        },
-      );
-    }
-  };
+  bot.help((ctx) => actions.about(ctx, actionDeps));
+  bot.command('about', (ctx) => actions.about(ctx, actionDeps));
+  bot.command('new', (ctx) => actions.newDocument(ctx));
+  bot.command('guide', (ctx) => actions.guide(ctx));
+  bot.command('lang', (ctx) => actions.lang(ctx));
+  bot.command('cancel', (ctx) => actions.cancel(ctx, actionDeps));
 
-  bot.help(sendAbout);
-  bot.command('about', sendAbout);
-
-  bot.command('new', (ctx) => ctx.scene.enter(ARIZA_WIZARD_ID));
-  bot.command('guide', (ctx) => sendInstructionsList(ctx));
-  bot.command('lang', (ctx) =>
-    ctx.reply(t(ctx.locale, 'lang.pick'), {
-      parse_mode: 'HTML',
-      ...languageInline(ctx.locale),
-    }),
-  );
-  bot.command('cancel', async (ctx) => {
-    if (ctx.dbUser) await deps.drafts.reset(ctx.dbUser.id);
-    await ctx.reply(t(ctx.locale, 'cmd.cancelled'), mainMenu(ctx.locale));
-  });
-
-  // Localized main-menu buttons → translate to actions
+  // Localized main-menu buttons (reply keyboard) → translate to actions.
+  // Outside the wizard scene only — inside the scene the same detection
+  // happens in `scene.on('text')` so the menu keeps working there too.
   bot.on('text', async (ctx, next) => {
     const text = (ctx.message as { text: string }).text?.trim() ?? '';
     const action = detectMenuAction(text);
-    if (action === 'new') return ctx.scene.enter(ARIZA_WIZARD_ID);
-    if (action === 'instructions') return sendInstructionsList(ctx);
-    if (action === 'about') return sendAbout(ctx);
-    if (action === 'lang')
-      return ctx.reply(t(ctx.locale, 'lang.pick'), {
-        parse_mode: 'HTML',
-        ...languageInline(ctx.locale),
-      });
+    if (action === 'new') return actions.newDocument(ctx);
+    if (action === 'instructions') return actions.guide(ctx);
+    if (action === 'about') return actions.about(ctx, actionDeps);
+    if (action === 'lang') return actions.lang(ctx);
     return next();
   });
 
@@ -314,34 +276,3 @@ export function registerCommands(
   });
 }
 
-async function sendInstructionsList(ctx: BotContext): Promise<void> {
-  // Guide flow mirrors the wizard's entry: court type → region → district
-  // → template list → instruction text. Reset any leftover picker state
-  // from a previous run so the user always starts from step 1.
-  ctx.session.guidePicker = undefined;
-  await ctx.reply(t(ctx.locale, 'court-type.pick'), {
-    parse_mode: 'HTML',
-    ...guideCourtTypesInline(ctx.locale, COURT_TYPES),
-  });
-}
-
-const STATS_TTL_MS = 60_000;
-let statsCache: { value: { docs: string; users: string } | null; expiresAt: number } | null = null;
-
-async function loadAboutStats(
-  documents: DocumentRepository,
-): Promise<{ docs: string; users: string } | null> {
-  const now = Date.now();
-  if (statsCache && statsCache.expiresAt > now) return statsCache.value;
-  const [docs, users] = await Promise.all([
-    documents.countTotal(),
-    documents.countUniqueUsers(),
-  ]);
-  const value = { docs: formatCount(docs), users: formatCount(users) };
-  statsCache = { value, expiresAt: now + STATS_TTL_MS };
-  return value;
-}
-
-function formatCount(n: number): string {
-  return new Intl.NumberFormat('ru-RU').format(n);
-}

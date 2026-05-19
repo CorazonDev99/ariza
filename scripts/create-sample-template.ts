@@ -65,6 +65,13 @@ interface ParaSpec {
    *  starts at `tabStop`). Used in party blocks to keep a constant
    *  ~2-space gap between label and FIO regardless of label width. */
   rightTabStop?: number;
+  /** Hanging indent in twips. Combined with `leftIndent`, the FIRST
+   *  line is offset to the left by this amount (effectively starts at
+   *  `leftIndent - hanging`); subsequent wrapped lines stay at
+   *  `leftIndent`. Used on party-block label paragraphs so that long
+   *  FIOs / org names wrap underneath the FIO column instead of falling
+   *  back to the page margin. */
+  hanging?: number;
 }
 
 /** Side-by-side block: attachment section (header + bullet list) on the
@@ -255,15 +262,17 @@ const T2_CY: BlockSpec[] = [
   { text: [{ text: 'Фуқаролик ишлари бўйича {{court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
   { text: [{ text: 'туманлараро суди раиси {{judge_name}}га', bold: true, italics: true }], leftIndent: HEADER_INDENT },
   { text: '' },
-  // ── Plaintiff (Даъвогар) block — right-shifted; FIO/address/phone in
+  // ── Plaintiff (Аризачи) block — right-shifted; FIO/address/phone in
   //     a column aligned by tab stop + matching leftIndent. ──
   {
     text: [
-      { text: 'Даъвогар:', bold: true, tab: true },
+      { text: 'Аризачи:', bold: true, tab: true },
       { text: '{{plaintiff_fio}}', tab: true },
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{plaintiff_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -278,6 +287,8 @@ const T2_CY: BlockSpec[] = [
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{defendant_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -298,7 +309,7 @@ const T2_CY: BlockSpec[] = [
   { text: [{ text: 'Иловалар:', bold: true }] },
   { text: '' },
   { text: [
-    { text: 'Даъвогар:', bold: true },
+    { text: 'Аризачи:', bold: true },
     { text: `${SIGNATURE_GAP}(имзо)${BLOCK_GAP}` },
     { text: '{{plaintiff_fio}}', bold: true },
   ] },
@@ -319,11 +330,13 @@ const T2_RU: BlockSpec[] = [
   { text: '' },
   {
     text: [
-      { text: 'Истец:', bold: true, tab: true },
+      { text: 'Заявитель:', bold: true, tab: true },
       { text: '{{plaintiff_fio}}', tab: true },
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{plaintiff_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -337,6 +350,8 @@ const T2_RU: BlockSpec[] = [
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{defendant_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -355,7 +370,7 @@ const T2_RU: BlockSpec[] = [
   { text: [{ text: 'Приложения:', bold: true }] },
   { text: '' },
   { text: [
-    { text: 'Истец:', bold: true },
+    { text: 'Заявитель:', bold: true },
     { text: `${SIGNATURE_GAP}(подпись)${BLOCK_GAP}` },
     { text: '{{plaintiff_fio}}', bold: true },
   ] },
@@ -378,14 +393,16 @@ const T3_CY: BlockSpec[] = [
   { text: [{ text: 'Фуқаролик ишлари бўйича {{court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
   { text: [{ text: 'туманлараро суди раиси {{judge_name}}га', bold: true, italics: true }], leftIndent: HEADER_INDENT },
   { text: '' },
-  // ── Plaintiff (Даъвогар) ──
+  // ── Plaintiff (Аризачи) ──
   {
     text: [
-      { text: 'Даъвогар:', bold: true, tab: true },
+      { text: 'Аризачи:', bold: true, tab: true },
       { text: '{{plaintiff_fio}}', tab: true },
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{plaintiff_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -400,6 +417,8 @@ const T3_CY: BlockSpec[] = [
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{defendant_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -422,7 +441,7 @@ const T3_CY: BlockSpec[] = [
   { text: [{ text: 'Иловалар:', bold: true }] },
   { text: '' },
   { text: [
-    { text: 'Даъвогар:', bold: true },
+    { text: 'Аризачи:', bold: true },
     { text: `${SIGNATURE_GAP}(имзо)${BLOCK_GAP}` },
     { text: '{{plaintiff_fio}}', bold: true },
   ] },
@@ -441,11 +460,13 @@ const T3_RU: BlockSpec[] = [
   { text: '' },
   {
     text: [
-      { text: 'Истец:', bold: true, tab: true },
+      { text: 'Заявитель:', bold: true, tab: true },
       { text: '{{plaintiff_fio}}', tab: true },
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{plaintiff_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -459,6 +480,8 @@ const T3_RU: BlockSpec[] = [
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{defendant_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -477,7 +500,7 @@ const T3_RU: BlockSpec[] = [
   { text: [{ text: 'Приложения:', bold: true }] },
   { text: '' },
   { text: [
-    { text: 'Истец:', bold: true },
+    { text: 'Заявитель:', bold: true },
     { text: `${SIGNATURE_GAP}(подпись)${BLOCK_GAP}` },
     { text: '{{plaintiff_fio}}', bold: true },
   ] },
@@ -512,6 +535,8 @@ const T4_CY: BlockSpec[] = [
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{collector_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -525,6 +550,8 @@ const T4_CY: BlockSpec[] = [
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{debtor_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -546,7 +573,7 @@ const T4_CY: BlockSpec[] = [
   { text: [{ text: 'Иловалар:', bold: true }] },
   { text: '' },
   { text: [
-    { text: 'Даъвогар:', bold: true },
+    { text: 'Аризачи:', bold: true },
     { text: `${SIGNATURE_GAP}(имзо)${BLOCK_GAP}` },
     { text: '{{collector_fio}}', bold: true },
   ] },
@@ -572,6 +599,8 @@ const T4_RU: BlockSpec[] = [
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{collector_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -585,6 +614,8 @@ const T4_RU: BlockSpec[] = [
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{debtor_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -635,6 +666,8 @@ const T5_CY: BlockSpec[] = [
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{plaintiff_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -674,6 +707,8 @@ const T5_RU: BlockSpec[] = [
     ],
     rightTabStop: PARTY_LABEL_RIGHT,
     tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
     spaceAfter: TIGHT,
   },
   { text: '{{plaintiff_address_line1}}', leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
@@ -697,6 +732,363 @@ const T5_RU: BlockSpec[] = [
     { text: 'Заявитель (должник)', bold: true },
     { text: `${SIGNATURE_GAP}(подпись)${BLOCK_GAP}` },
     { text: '{{plaintiff_short_fio}}', bold: true },
+  ] },
+];
+
+/* ============================================================
+ * Template 6 — Илтимоснома (Petition to hear case in absentia).
+ * Same right-aligned header / party-block / body-with-firstLine
+ * layout as the rest, but the plaintiff block content varies by
+ * type (organisation vs natural person) — the script renders both
+ * variants and `document.service.ts` pre-fills only the relevant
+ * pre-built strings so the docx stays static.
+ *
+ * Variables filled by document.service for this template:
+ *   plaintiff_subject       — org name OR FIO
+ *   plaintiff_address_line1 / _line2
+ *   plaintiff_phone
+ *   plaintiff_id_line       — "СТИР: …" or "ЖШШИР: …"
+ *   defendantN_fio / _address_line1 / _line2 / _phone / _pinfl   (N=1..3)
+ *   defendantN_present      — boolean; controls {{#…}}…{{/…}} blocks
+ *   damage_description / damage_amount / postal_expenses
+ *   representative_fio
+ *   contact_phone1 / contact_phone2
+ *   defendants_in_body      — "жавобгарлар X ва Y дан" / "жавобгар X дан"
+ * ============================================================ */
+
+const T6_CY: BlockSpec[] = [
+  // ── Header ──
+  { text: [{ text: 'ФИБ {{court_name}} туманлараро суди судьяси', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{judge_name}}га', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+  // ── Plaintiff (Даъвогар) block ──
+  {
+    text: [
+      { text: 'Даъвогар:', bold: true, tab: true },
+      { text: '{{plaintiff_subject}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: 'Манзил: {{plaintiff_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'Тел: {{plaintiff_phone}}    {{plaintiff_id_line}}', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  // ── Defendants — up to MAX_DEFENDANTS=3, each block wrapped in a
+  //    docxtemplater conditional. The standalone {{#…}} / {{/…}} tag
+  //    paragraphs are removed by paragraphLoop:true and the contained
+  //    paragraphs survive only when defendantN_present is truthy. ──
+  { text: '{{#defendant1_present}}' },
+  {
+    text: [
+      { text: 'Жавобгар:', bold: true, tab: true },
+      { text: '{{defendant1_fio}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: 'Манзили: {{defendant1_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{defendant1_address_line2}}    Тел: {{defendant1_phone}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'ЖШШИР: {{defendant1_pinfl}}', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  { text: '{{/defendant1_present}}' },
+  { text: '{{#defendant2_present}}' },
+  {
+    text: [
+      { text: 'Жавобгар:', bold: true, tab: true },
+      { text: '{{defendant2_fio}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: 'Манзили: {{defendant2_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{defendant2_address_line2}}    Тел: {{defendant2_phone}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'ЖШШИР: {{defendant2_pinfl}}', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  { text: '{{/defendant2_present}}' },
+  { text: '{{#defendant3_present}}' },
+  {
+    text: [
+      { text: 'Жавобгар:', bold: true, tab: true },
+      { text: '{{defendant3_fio}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: 'Манзили: {{defendant3_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{defendant3_address_line2}}    Тел: {{defendant3_phone}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'ЖШШИР: {{defendant3_pinfl}}', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  { text: '{{/defendant3_present}}' },
+  // ── Title ──
+  { text: [{ text: 'Илтимоснома', bold: true }], align: 'center', spaceAfter: TIGHT },
+  { text: [{ text: '(аризани даъвогарнинг иштирокисиз кўриш ҳақида)', italics: true }], align: 'center' },
+  { text: '' },
+  // ── Body ──
+  { text: 'Иш юритувингизда даъвогар {{plaintiff_subject}}нинг {{defendants_in_body}} {{damage_amount}} сўм миқдорида {{damage_description}} зарарни ҳамда {{postal_expenses}} сўм почта харажатини ундириш ҳақида даъво аризаси бўйича иш кўрилмоқда.', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: [
+    { text: 'ФПКнинг ' },
+    { text: '220-моддаси 4-қисмига кўра', bold: true },
+    { text: ' Тарафлар ишни ўзининг иштирокисиз кўришни ва ўзларига суд ҳал қилув қарорининг кўчирма нусхасини юборишни илтимос қилишга ҳақли.' },
+  ], align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'Мазкур нормага биноан суддан,', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'Даъвогар {{plaintiff_subject}}нинг {{defendants_in_body}} {{damage_amount}} сўм миқдорида {{damage_description}} зарарни ҳамда {{postal_expenses}} сўм почта харажатини ундириш ҳақида аризасини даъвогарнинг иштирокисиз кўриб чиқишни;', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'арз талабини тўлиқ қаноатлантиришни;', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'агарда ишнинг ҳолатлари бўйича суд мажлисида даъвогар иштирок этиши шарт деб топилган тақдирда {{contact_phone1}} ёки {{contact_phone2}} телефон рақамлари орқали хабар беришни сўрайман.', align: 'justify', firstLine: BODY_FIRSTLINE },
+  { text: '' },
+  { text: [{ text: 'Илова:', bold: true }, { text: ' Вакилнинг ишончномаси нусхаси.' }] },
+  { text: '' },
+  { text: '' },
+  { text: [
+    { text: 'Даъвогарнинг ишончнома орқали вакили', bold: true },
+    { text: `${SIGNATURE_GAP}(имзо)${BLOCK_GAP}` },
+    { text: '{{representative_fio}}', bold: true },
+  ] },
+];
+
+const T6_RU: BlockSpec[] = [
+  { text: [{ text: 'Судье межрайонного суда по гражданским делам {{court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{judge_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+  {
+    text: [
+      { text: 'Истец:', bold: true, tab: true },
+      { text: '{{plaintiff_subject}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: 'Адрес: {{plaintiff_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'Тел: {{plaintiff_phone}}    {{plaintiff_id_line}}', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  { text: '{{#defendant1_present}}' },
+  {
+    text: [
+      { text: 'Ответчик:', bold: true, tab: true },
+      { text: '{{defendant1_fio}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: 'Адрес: {{defendant1_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{defendant1_address_line2}}    Тел: {{defendant1_phone}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'ПИНФЛ: {{defendant1_pinfl}}', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  { text: '{{/defendant1_present}}' },
+  { text: '{{#defendant2_present}}' },
+  {
+    text: [
+      { text: 'Ответчик:', bold: true, tab: true },
+      { text: '{{defendant2_fio}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: 'Адрес: {{defendant2_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{defendant2_address_line2}}    Тел: {{defendant2_phone}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'ПИНФЛ: {{defendant2_pinfl}}', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  { text: '{{/defendant2_present}}' },
+  { text: '{{#defendant3_present}}' },
+  {
+    text: [
+      { text: 'Ответчик:', bold: true, tab: true },
+      { text: '{{defendant3_fio}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: 'Адрес: {{defendant3_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{defendant3_address_line2}}    Тел: {{defendant3_phone}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'ПИНФЛ: {{defendant3_pinfl}}', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  { text: '{{/defendant3_present}}' },
+  { text: [{ text: 'ХОДАТАЙСТВО', bold: true }], align: 'center', spaceAfter: TIGHT },
+  { text: [{ text: '(о рассмотрении дела в отсутствие истца)', italics: true }], align: 'center' },
+  { text: '' },
+  { text: 'В Вашем производстве находится дело по иску {{plaintiff_subject}} к {{defendants_in_body}} о взыскании {{damage_amount}} сум {{damage_description}} ущерба, а также {{postal_expenses}} сум почтовых расходов.', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: [
+    { text: 'Согласно ' },
+    { text: 'части 4 статьи 220 ГПК', bold: true },
+    { text: ' стороны вправе ходатайствовать о рассмотрении дела без их участия и направлении им копии судебного решения.' },
+  ], align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'На основании указанной нормы прошу суд:', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'Рассмотреть исковое заявление истца {{plaintiff_subject}} к {{defendants_in_body}} о взыскании {{damage_amount}} сум {{damage_description}} ущерба и {{postal_expenses}} сум почтовых расходов в отсутствие истца;', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'удовлетворить исковые требования в полном объёме;', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'если по обстоятельствам дела суд сочтёт обязательным личное присутствие истца — известить по телефонам {{contact_phone1}} или {{contact_phone2}}.', align: 'justify', firstLine: BODY_FIRSTLINE },
+  { text: '' },
+  { text: [{ text: 'Приложение:', bold: true }, { text: ' копия доверенности представителя.' }] },
+  { text: '' },
+  { text: '' },
+  { text: [
+    { text: 'Представитель истца по доверенности', bold: true },
+    { text: `${SIGNATURE_GAP}(подпись)${BLOCK_GAP}` },
+    { text: '{{representative_fio}}', bold: true },
+  ] },
+];
+
+/* ============================================================
+ * Template 7 — Даъво ариза (Никоҳдан ажратиш ҳақида).
+ * Civil suit for divorce when one spouse refuses or there are minor
+ * children. Uses standard party-block layout; the body weaves in
+ * marriage registration details (FXDYO branch + act number) and a
+ * free-form "reasons" paragraph the user fills out themselves.
+ * ============================================================ */
+
+const T7_CY: BlockSpec[] = [
+  // ── Header ──
+  { text: [{ text: 'Фуқаролик ишлари бўйича {{court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'туманлараро суди раиси {{judge_name}}га', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+  // ── Plaintiff (Даъвогар) ──
+  {
+    text: [
+      { text: 'Даъвогар:', bold: true, tab: true },
+      { text: '{{plaintiff_fio}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: '{{plaintiff_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'Тел: {{plaintiff_phone}}', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  // ── Defendant (Жавобгар) ──
+  {
+    text: [
+      { text: 'Жавобгар:', bold: true, tab: true },
+      { text: '{{defendant_fio}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: '{{defendant_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{defendant_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'Тел: {{defendant_phone}}', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  // ── Title ──
+  { text: [{ text: 'Д А Ъ В О   А Р И З А', bold: true }], align: 'center', spaceAfter: TIGHT },
+  { text: [{ text: '(Никоҳдан ажратиш ҳақида)', italics: true }], align: 'center' },
+  { text: '' },
+  // ── Body ──
+  { text: 'Мен жавобгар {{defendant_fio}} билан {{marriage_year}} йил {{marriage_month}} ойининг {{marriage_day}} куни қонуний никоҳдан ўтиб, турмуш қурганмиз.', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'Никоҳимиз {{marriage_registry_office}} ФХДЁ бўлимида {{marriage_year}} йил {{marriage_month}} ойининг {{marriage_day}} куни {{marriage_act_number}}-сон билан қайд этилган.', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: '{{children_block}}', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: '{{divorce_reasons}}', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'Жавобгар билан {{separation_year}} йил {{separation_month}} ойидан буён бирга яшамаяпмиз.', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'Юқоридагиларга ва амалдаги Ўзбекистон Республикаси Оила Кодексининг 40-41-моддаларига асосан,', align: 'justify', firstLine: BODY_FIRSTLINE },
+  { text: '' },
+  { text: [{ text: 'С Ў Р А Й М А Н', bold: true }], align: 'center' },
+  { text: '' },
+  { text: 'Жавобгар {{defendant_fio}} билан {{marriage_registry_office}} ФХДЁ бўлимида {{marriage_year}} йил {{marriage_month}} ойининг {{marriage_day}} куни {{marriage_act_number}}-сон билан қайд этилган никоҳимиздан ажратишингизни.', align: 'justify', firstLine: BODY_FIRSTLINE },
+  { text: '' },
+  // ── Attachments ──
+  { text: [{ text: 'Илова:', bold: true }] },
+  { text: [{ text: '- Паспортимни нусхаси;', italics: true }], spaceAfter: TIGHT },
+  { text: [{ text: '- Никоҳ гувоҳномаси асли;', italics: true }], spaceAfter: TIGHT },
+  { text: [{ text: '- Туғилганлик гувоҳнома нусхаси;', italics: true }], spaceAfter: TIGHT },
+  { text: [{ text: '- МФЙ далолатномаси;', italics: true }], spaceAfter: TIGHT },
+  { text: [{ text: '- Давлат божи тўлови ва почта харажати патти.', italics: true }] },
+  { text: '' },
+  { text: '' },
+  { text: [
+    { text: 'Даъвогар:', bold: true },
+    { text: `${SIGNATURE_GAP}(имзо)${BLOCK_GAP}` },
+    { text: '{{plaintiff_fio}}', bold: true },
+  ] },
+];
+
+const T7_RU: BlockSpec[] = [
+  { text: [{ text: 'Председателю межрайонного суда по гражданским делам {{court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{judge_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+  {
+    text: [
+      { text: 'Истец:', bold: true, tab: true },
+      { text: '{{plaintiff_fio}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: '{{plaintiff_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'Тел: {{plaintiff_phone}}', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  {
+    text: [
+      { text: 'Ответчик:', bold: true, tab: true },
+      { text: '{{defendant_fio}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: '{{defendant_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{defendant_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'Тел: {{defendant_phone}}', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  { text: [{ text: 'И С К О В О Е   З А Я В Л Е Н И Е', bold: true }], align: 'center', spaceAfter: TIGHT },
+  { text: [{ text: '(о расторжении брака)', italics: true }], align: 'center' },
+  { text: '' },
+  { text: '{{marriage_day}} {{marriage_month}} {{marriage_year}} года я вступил(а) в законный брак с ответчиком {{defendant_fio}}.', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'Наш брак зарегистрирован в органе ЗАГС {{marriage_registry_office}} {{marriage_day}} {{marriage_month}} {{marriage_year}} года, актовая запись № {{marriage_act_number}}.', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: '{{children_block}}', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: '{{divorce_reasons}}', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'С {{separation_month}} {{separation_year}} года мы с ответчиком совместно не проживаем.', align: 'justify', firstLine: BODY_FIRSTLINE, spaceAfter: TIGHT },
+  { text: 'На основании изложенного и в соответствии со ст. 40-41 Семейного кодекса Республики Узбекистан,', align: 'justify', firstLine: BODY_FIRSTLINE },
+  { text: '' },
+  { text: [{ text: 'П Р О Ш У', bold: true }], align: 'center' },
+  { text: '' },
+  { text: 'Расторгнуть брак между мной и ответчиком {{defendant_fio}}, зарегистрированный в органе ЗАГС {{marriage_registry_office}} {{marriage_day}} {{marriage_month}} {{marriage_year}} года, актовая запись № {{marriage_act_number}}.', align: 'justify', firstLine: BODY_FIRSTLINE },
+  { text: '' },
+  { text: [{ text: 'Приложение:', bold: true }] },
+  { text: [{ text: '- копия паспорта истца;', italics: true }], spaceAfter: TIGHT },
+  { text: [{ text: '- оригинал свидетельства о браке;', italics: true }], spaceAfter: TIGHT },
+  { text: [{ text: '- копии свидетельств о рождении детей;', italics: true }], spaceAfter: TIGHT },
+  { text: [{ text: '- справка из махалли;', italics: true }], spaceAfter: TIGHT },
+  { text: [{ text: '- квитанция гос. пошлины и почтовых расходов.', italics: true }] },
+  { text: '' },
+  { text: '' },
+  { text: [
+    { text: 'Истец:', bold: true },
+    { text: `${SIGNATURE_GAP}(подпись)${BLOCK_GAP}` },
+    { text: '{{plaintiff_fio}}', bold: true },
   ] },
 ];
 
@@ -731,6 +1123,16 @@ const BUILDERS: Record<string, Record<Locale, BlockSpec[]>> = {
     uz_cyrillic: T5_CY,
     uz_latin: deriveLatin(T5_CY),
     ru: T5_RU,
+  },
+  'iltimosnoma-ishtiroksiz': {
+    uz_cyrillic: T6_CY,
+    uz_latin: deriveLatin(T6_CY),
+    ru: T6_RU,
+  },
+  'davo-ariza-nikohdan-ajratish': {
+    uz_cyrillic: T7_CY,
+    uz_latin: deriveLatin(T7_CY),
+    ru: T7_RU,
   },
 };
 
@@ -768,10 +1170,13 @@ function specToParagraph(s: ParaSpec): Paragraph {
       ? [{ text: s.text }]
       : [s.text];
   const indent =
-    s.firstLine !== undefined || s.leftIndent !== undefined
+    s.firstLine !== undefined ||
+    s.leftIndent !== undefined ||
+    s.hanging !== undefined
       ? {
           ...(s.firstLine !== undefined ? { firstLine: s.firstLine } : {}),
           ...(s.leftIndent !== undefined ? { left: s.leftIndent } : {}),
+          ...(s.hanging !== undefined ? { hanging: s.hanging } : {}),
         }
       : undefined;
   const opts: IParagraphOptions = {

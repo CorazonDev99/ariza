@@ -106,6 +106,38 @@ const F = {
     label,
     hint: L('Масалан: 2-1301-2506/20479', 'Masalan: 2-1301-2506/20479', 'Например: 2-1301-2506/20479'),
   }),
+  stir: (key: string, label: Record<Locale, string>): FieldDef => ({
+    key,
+    validator: 'stir',
+    label,
+    hint: L(
+      'Корхонанинг СТИРи (9 рақам). Масалан: 201 988 537',
+      "Korxonaning STIR raqami (9 raqam). Masalan: 201 988 537",
+      'СТИР организации (9 цифр). Например: 201 988 537',
+    ),
+    hintCopyable: true,
+  }),
+  pinfl: (key: string, label: Record<Locale, string>): FieldDef => ({
+    key,
+    validator: 'pinfl',
+    label,
+    hint: L(
+      'ЖШШИР (14 рақам). Паспортда ёзилган. Масалан: 31008911831636',
+      "JSHSHIR (14 raqam). Pasportda yozilgan. Masalan: 31008911831636",
+      'ПИНФЛ (14 цифр). Указан в паспорте. Например: 31008911831636',
+    ),
+    hintCopyable: true,
+  }),
+  choice: (
+    key: string,
+    label: Record<Locale, string>,
+    choices: NonNullable<FieldDef['choices']>,
+  ): FieldDef => ({
+    key,
+    validator: 'choice',
+    label,
+    choices,
+  }),
   /**
    * Composite date — one calendar pick that fills 2–3 separate value keys.
    * Use when the .docx template has separate {{x_year}} / {{x_month}} / {{x_day}}
@@ -233,15 +265,15 @@ const T_YOSHGACHA: TemplateDef = {
   ),
   description: L('—', '—', '—'),
   instructions: L(
-    `🍼 <b>3 ёшгача фарзанд таъминоти</b>\n\n📋 <b>Қачон бериш:</b>\nЁшингиз 3 дан кичик фарзандингиз бўлиб, эр (ҳозирги ёки собиқ) моддий ёрдам бермаса. Оила кодексига кўра, сиз ўзингиз ишлаётган бўлсангиз ҳам, фарзанд 3 ёшга тўлгунча таъминот талаб қилишга ҳақингиз бор.\n\n🏛 <b>Қаерга:</b>\nДаъвогарнинг яшаш жойи бўйича туманлараро фуқаролик суди.\n\n📎 <b>Ҳужжатлар:</b>\n• Даъвогар паспорти нусхаси\n• Никоҳ ёки уни бекор қилиш гувоҳномаси\n• 3 ёшгача фарзандлар гувоҳномаси\n• Оила таркиби маълумотномаси\n• Жавобгарнинг иш ҳақи маълумотномаси (бўлса)\n\n💡 <b>Миқдор:</b>\nСуд томонларнинг моддий аҳволига қараб белгилайди. Аризада сиз ҳаққоний деб биладиган суммани кўрсатинг.\n\n⏱ <b>Муддат:</b> 2 ой (даъво иш юритуви).\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → жавобгар маълумотлари → никоҳ санаси → фарзандлар сони ва туғилган саналари → қачондан буён алоҳида яшайсиз → ойлик талаб қилинаётган сумма.`,
-    `🍼 <b>3 yoshgacha farzand ta'minoti</b>\n\n📋 <b>Qachon berish:</b>\nYoshi 3 dan kichik farzandingiz bo‘lib, er (hozirgi yoki sobiq) moddiy yordam bermasa. Oila kodeksiga ko‘ra, siz o‘zingiz ishlayotgan bo‘lsangiz ham, farzand 3 yoshga to‘lguncha ta'minot talab qilish huquqingiz bor.\n\n🏛 <b>Qayerga:</b>\nDa'vogarning yashash joyi bo‘yicha tumanlararo fuqarolik sudi.\n\n📎 <b>Hujjatlar:</b>\n• Da'vogar pasporti nusxasi\n• Nikoh yoki uni bekor qilish guvohnomasi\n• 3 yoshgacha farzandlar guvohnomasi\n• Oila tarkibi ma'lumotnomasi\n• Javobgarning ish haqi ma'lumotnomasi (bo‘lsa)\n\n💡 <b>Miqdor:</b>\nSud tomonlarning moddiy ahvoliga qarab belgilaydi. Arizada siz haqqoniy deb bilgan summani ko‘rsating.\n\n⏱ <b>Muddat:</b> 2 oy (da'vo ish yurituvi).\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → javobgar ma'lumotlari → nikoh sanasi → farzandlar soni va tug‘ilgan sanalari → qachondan buyon alohida yashaysiz → oylik talab qilinayotgan summa.`,
-    `🍼 <b>Содержание ребёнка до 3 лет</b>\n\n📋 <b>Когда подавать:</b>\nЕсли у вас ребёнок младше 3 лет, а супруг (нынешний или бывший) не оказывает финансовой помощи. По Семейному кодексу вы вправе требовать содержание до достижения ребёнком 3 лет — даже если сами работаете.\n\n🏛 <b>Куда:</b>\nМежрайонный гражданский суд по месту жительства истца.\n\n📎 <b>Документы:</b>\n• Копия паспорта истца\n• Свидетельство о браке (или о разводе)\n• Свидетельства о рождении детей младше 3 лет\n• Справка о составе семьи\n• Справка о доходах ответчика (если есть)\n\n💡 <b>Размер содержания:</b>\nОпределяется судом исходя из материального положения сторон. В аризе укажите сумму, которую считаете справедливой.\n\n⏱ <b>Срок рассмотрения:</b> 2 месяца (исковое производство).\n\n📝 <b>Бот спросит:</b>\nваши данные → данные ответчика → дата брака → количество и даты рождения детей → когда начали жить раздельно → запрашиваемая ежемесячная сумма.`,
+    `🍼 <b>3 ёшгача фарзанд таъминоти</b>\n\n📋 <b>Қачон бериш:</b>\nЁшингиз 3 дан кичик фарзандингиз бўлиб, эр (ҳозирги ёки собиқ) моддий ёрдам бермаса. Оила кодексига кўра, сиз ўзингиз ишлаётган бўлсангиз ҳам, фарзанд 3 ёшга тўлгунча таъминот талаб қилишга ҳақингиз бор.\n\n🏛 <b>Қаерга:</b>\nАризачининг яшаш жойи бўйича туманлараро фуқаролик суди.\n\n📎 <b>Ҳужжатлар:</b>\n• Аризачи паспорти нусхаси\n• Никоҳ ёки уни бекор қилиш гувоҳномаси\n• 3 ёшгача фарзандлар гувоҳномаси\n• Оила таркиби маълумотномаси\n• Жавобгарнинг иш ҳақи маълумотномаси (бўлса)\n\n💡 <b>Миқдор:</b>\nСуд томонларнинг моддий аҳволига қараб белгилайди. Аризада сиз ҳаққоний деб биладиган суммани кўрсатинг.\n\n⏱ <b>Муддат:</b> 2 ой (даъво иш юритуви).\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → жавобгар маълумотлари → никоҳ санаси → фарзандлар сони ва туғилган саналари → қачондан буён алоҳида яшайсиз → ойлик талаб қилинаётган сумма.`,
+    `🍼 <b>3 yoshgacha farzand ta'minoti</b>\n\n📋 <b>Qachon berish:</b>\nYoshi 3 dan kichik farzandingiz bo‘lib, er (hozirgi yoki sobiq) moddiy yordam bermasa. Oila kodeksiga ko‘ra, siz o‘zingiz ishlayotgan bo‘lsangiz ham, farzand 3 yoshga to‘lguncha ta'minot talab qilish huquqingiz bor.\n\n🏛 <b>Qayerga:</b>\nArizachining yashash joyi bo‘yicha tumanlararo fuqarolik sudi.\n\n📎 <b>Hujjatlar:</b>\n• Arizachi pasporti nusxasi\n• Nikoh yoki uni bekor qilish guvohnomasi\n• 3 yoshgacha farzandlar guvohnomasi\n• Oila tarkibi ma'lumotnomasi\n• Javobgarning ish haqi ma'lumotnomasi (bo‘lsa)\n\n💡 <b>Miqdor:</b>\nSud tomonlarning moddiy ahvoliga qarab belgilaydi. Arizada siz haqqoniy deb bilgan summani ko‘rsating.\n\n⏱ <b>Muddat:</b> 2 oy (da'vo ish yurituvi).\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → javobgar ma'lumotlari → nikoh sanasi → farzandlar soni va tug‘ilgan sanalari → qachondan buyon alohida yashaysiz → oylik talab qilinayotgan summa.`,
+    `🍼 <b>Содержание ребёнка до 3 лет</b>\n\n📋 <b>Когда подавать:</b>\nЕсли у вас ребёнок младше 3 лет, а супруг (нынешний или бывший) не оказывает финансовой помощи. По Семейному кодексу вы вправе требовать содержание до достижения ребёнком 3 лет — даже если сами работаете.\n\n🏛 <b>Куда:</b>\nМежрайонный гражданский суд по месту жительства заявителя.\n\n📎 <b>Документы:</b>\n• Копия паспорта заявителя\n• Свидетельство о браке (или о разводе)\n• Свидетельства о рождении детей младше 3 лет\n• Справка о составе семьи\n• Справка о доходах ответчика (если есть)\n\n💡 <b>Размер содержания:</b>\nОпределяется судом исходя из материального положения сторон. В аризе укажите сумму, которую считаете справедливой.\n\n⏱ <b>Срок рассмотрения:</b> 2 месяца (исковое производство).\n\n📝 <b>Бот спросит:</b>\nваши данные → данные ответчика → дата брака → количество и даты рождения детей → когда начали жить раздельно → запрашиваемая ежемесячная сумма.`,
   ),
   fileNameBase: 'davo-ariza-yoshgacha-taminot',
   fields: [
-    F.fio('plaintiff_fio', L('👤 Даъвогар Ф.И.Ш.', '👤 Da’vogar F.I.SH.', '👤 Истец (Ф.И.О.)')),
-    F.address('plaintiff_address', L('🏠 Даъвогар манзили', '🏠 Da’vogar manzili', '🏠 Адрес истца')),
-    F.phone('plaintiff_phone', L('📱 Даъвогар телефон', '📱 Da’vogar telefon', '📱 Телефон истца')),
+    F.fio('plaintiff_fio', L('👤 Аризачи Ф.И.Ш.', '👤 Arizachi F.I.SH.', '👤 Заявитель (Ф.И.О.)')),
+    F.address('plaintiff_address', L('🏠 Аризачи манзили', '🏠 Arizachi manzili', '🏠 Адрес заявителя')),
+    F.phone('plaintiff_phone', L('📱 Аризачи телефон', '📱 Arizachi telefon', '📱 Телефон заявителя')),
     F.fio('defendant_fio', L('👤 Жавобгар Ф.И.Ш.', '👤 Javobgar F.I.SH.', '👤 Ответчик (Ф.И.О.)')),
     F.address('defendant_address', L('🏠 Жавобгар манзили', '🏠 Javobgar manzili', '🏠 Адрес ответчика')),
     F.phone('defendant_phone', L('📱 Жавобгар телефон', '📱 Javobgar telefon', '📱 Телефон ответчика')),
@@ -335,9 +367,9 @@ const T_KAMAYTIRISH: TemplateDef = {
   ),
   fileNameBase: 'davo-ariza-aliment-kamaytirish',
   fields: [
-    F.fio('plaintiff_fio', L('👤 Даъвогар Ф.И.Ш.', '👤 Da’vogar F.I.SH.', '👤 Истец (Ф.И.О.)')),
-    F.address('plaintiff_address', L('🏠 Даъвогар манзили', '🏠 Da’vogar manzili', '🏠 Адрес истца')),
-    F.phone('plaintiff_phone', L('📱 Даъвогар телефон', '📱 Da’vogar telefon', '📱 Телефон истца')),
+    F.fio('plaintiff_fio', L('👤 Аризачи Ф.И.Ш.', '👤 Arizachi F.I.SH.', '👤 Заявитель (Ф.И.О.)')),
+    F.address('plaintiff_address', L('🏠 Аризачи манзили', '🏠 Arizachi manzili', '🏠 Адрес заявителя')),
+    F.phone('plaintiff_phone', L('📱 Аризачи телефон', '📱 Arizachi telefon', '📱 Телефон заявителя')),
     F.fio('defendant_fio', L('👤 Жавобгар Ф.И.Ш.', '👤 Javobgar F.I.SH.', '👤 Ответчик (Ф.И.О.)')),
     F.address('defendant_address', L('🏠 Жавобгар манзили', '🏠 Javobgar manzili', '🏠 Адрес ответчика')),
     F.phone('defendant_phone', L('📱 Жавобгар телефон', '📱 Javobgar telefon', '📱 Телефон ответчика')),
@@ -357,19 +389,362 @@ const T_KAMAYTIRISH: TemplateDef = {
   ],
 };
 
+/* ============================================================ */
+/* 5. Илтимоснома — рассмотреть дело в отсутствие истца           */
+
 /**
- * The 4 user-facing templates shown right after `/new`,
+ * Per-defendant FIO/address/phone/PINFL fields. The wizard asks each
+ * defendant's set of 4 questions sequentially for as many defendants
+ * as `defendants_count` indicates (capped at MAX_DEFENDANTS).
+ */
+const MAX_DEFENDANTS = 3;
+function defendantFields(): FieldDef[] {
+  const out: FieldDef[] = [];
+  for (let i = 1; i <= MAX_DEFENDANTS; i++) {
+    const idx = i;
+    const skip = (v: Record<string, string>) =>
+      Number(v.defendants_count ?? '0') < idx;
+    out.push({
+      ...F.fio(
+        `defendant${idx}_fio`,
+        L(
+          `👤 ${idx}-жавобгар Ф.И.Ш.`,
+          `👤 ${idx}-javobgar F.I.SH.`,
+          `👤 Ответчик ${idx}: Ф.И.О.`,
+        ),
+      ),
+      skipIf: skip,
+      skipValue: '—',
+    });
+    out.push({
+      ...F.address(
+        `defendant${idx}_address`,
+        L(
+          `🏠 ${idx}-жавобгар манзили`,
+          `🏠 ${idx}-javobgar manzili`,
+          `🏠 Адрес ответчика ${idx}`,
+        ),
+      ),
+      skipIf: skip,
+      skipValue: '—',
+    });
+    out.push({
+      ...F.phone(
+        `defendant${idx}_phone`,
+        L(
+          `📱 ${idx}-жавобгар телефон`,
+          `📱 ${idx}-javobgar telefon`,
+          `📱 Телефон ответчика ${idx}`,
+        ),
+      ),
+      skipIf: skip,
+      skipValue: '—',
+      defaultValue: '—',
+    });
+    out.push({
+      ...F.pinfl(
+        `defendant${idx}_pinfl`,
+        L(
+          `🆔 ${idx}-жавобгар ЖШШИР`,
+          `🆔 ${idx}-javobgar JSHSHIR`,
+          `🆔 ПИНФЛ ответчика ${idx}`,
+        ),
+      ),
+      skipIf: skip,
+      skipValue: '—',
+      defaultValue: '—',
+    });
+  }
+  return out;
+}
+
+const T_ILTIMOSNOMA: TemplateDef = {
+  code: 'iltimosnoma-ishtiroksiz',
+  category: 'iltimosnoma',
+  title: L(
+    '📨 Илтимоснома',
+    '📨 Iltimosnoma',
+    '📨 Ходатайство',
+  ),
+  subtitle: L(
+    'даъвогарнинг иштирокисиз кўриш ҳақида',
+    "da'vogarning ishtirokisiz ko‘rish haqida",
+    'о рассмотрении дела в отсутствие истца',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `📨 <b>Илтимоснома — даъвогарнинг иштирокисиз ишни кўриш</b>\n\n📋 <b>Қачон бериш:</b>\nСизнинг номингиздан судда даъво иши кўрилаётган бўлса ва Сиз ёки вакилингиз шахсан суд мажлисига боролмаслигингиз мумкин бўлса. Илтимоснома орқали суддан ишни Сизнинг иштирокингизсиз кўришни ҳамда ҳал қилув қарорининг кўчирмасини юборишни сўрайсиз.\n\n📜 <b>Қонуний асос:</b>\nФПК 220-моддаси 4-қисми — тарафлар ишни ўз иштирокисиз кўришни илтимос қилишга ҳақли.\n\n🏛 <b>Қаерга:</b>\nИшингиз кўрилаётган туманлараро фуқаролик судига.\n\n📎 <b>Илова қилинадиган ҳужжатлар:</b>\n• Вакилнинг ишончномаси нусхаси (вакил орқали юборилса)\n\n📝 <b>Бот сўрайди:</b>\nДаъвогар тури (юр.шахс ёки жисмоний шахс) → даъвогар маълумотлари → жавобгарлар сони ва маълумотлари → зарар тури, миқдори, почта харажати → вакил Ф.И.Ш. ва алоқа телефонлари.`,
+    `📨 <b>Iltimosnoma — da'vogarning ishtirokisiz ishni ko‘rish</b>\n\n📋 <b>Qachon berish:</b>\nSizning nomingizdan sudda da'vo ishi ko‘rilayotgan bo‘lsa va Siz yoki vakilingiz shaxsan sud majlisiga borolmasligingiz mumkin bo‘lsa. Iltimosnoma orqali suddan ishni Sizning ishtirokingizsiz ko‘rishni hamda hal qilish qarorining ko‘chirmasini yuborishni so‘raysiz.\n\n📜 <b>Qonuniy asos:</b>\nFPK 220-moddasi 4-qismi — taraflar ishni o‘z ishtirokisiz ko‘rishni iltimos qilishga haqli.\n\n🏛 <b>Qayerga:</b>\nIshingiz ko‘rilayotgan tumanlararo fuqarolik sudiga.\n\n📎 <b>Ilova qilinadigan hujjatlar:</b>\n• Vakilning ishonchnomasi nusxasi (vakil orqali yuborilsa)\n\n📝 <b>Bot so‘raydi:</b>\nDa'vogar turi (yur.shaxs yoki jismoniy shaxs) → da'vogar ma'lumotlari → javobgarlar soni va ma'lumotlari → zarar turi, miqdori, pochta xarajati → vakil F.I.SH. va aloqa telefonlari.`,
+    `📨 <b>Ходатайство — о рассмотрении дела в отсутствие истца</b>\n\n📋 <b>Когда подавать:</b>\nЕсли по Вашему иску в суде идёт процесс, а Вы или Ваш представитель не можете лично явиться в заседание. Ходатайством Вы просите суд рассмотреть дело без Вашего участия и направить копию решения.\n\n📜 <b>Правовое основание:</b>\nГПК ст. 220 ч. 4 — стороны вправе ходатайствовать о рассмотрении дела без их участия.\n\n🏛 <b>Куда:</b>\nВ межрайонный гражданский суд, где рассматривается дело.\n\n📎 <b>Документы:</b>\n• Копия доверенности представителя (если подаётся через представителя)\n\n📝 <b>Бот спросит:</b>\nТип истца (юр./физ. лицо) → данные истца → количество и данные ответчиков → характер ущерба, сумма, почтовые расходы → ФИО представителя и контактные телефоны.`,
+  ),
+  fileNameBase: 'iltimosnoma-ishtiroksiz',
+  fields: [
+    F.choice(
+      'plaintiff_type',
+      L(
+        '🏷 Даъвогар тури',
+        '🏷 Da’vogar turi',
+        '🏷 Тип истца',
+      ),
+      [
+        {
+          value: '1',
+          label: L(
+            '🏢 Корхона / ташкилот',
+            '🏢 Korxona / tashkilot',
+            '🏢 Организация',
+          ),
+        },
+        {
+          value: '2',
+          label: L(
+            '👤 Жисмоний шахс',
+            '👤 Jismoniy shaxs',
+            '👤 Физлицо',
+          ),
+        },
+      ],
+    ),
+    {
+      ...F.text(
+        'plaintiff_org_name',
+        L(
+          '🏢 Корхона/ташкилот номи',
+          '🏢 Korxona/tashkilot nomi',
+          '🏢 Название организации',
+        ),
+        L(
+          'Масалан: Жиззах вилоят автомобиль йўллари бош бошқармаси',
+          "Masalan: Jizzax viloyat avtomobil yo‘llari bosh boshqarmasi",
+          'Например: Главное управление автомобильных дорог Жиззакской области',
+        ),
+      ),
+      skipIf: (v) => v.plaintiff_type !== '1',
+      skipValue: '—',
+    },
+    {
+      ...F.fio(
+        'plaintiff_fio',
+        L(
+          '👤 Даъвогар Ф.И.Ш.',
+          '👤 Da’vogar F.I.SH.',
+          '👤 Истец (Ф.И.О.)',
+        ),
+      ),
+      skipIf: (v) => v.plaintiff_type !== '2',
+      skipValue: '—',
+    },
+    F.address(
+      'plaintiff_address',
+      L(
+        '🏠 Даъвогар манзили',
+        '🏠 Da’vogar manzili',
+        '🏠 Адрес истца',
+      ),
+    ),
+    F.phone(
+      'plaintiff_phone',
+      L(
+        '📱 Даъвогар телефони',
+        '📱 Da’vogar telefoni',
+        '📱 Телефон истца',
+      ),
+    ),
+    {
+      ...F.stir(
+        'plaintiff_stir',
+        L(
+          '🔢 Корхона СТИРи',
+          '🔢 Korxona STIRi',
+          '🔢 СТИР организации',
+        ),
+      ),
+      skipIf: (v) => v.plaintiff_type !== '1',
+      skipValue: '—',
+    },
+    {
+      ...F.pinfl(
+        'plaintiff_pinfl',
+        L(
+          '🆔 Даъвогар ЖШШИРи',
+          '🆔 Da’vogar JSHSHIRi',
+          '🆔 ПИНФЛ истца',
+        ),
+      ),
+      skipIf: (v) => v.plaintiff_type !== '2',
+      skipValue: '—',
+    },
+    F.num(
+      'defendants_count',
+      L(
+        `👥 Жавобгарлар сони (макс. ${MAX_DEFENDANTS})`,
+        `👥 Javobgarlar soni (maks. ${MAX_DEFENDANTS})`,
+        `👥 Количество ответчиков (макс. ${MAX_DEFENDANTS})`,
+      ),
+    ),
+    ...defendantFields(),
+    F.text(
+      'damage_description',
+      L(
+        '💼 Зарар тури',
+        '💼 Zarar turi',
+        '💼 Характер ущерба',
+      ),
+      L(
+        'Масалан: йўлга етказилган',
+        "Masalan: yo‘lga yetkazilgan",
+        'Например: дорожный',
+      ),
+    ),
+    F.money(
+      'damage_amount',
+      L(
+        '💰 Зарар миқдори (сўмда)',
+        "💰 Zarar miqdori (so‘mda)",
+        '💰 Сумма ущерба (в сумах)',
+      ),
+    ),
+    F.money(
+      'postal_expenses',
+      L(
+        '💌 Почта харажати (сўмда)',
+        "💌 Pochta xarajati (so‘mda)",
+        '💌 Почтовые расходы (в сумах)',
+      ),
+    ),
+    F.fio(
+      'representative_fio',
+      L(
+        '👤 Вакил Ф.И.Ш.',
+        '👤 Vakil F.I.SH.',
+        '👤 Ф.И.О. представителя',
+      ),
+    ),
+    F.phone(
+      'contact_phone1',
+      L(
+        '📱 Биринчи алоқа телефони',
+        "📱 Birinchi aloqa telefoni",
+        '📱 Контактный телефон 1',
+      ),
+    ),
+    {
+      ...F.phone(
+        'contact_phone2',
+        L(
+          '📱 Иккинчи алоқа телефони (ихтиёрий)',
+          "📱 Ikkinchi aloqa telefoni (ixtiyoriy)",
+          '📱 Контактный телефон 2 (необязательно)',
+        ),
+      ),
+      defaultValue: '—',
+    },
+  ],
+};
+
+/* ============================================================ */
+/* 6. Даъво ариза — никоҳдан ажратиш (расторжение брака)         */
+
+const T_NIKOH: TemplateDef = {
+  code: 'davo-ariza-nikohdan-ajratish',
+  category: 'davo_ariza',
+  title: L(
+    '💔 Никоҳдан ажратиш',
+    '💔 Nikohdan ajratish',
+    '💔 Расторжение брака',
+  ),
+  subtitle: L(
+    'даъво ариза',
+    "da'vo ariza",
+    'исковое заявление',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `💔 <b>Никоҳдан ажратиш — даъво ариза</b>\n\n📋 <b>Қачон бериш:</b>\nЭр ёки хотиннинг бири никоҳни бекор қилишни талаб қилаётган бўлса (томонлардан биттаси розилик бермаганда — суд орқали). Оила Кодекси 40-41-моддалари.\n\n🏛 <b>Қаерга:</b>\nЖавобгарнинг яшаш жойи бўйича туманлараро фуқаролик суди (фарзанд даъвогар билан яшаётган бўлса — даъвогарнинг яшаш жойи бўйича ҳам мумкин).\n\n📎 <b>Илова қилинадиган ҳужжатлар:</b>\n• Паспорт нусхаси\n• Никоҳ гувоҳномаси асли\n• Фарзандлар туғилганлик гувоҳномаси нусхаси\n• МФЙ далолатномаси\n• Давлат божи квитанцияси\n• Почта харажати квитанцияси\n\n⏱ <b>Муддат:</b> 1-2 ой (тарафлар келишганда — қисқароқ; низо бўлса — 3 ой ва ундан кўп).\n\n💡 <b>Маслаҳат:</b>\nАризада тарихни қисқа, фактик ва ҳурматли ёзинг — судья ўқиб, ишни тушуниш керак. Бот овозли хабарни ҳам қабул қилади 🎙\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → жавобгар маълумотлари → никоҳ санаси ва ФХДЁ реквизитлари → фарзандлар сони ва туғилган саналари → қачондан буён бирга яшамайсиз → ажрашиш сабаблари (эркин тарзда).`,
+    `💔 <b>Nikohdan ajratish — da'vo ariza</b>\n\n📋 <b>Qachon berish:</b>\nEr yoki xotinning biri nikohni bekor qilishni talab qilayotgan bo‘lsa (taraflardan biri rozilik bermaganda — sud orqali). Oila Kodeksi 40-41-moddalari.\n\n🏛 <b>Qayerga:</b>\nJavobgarning yashash joyi bo‘yicha tumanlararo fuqarolik sudi (farzand da'vogar bilan yashayotgan bo‘lsa — da'vogarning yashash joyi bo‘yicha ham mumkin).\n\n📎 <b>Ilova qilinadigan hujjatlar:</b>\n• Pasport nusxasi\n• Nikoh guvohnomasi asli\n• Farzandlar tug‘ilganlik guvohnomasi nusxasi\n• MFY dalolatnomasi\n• Davlat boji kvitansiyasi\n• Pochta xarajati kvitansiyasi\n\n⏱ <b>Muddat:</b> 1-2 oy (taraflar kelishganda — qisqaroq; nizo bo‘lsa — 3 oy va undan ko‘p).\n\n💡 <b>Maslahat:</b>\nArizada tarixni qisqa, faktik va hurmatli yozing — sudya o‘qib, ishni tushunishi kerak. Bot ovozli xabarni ham qabul qiladi 🎙\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → javobgar ma'lumotlari → nikoh sanasi va FXDYO rekvizitlari → farzandlar soni va tug‘ilgan sanalari → qachondan buyon birga yashamaysiz → ajrashish sabablari (erkin tarzda).`,
+    `💔 <b>Расторжение брака — исковое заявление</b>\n\n📋 <b>Когда подавать:</b>\nКогда один из супругов хочет развестись, а другой не даёт согласия (или есть несовершеннолетние дети) — нужен судебный порядок. Семейный кодекс ст. 40-41.\n\n🏛 <b>Куда:</b>\nМежрайонный гражданский суд по месту жительства ответчика (если ребёнок живёт с истцом — можно по месту истца).\n\n📎 <b>Документы для приложения:</b>\n• Копия паспорта\n• Оригинал свидетельства о браке\n• Копии свидетельств о рождении детей\n• Справка из махалли\n• Квитанция гос. пошлины\n• Квитанция почтовых расходов\n\n⏱ <b>Срок рассмотрения:</b> 1-2 месяца (по согласию сторон — быстрее; при споре — 3 месяца и больше).\n\n💡 <b>Совет:</b>\nИзложите ситуацию коротко, по фактам и уважительно — судье нужно понять суть. Бот принимает голосовые сообщения 🎙\n\n📝 <b>Бот спросит:</b>\nваши данные → данные ответчика → дата брака и реквизиты ФХДЁ → количество и даты рождения детей → когда начали жить раздельно → причины развода (свободный текст).`,
+  ),
+  fileNameBase: 'davo-ariza-nikohdan-ajratish',
+  fields: [
+    F.fio('plaintiff_fio', L('👤 Даъвогар Ф.И.Ш.', '👤 Da’vogar F.I.SH.', '👤 Истец (Ф.И.О.)')),
+    F.address('plaintiff_address', L('🏠 Даъвогар манзили', '🏠 Da’vogar manzili', '🏠 Адрес истца')),
+    F.phone('plaintiff_phone', L('📱 Даъвогар телефон', '📱 Da’vogar telefon', '📱 Телефон истца')),
+    F.fio('defendant_fio', L('👤 Жавобгар Ф.И.Ш.', '👤 Javobgar F.I.SH.', '👤 Ответчик (Ф.И.О.)')),
+    F.address('defendant_address', L('🏠 Жавобгар манзили', '🏠 Javobgar manzili', '🏠 Адрес ответчика')),
+    F.phone('defendant_phone', L('📱 Жавобгар телефон', '📱 Javobgar telefon', '📱 Телефон ответчика')),
+    F.splitDate(
+      'marriage_date',
+      L('💒 Никоҳ санаси', '💒 Nikoh sanasi', '💒 Дата брака'),
+      { yearKey: 'marriage_year', monthKey: 'marriage_month', dayKey: 'marriage_day' },
+    ),
+    F.text(
+      'marriage_registry_office',
+      L(
+        '🏛 ФХДЁ бўлими (никоҳ қайд этилган жой)',
+        '🏛 FXDYO bo‘limi (nikoh qayd etilgan joy)',
+        '🏛 Орган ЗАГС (где зарегистрирован брак)',
+      ),
+      L(
+        'Масалан: Сирдарё туман 2-сонли',
+        "Masalan: Sirdaryo tuman 2-sonli",
+        'Например: Сырдарьинский район №2',
+      ),
+    ),
+    F.text(
+      'marriage_act_number',
+      L(
+        '🔢 Никоҳ гувоҳномаси рақами',
+        '🔢 Nikoh guvohnomasi raqami',
+        '🔢 Номер свидетельства о браке',
+      ),
+      L(
+        'Масалан: 2-1219-22-00248',
+        "Masalan: 2-1219-22-00248",
+        'Например: 2-1219-22-00248',
+      ),
+    ),
+    F.num('children_count', L('👶 Фарзандлар сони', "👶 Farzandlar soni", '👶 Количество детей')),
+    ...childFields(),
+    {
+      key: 'separation_date',
+      validator: 'year-month',
+      splitYearMonth: { yearKey: 'separation_year', monthKey: 'separation_month' },
+      label: L('💔 Қачондан буён бирга яшамаяпсиз', "💔 Qachondan buyon birga yashamayapsiz", '💔 С какого момента живёте отдельно'),
+      hint: L('Календардан йил ва ойни танланг', 'Kalendardan yil va oyni tanlang', 'Выберите год и месяц из календаря'),
+    },
+    F.multiline(
+      'divorce_reasons',
+      L(
+        '📝 Ажрашиш сабаблари',
+        "📝 Ajrashish sabablari",
+        '📝 Причины развода',
+      ),
+      L(
+        'Қисқа, фактик ёзинг: турмушни нима учун давом эттириб бўлмаслигини. Ҳақоратлар, хиёнат, моддий низо, ота-онага муносабат — нима бўлганини ёзинг. Овозли хабар ҳам мумкин 🎙',
+        "Qisqa, faktik yozing: turmushni nima uchun davom ettirib bo‘lmasligini. Haqoratlar, xiyonat, moddiy nizo, ota-onaga munosabat — nima bo‘lganini yozing. Ovozli xabar ham mumkin 🎙",
+        'Коротко и по фактам: почему дальнейшая совместная жизнь невозможна. Оскорбления, измена, материальный конфликт, отношение к родителям — что произошло. Можно голосовым 🎙',
+      ),
+    ),
+  ],
+};
+
+/**
+ * The 6 user-facing templates shown right after `/new`,
  * in the exact display order requested:
  *   1) Алимент ундириш
  *   2) 3 ёшгача таъминот ундириш
  *   3) Эътирознома
  *   4) Алимент миқдорини камайтириш
+ *   5) Илтимоснома (рассмотрение в отсутствие истца)
+ *   6) Никоҳдан ажратиш (расторжение брака)
  */
 export const TEMPLATES: TemplateDef[] = [
   T_ARIZA_ALIMENT,
   T_YOSHGACHA,
   T_ETIROZ,
   T_KAMAYTIRISH,
+  T_ILTIMOSNOMA,
+  T_NIKOH,
 ];
 
 export function getTemplateByCode(code: string): TemplateDef | undefined {

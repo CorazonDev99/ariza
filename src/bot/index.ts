@@ -77,6 +77,7 @@ export function createBot(): BotBundle {
 
   const arizaScene = buildArizaWizardScene({
     templateRepo,
+    documentRepo,
     documentService,
     draftRepo,
     paymentService,
@@ -99,6 +100,17 @@ export function createBot(): BotBundle {
   registerAdmin(bot, { admin: adminRepo });
 
   bot.catch((err, ctx) => {
+    // Telegram returns 400 "message is not modified" whenever the user
+    // double-clicks the same inline button and the second click tries
+    // to editMessageText to the IDENTICAL text/markup. The first edit
+    // already put the message in the desired state — there's nothing
+    // to fix, so swallow it silently. Logging at debug keeps a trace
+    // for diagnostics without polluting prod logs.
+    const msg = (err as { message?: unknown }).message;
+    if (typeof msg === 'string' && /message is not modified/i.test(msg)) {
+      logger.debug({ msg }, 'Telegram edit no-op (double click)');
+      return;
+    }
     logger.error({ err, update: ctx.update }, 'Telegraf top-level error');
   });
 

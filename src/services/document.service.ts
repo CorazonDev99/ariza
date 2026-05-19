@@ -112,6 +112,86 @@ function buildChildrenBlock(
   }
 }
 
+/**
+ * In-place enrichment of the data object for T_ILTIMOSNOMA. Computes:
+ *   - plaintiff_subject     — org name OR FIO depending on plaintiff_type
+ *   - plaintiff_id_line     — "СТИР: …" / "ЖШШИР: …" / "ПИНФЛ: …"
+ *   - defendantN_present    — boolean truthy/empty for docxtemplater conditionals
+ *   - defendants_in_body    — short phrase used in the running body text
+ *                             e.g. "жавобгарлар X ва Y дан" / "ответчику X"
+ *
+ * Why this lives outside the template script: the .docx is rendered as
+ * a static blob, so any branching ("if plaintiff is an org…") has to be
+ * resolved into plain strings before docxtemplater renders the file.
+ */
+function enrichIltimosnomaData(
+  data: Record<string, string>,
+  values: Record<string, string>,
+  locale: Locale,
+): void {
+  const isOrg = values.plaintiff_type === '1';
+
+  // Subject = the name that appears wherever the body says "the plaintiff
+  // ${X} requests…". Org name when юр.шахс, FIO when жисмоний шахс.
+  const subject = isOrg
+    ? values.plaintiff_org_name ?? '____________'
+    : values.plaintiff_fio ?? '____________';
+  data.plaintiff_subject = subject;
+
+  // ID line on the right of the phone row in the plaintiff block.
+  const stir = values.plaintiff_stir;
+  const pinfl = values.plaintiff_pinfl;
+  if (isOrg && stir && stir !== '—') {
+    data.plaintiff_id_line = `СТИР: ${stir}`;
+  } else if (!isOrg && pinfl && pinfl !== '—') {
+    const label =
+      locale === 'ru' ? 'ПИНФЛ' : locale === 'uz_latin' ? 'JSHSHIR' : 'ЖШШИР';
+    data.plaintiff_id_line = `${label}: ${pinfl}`;
+  } else {
+    data.plaintiff_id_line = '';
+  }
+
+  // defendant1..3 — `_present` flag for docxtemplater conditional blocks.
+  const declared = Math.min(3, Math.max(0, Number(values.defendants_count ?? '0')));
+  for (let i = 1; i <= 3; i++) {
+    data[`defendant${i}_present`] = i <= declared ? 'yes' : '';
+  }
+
+  // Body text inserts e.g. "жавобгарлар X ва Y ва Z дан" — needs the
+  // FIOs listed inline. Single-defendant uses singular form.
+  const names: string[] = [];
+  for (let i = 1; i <= declared; i++) {
+    const fio = values[`defendant${i}_fio`];
+    if (fio && fio !== '—') names.push(fio);
+  }
+  data.defendants_in_body = formatDefendantsInBody(names, locale);
+}
+
+function formatDefendantsInBody(names: string[], locale: Locale): string {
+  if (names.length === 0) return '____________';
+  switch (locale) {
+    case 'ru':
+      return names.length === 1
+        ? `ответчику ${names[0]}`
+        : `ответчикам ${joinWithAnd(names, ' и ')}`;
+    case 'uz_latin':
+      // "javobgar X dan" / "javobgarlar X va Y dan" — postpositional -dan.
+      return names.length === 1
+        ? `javobgar ${names[0]}dan`
+        : `javobgarlar ${joinWithAnd(names, ' va ')}dan`;
+    case 'uz_cyrillic':
+      return names.length === 1
+        ? `жавобгар ${names[0]}дан`
+        : `жавобгарлар ${joinWithAnd(names, ' ва ')}дан`;
+  }
+}
+
+function joinWithAnd(names: string[], sep: string): string {
+  if (names.length === 0) return '';
+  if (names.length === 1) return names[0]!;
+  return names.slice(0, -1).join(', ') + sep + names[names.length - 1];
+}
+
 export interface BuildDocumentInput {
   userId: number;
   templateDbId: number;
@@ -170,12 +250,28 @@ export class DocumentService {
     // visual lines (matches the printable form layout). Split point is
     // the comma after a "MFY" / "МФЙ" / "махалля" keyword; if no such
     // keyword is found, splits at the middle comma.
-    for (const base of ['collector', 'debtor', 'plaintiff', 'defendant']) {
+    for (const base of [
+      'collector',
+      'debtor',
+      'plaintiff',
+      'defendant',
+      'defendant1',
+      'defendant2',
+      'defendant3',
+    ]) {
       const addr = input.values[`${base}_address`];
       if (!addr) continue;
       const { line1, line2 } = splitAddressForDoc(addr);
       data[`${base}_address_line1`] = line1;
       data[`${base}_address_line2`] = line2;
+    }
+
+    // Iltimosnoma-specific pre-computed values. The template (T6) varies
+    // its plaintiff block by type (org vs natural person) and renders
+    // up to 3 defendants via `{{#defendantN_present}}` blocks. Compute
+    // these once here so the .docx itself stays static.
+    if (input.templateCode === 'iltimosnoma-ishtiroksiz') {
+      enrichIltimosnomaData(data, input.values, input.locale);
     }
 
     // Build the single combined `children_block` paragraph used by the

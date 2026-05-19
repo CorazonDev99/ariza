@@ -2,11 +2,13 @@ import { Scenes } from 'telegraf';
 import type { Message } from 'telegraf/types';
 import type { DocumentService } from '../services/document.service';
 import type { DraftRepository } from '../repositories/draft.repository';
+import type { DocumentRepository } from '../repositories/document.repository';
 import type { TemplateRepository } from '../repositories/template.repository';
 import type { PaymentService } from '../services/payment.service';
 import type { AiAssistService } from '../services/ai-assist.service';
 import type { TranscriptionService } from '../services/transcription.service';
 import type { BotContext } from '../bot/context';
+import { actions, type ActionDeps } from '../bot/actions';
 import {
   TEMPLATES,
   getTemplateByCode,
@@ -24,6 +26,7 @@ import {
   aiAssistRewrittenInline,
   calendarInline,
   calendarYearInline,
+  choiceInline,
   courtTypesInline,
   dayPickerInline,
   detectMenuAction,
@@ -49,6 +52,10 @@ export const ARIZA_WIZARD_ID = 'ariza-wizard';
 
 interface WizardDeps {
   templateRepo: TemplateRepository;
+  /** Needed by the scene-level command shortcuts (e.g. /about inside
+   *  the wizard) — the shared `actions.about` helper reads stats from
+   *  this repo. */
+  documentRepo: DocumentRepository;
   documentService: DocumentService;
   draftRepo: DraftRepository;
   paymentService: PaymentService;
@@ -60,6 +67,44 @@ export function buildArizaWizardScene(
   deps: WizardDeps,
 ): Scenes.BaseScene<BotContext> {
   const scene = new Scenes.BaseScene<BotContext>(ARIZA_WIZARD_ID);
+
+  const actionDeps: ActionDeps = {
+    documents: deps.documentRepo,
+    drafts: deps.draftRepo,
+  };
+
+  // ----------- global commands always work inside the scene -----------
+  // Telegraf scoping rule: when the user is inside a scene, bot-level
+  // command handlers do NOT fire — the scene swallows the update. Mirror
+  // each global command here so /start, /about, /guide, /lang, /new,
+  // /cancel keep working in the middle of the wizard. Each one leaves
+  // the scene first, then runs the shared action handler. Draft is
+  // preserved (the user can resume via /new) except for /cancel which
+  // explicitly resets it.
+  scene.command('start', async (ctx) => {
+    await ctx.scene.leave();
+    await actions.start(ctx);
+  });
+  scene.command('about', async (ctx) => {
+    await ctx.scene.leave();
+    await actions.about(ctx, actionDeps);
+  });
+  scene.command('guide', async (ctx) => {
+    await ctx.scene.leave();
+    await actions.guide(ctx);
+  });
+  scene.command('lang', async (ctx) => {
+    await ctx.scene.leave();
+    await actions.lang(ctx);
+  });
+  scene.command('new', async (ctx) => {
+    await ctx.scene.leave();
+    await actions.newDocument(ctx);
+  });
+  scene.command('cancel', async (ctx) => {
+    await actions.cancel(ctx, actionDeps);
+    await ctx.scene.leave();
+  });
 
   const getState = (ctx: BotContext): WizardState | undefined =>
     ctx.scene.session.state;
@@ -216,6 +261,12 @@ export function buildArizaWizardScene(
     } else if (f.validator === 'day') {
       await ctx.reply(t(ctx.locale, 'dp.day.pick'), {
         ...dayPickerInline(ctx.locale, false),
+      });
+    } else if (f.validator === 'choice' && f.choices) {
+      // Inline buttons instead of typed input — one button per option.
+      await ctx.reply(t(ctx.locale, 'choice.prompt'), {
+        parse_mode: 'HTML',
+        ...choiceInline(ctx.locale, f.key, f.choices),
       });
     }
   }
@@ -529,8 +580,16 @@ export function buildArizaWizardScene(
     if (!state || !ctx.dbUser) return ctx.scene.leave();
     await ctx.answerCbQuery();
 
-    // Step 1 — let the user pick a provider. We create the Payment row
-    // only after they have chosen one.
+    // Free mode: payment disabled → generate and send the PDF straight
+    // away. paymentId stays undefined in the Document row, which is
+    // fine — the column is nullable.
+    if (!config.payment.enabled) {
+      await generateAndSend(ctx);
+      return;
+    }
+
+    // Paid mode: let the user pick a provider. The Payment row is
+    // created only after they choose one (in startPaymentWithProvider).
     await ctx.reply(
       t(ctx.locale, 'pay.pick-provider', {
         amount: formatAmount(config.payment.amount),
@@ -980,6 +1039,34 @@ export function buildArizaWizardScene(
     }
   });
 
+  // ----------- choice (inline-buttons) field -----------
+  //
+  // For fields with validator 'choice', the user picks an option via
+  // inline buttons instead of typing 1/2/etc. The callback id encodes
+  // the field key so a stale click from a previous step is a no-op.
+  scene.action(/^choice:([^:]+):(.+)$/, async (ctx) => {
+    const fieldKey = ctx.match[1]!;
+    const value = ctx.match[2]!;
+    const state = getState(ctx);
+    if (!state) {
+      await ctx.answerCbQuery();
+      return;
+    }
+    const fields = getFields(state);
+    const f = fields[state.currentFieldIndex];
+    if (!f || f.key !== fieldKey || f.validator !== 'choice') {
+      await ctx.answerCbQuery();
+      return;
+    }
+    // Remove the buttons so the user can't double-click and so the chat
+    // shows the locked-in choice visually (the question text remains).
+    try { await ctx.editMessageReplyMarkup(undefined); } catch { /* ignore */ }
+    await ctx.answerCbQuery(
+      f.choices?.find((c) => c.value === value)?.label[ctx.locale] ?? value,
+    );
+    await commitFieldValue(ctx, value);
+  });
+
   // ----------- AI-assist actions -----------
   //
   // State machine while state.aiAssist is set:
@@ -1252,10 +1339,29 @@ export function buildArizaWizardScene(
     const trimmed = text.trim();
     const menuAction = detectMenuAction(trimmed);
 
+    // Main-menu reply-keyboard buttons must keep working mid-wizard.
+    // Pressing 📄 Ariza topshirish / 📖 Қўлланма / ℹ️ Бот ҳақида / 🌐
+    // Тил inside the field-collection step leaves the wizard cleanly
+    // and routes to the corresponding action. Draft is preserved.
     if (menuAction === 'cancel') {
-      if (ctx.dbUser) await deps.draftRepo.reset(ctx.dbUser.id);
-      await ctx.reply(t(ctx.locale, 'cmd.cancelled'), mainMenu(ctx.locale));
+      await actions.cancel(ctx, actionDeps);
       return ctx.scene.leave();
+    }
+    if (menuAction === 'new') {
+      await ctx.scene.leave();
+      return actions.newDocument(ctx);
+    }
+    if (menuAction === 'instructions') {
+      await ctx.scene.leave();
+      return actions.guide(ctx);
+    }
+    if (menuAction === 'about') {
+      await ctx.scene.leave();
+      return actions.about(ctx, actionDeps);
+    }
+    if (menuAction === 'lang') {
+      await ctx.scene.leave();
+      return actions.lang(ctx);
     }
 
     const state = getState(ctx);

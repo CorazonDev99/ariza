@@ -14,7 +14,15 @@ const envSchema = z.object({
   OUTPUT_DIR: z.string().default('./generated'),
   LIBREOFFICE_BIN: z.string().default('libreoffice'),
 
-  // Payment
+  // Payment.
+  // PAYMENT_ENABLED=false (default) hides the entire pay flow: provider
+  // picker, Click/Payme buttons, "Pay X soʻm" prompts — and the document
+  // is sent immediately after preview confirmation. Flip to true once
+  // the audience is built and monetisation is ready.
+  PAYMENT_ENABLED: z
+    .string()
+    .default('false')
+    .transform((v) => v === 'true'),
   PAYMENT_AMOUNT: z.coerce.number().int().positive().default(1500),
   PAYMENT_WEBHOOK_PORT: z.coerce.number().int().positive().default(3000),
   CLICK_TEST_MODE: z

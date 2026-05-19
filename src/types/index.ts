@@ -52,6 +52,16 @@ export interface FieldDef extends LocalizedField {
     yearKey: string;
     monthKey: string;
   };
+  /**
+   * For `choice`-validator fields. Renders inline buttons (one per
+   * option) instead of asking the user to type a value. Clicking a
+   * button commits the option's `value` through the normal validation
+   * pipeline. Locale-aware `label` is what the user sees on the button.
+   */
+  choices?: Array<{
+    value: string;
+    label: Record<Locale, string>;
+  }>;
 }
 
 export interface CategoryDef {

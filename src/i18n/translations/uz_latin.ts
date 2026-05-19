@@ -2,7 +2,7 @@ import type { Dict } from '../index';
 
 export const uz_latin: Dict = {
   'cmd.start.greeting': "👋 Assalomu alaykum, <b>{name}</b>!\n\n📄 Bu bot sud uchun rasmiy arizalarni 1 daqiqada tayyorlab beradi — bosma shaklda, imzo va sanaga tayyor.\n\n🧭 <b>Qanday ishlaydi:</b>\n1️⃣ Sud turini tanlang (hozircha — fuqarolik)\n2️⃣ Viloyat va tumanlararo sudni tanlang\n3️⃣ Ariza turini tanlang\n4️⃣ Bir nechta savolga javob bering — tayyor!\n\n🎙 Ism, manzil va boshqa erkin maydonlarni <b>ovozli xabar</b> bilan ham yuborsangiz bo‘ladi — bot o‘zi matnga aylantiradi.\n\n📖 Birinchi marta foydalanyapsizmi? <b>Qo‘llanma</b> bo‘limini oching — har bir ariza qachon, qaerga va qanday topshirilishi tushuntirilgan.\n\nBoshlash uchun menyudan tanlang 👇",
-  'cmd.about': "<b>ℹ️ Bot haqida</b>\n\nUshbu bot sud arizalarini avtomatik ravishda tayyorlaydi. Siz faqat ma'lumotlaringizni kiritasiz, bot esa tayyor PDF hujjatni yuboradi.\n\n<b>📄 Tayyorlanadigan arizalar:</b>\n• Aliment undirish\n• 3 yoshgacha ta'minot undirish\n• E'tiroznoma\n• Aliment miqdorini kamaytirish\n\n<b>🛠 Qanday foydalanish:</b>\n1️⃣ «📄 Ariza topshirish» tugmasini bosing\n2️⃣ Kerakli arizani tanlang\n3️⃣ Sud joylashgan hududni tanlang\n4️⃣ Ma'lumotlarni ketma-ket kiriting\n5️⃣ To‘lovni amalga oshiring\n6️⃣ Tayyor PDF hujjatni yuklab oling\n\n<b>⌨️ Buyruqlar:</b>\n/start — menyuga qaytish\n/new — yangi hujjat\n/guide — arizalar bo‘yicha yo‘riqnoma\n/lang — tilni o‘zgartirish\n/cancel — jarayonni bekor qilish\n/about — ushbu ma'lumot\n\nSavol yoki takliflar uchun quyidagi tugma orqali biz bilan bog‘laning 👇",
+  'cmd.about': "<b>ℹ️ Bot haqida</b>\n\nUshbu bot sud arizalarini avtomatik ravishda tayyorlaydi. Siz faqat ma'lumotlaringizni kiritasiz, bot esa tayyor PDF hujjatni yuboradi — <b>bepul</b>.\n\n<b>📄 Tayyorlanadigan arizalar:</b>\n• Aliment undirish\n• 3 yoshgacha ta'minot undirish\n• E'tiroznoma\n• Aliment miqdorini kamaytirish\n\n<b>🛠 Qanday foydalanish:</b>\n1️⃣ «📄 Ariza topshirish» tugmasini bosing\n2️⃣ Sud turi → viloyat → tumanlararo sud → ariza turini tanlang\n3️⃣ Savollarga javob bering (ovozli xabar ham qabul qilinadi 🎙)\n4️⃣ Ma'lumotlarni tekshiring va tasdiqlang\n5️⃣ Tayyor PDF hujjatni yuklab oling\n\n<b>⌨️ Buyruqlar:</b>\n/start — menyuga qaytish\n/new — yangi hujjat\n/guide — arizalar bo‘yicha yo‘riqnoma\n/lang — tilni o‘zgartirish\n/cancel — jarayonni bekor qilish\n/about — ushbu ma'lumot\n\nSavol yoki takliflar uchun quyidagi tugma orqali biz bilan bog‘laning 👇",
   'about.support_btn': "💬 Qo‘llab-quvvatlash",
   'about.no_contact': "ℹ️ Qo‘llab-quvvatlash kontakti hozircha mavjud emas.",
   'about.stats':
@@ -33,7 +33,6 @@ export const uz_latin: Dict = {
   'btn.edit': '✏️ Qayta tahrirlash',
   'btn.pay': "💳 {amount} so‘m to‘lash",
   'btn.skip': '⏭️ O‘tkazish',
-  'btn.main_menu': '🏠 Asosiy menyu',
 
   'tmpl.pick': '📄 <b>Ariza turini tanlang:</b>',
   'tmpl.back': '⬅️ Sudlar',
@@ -88,6 +87,9 @@ export const uz_latin: Dict = {
   'val.share': 'Ulush formati: 1/4, 1/3, 2/3',
   'val.address': 'Manzil kamida 10 ta belgidan iborat bo‘lsin.',
   'val.order-number': "Sud buyrug‘i raqami formati: 2-1301-2506/20479",
+  'val.stir': "STIR — 9 ta raqamdan iborat bo‘lishi kerak (masalan: 201 988 537)",
+  'val.pinfl': "JSHSHIR — 14 ta raqamdan iborat bo‘lishi kerak (masalan: 31008911831636)",
+  'val.choice': "Faqat 1 yoki 2 raqamini yuboring",
 
   'preview.confirm': '✅ Tasdiqlayman',
   'preview.edit': "✏️ Qaytadan",
@@ -142,6 +144,7 @@ export const uz_latin: Dict = {
     "💡 Tugmani bosib Telegram profilidan F.I.SH.ni ishlating yoki tagida qo‘lda yozib yuboring.",
 
   'cal.prompt': '📅 <b>Sanani tanlang:</b>',
+  'choice.prompt': '👇 <b>Tanlang:</b>',
   'cal.year.prompt': '📅 Yilni tanlang ({month}):',
   'cal.wd.1': 'Du',
   'cal.wd.2': 'Se',
@@ -154,7 +157,9 @@ export const uz_latin: Dict = {
   'bot.short_description':
     "⚖️ O‘zbekiston uchun 60 soniyada tayyor sud arizalari. Aliment, e‘tiroznoma, kamaytirish.",
   'bot.description':
-    "⚖️ O‘zbekiston qonunchiligi bo‘yicha tayyor sud arizalari.\n\n📄 Ariza turlari:\n• Aliment undirish\n• 3 yoshgacha ta‘minot\n• E‘tiroznoma (sud buyrug‘ini bekor qilish)\n• Aliment miqdorini kamaytirish\n\n✨ Savollarga javob bering — 60 soniyada tayyor PDF oling.\n\n💳 Bir hujjat: 18 000 so‘m\n🌐 Kirill / Lotin / Ruscha\n\n👇 «START» tugmasini bosing",
+    "⚖️ O‘zbekiston qonunchiligi bo‘yicha tayyor sud arizalari.\n\n📄 Ariza turlari:\n• Aliment undirish\n• 3 yoshgacha ta‘minot\n• E‘tiroznoma (sud buyrug‘ini bekor qilish)\n• Aliment miqdorini kamaytirish\n\n✨ Savollarga javob bering — 60 soniyada tayyor PDF oling.\n\n{price_line}\n🌐 Kirill / Lotin / Ruscha\n\n👇 «START» tugmasini bosing",
+  'bot.price_line.paid': "💳 Bir hujjat: {amount} so‘m",
+  'bot.price_line.free': '🎁 Hozircha — BEPUL',
 
   'doc.generating': '⏳ Hujjat tayyorlanmoqda...',
   'doc.ready': '✅ <b>Hujjat tayyor!</b>',
