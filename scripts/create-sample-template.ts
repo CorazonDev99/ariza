@@ -1092,6 +1092,632 @@ const T7_RU: BlockSpec[] = [
   ] },
 ];
 
+/* ============================================================
+ * Helpers for the bulk-added civil-suit templates (T8..T20).
+ * They share the same header / party-block / signature shapes,
+ * so factor them into small builders to keep each template's
+ * BlockSpec list focused on its own body text and attachment list.
+ * ============================================================ */
+
+const stdHeaderCY = (): BlockSpec[] => [
+  { text: [{ text: 'Фуқаролик ишлари бўйича {{court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'туманлараро суди раиси {{judge_name}}га', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const stdHeaderRU = (): BlockSpec[] => [
+  { text: [{ text: 'Председателю межрайонного суда по гражданским делам {{court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{judge_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+/** Appellate-style header: addressed to the regional appellate /
+ *  review / cassation panel, with a reference line citing the
+ *  district-court ruling being challenged. */
+const appellateHeaderCY = (instance: 'апелляция' | 'тафтиш' | 'кассация'): BlockSpec[] => [
+  { text: [{ text: `{{court_name}} вилоят суди фуқаролик ишлари бўйича ${instance} инстанцияси судлов ҳайъатига`, bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: '' },
+  { text: [{ text: 'Фуқаролик ишлари бўйича {{court_name}} туманлараро судининг {{ruling_year}} йил {{ruling_month}} ойининг {{ruling_day}} кунидаги ҳал қилув қарорига нисбатан', italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const appellateHeaderRU = (instance: 'апелляционная' | 'надзорная' | 'кассационная'): BlockSpec[] => [
+  { text: [{ text: `В ${instance} инстанцию по гражданским делам областного суда {{court_name}}`, bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: '' },
+  { text: [{ text: 'на решение межрайонного суда по гражданским делам {{court_name}} от {{ruling_day}} {{ruling_month}} {{ruling_year}} года', italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const partyBlockCY = (label: string, base: string, fioVar = `${base}_fio`): BlockSpec[] => [
+  {
+    text: [
+      { text: `${label}:`, bold: true, tab: true },
+      { text: `{{${fioVar}}}`, tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: `{{${base}_address_line1}}`, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: `{{${base}_address_line2}}`, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: `Тел: {{${base}_phone}}`, italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+];
+
+const partyBlockRU = (label: string, base: string, fioVar = `${base}_fio`): BlockSpec[] => [
+  {
+    text: [
+      { text: `${label}:`, bold: true, tab: true },
+      { text: `{{${fioVar}}}`, tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: `{{${base}_address_line1}}`, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: `{{${base}_address_line2}}`, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: `Тел: {{${base}_phone}}`, italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+];
+
+const titleBlock = (title: string, subtitle: string): BlockSpec[] => [
+  { text: [{ text: title, bold: true }], align: 'center', spaceAfter: TIGHT },
+  { text: [{ text: `(${subtitle})`, italics: true }], align: 'center' },
+  { text: '' },
+];
+
+const signatureBlock = (label: string, fioVar = 'plaintiff_fio'): BlockSpec[] => [
+  { text: '' },
+  { text: '' },
+  { text: [
+    { text: label, bold: true },
+    { text: `${SIGNATURE_GAP}(имзо)${BLOCK_GAP}` },
+    { text: `{{${fioVar}}}`, bold: true },
+  ] },
+];
+
+const signatureBlockRU = (label: string, fioVar = 'plaintiff_fio'): BlockSpec[] => [
+  { text: '' },
+  { text: '' },
+  { text: [
+    { text: label, bold: true },
+    { text: `${SIGNATURE_GAP}(подпись)${BLOCK_GAP}` },
+    { text: `{{${fioVar}}}`, bold: true },
+  ] },
+];
+
+const attachmentBlock = (header: string, items: string[]): BlockSpec[] => [
+  { text: [{ text: header, bold: true }] },
+  ...items.map<BlockSpec>((it) => ({
+    text: [{ text: `- ${it}`, italics: true }],
+    spaceAfter: TIGHT,
+  })),
+];
+
+// Body paragraph factory — most of the new templates have justified
+// body paragraphs with first-line indent and tight spacing.
+const body = (text: string): BlockSpec => ({
+  text,
+  align: 'justify',
+  firstLine: BODY_FIRSTLINE,
+  spaceAfter: TIGHT,
+});
+
+const bodyRuns = (runs: RunSpec[]): BlockSpec => ({
+  text: runs,
+  align: 'justify',
+  firstLine: BODY_FIRSTLINE,
+  spaceAfter: TIGHT,
+});
+
+/* ============================================================
+ * Template 8 — Оталикни белгилаш + алимент
+ * ============================================================ */
+const T8_CY: BlockSpec[] = [
+  ...stdHeaderCY(),
+  ...partyBlockCY('Даъвогар', 'plaintiff'),
+  ...partyBlockCY('Жавобгар', 'defendant'),
+  ...titleBlock('Д А Ъ В О   А Р И З А', 'Оталикни белгилаш ва алимент ундириш ҳақида'),
+  body('Мен даъвогар {{plaintiff_fio}} жавобгар {{defendant_fio}} билан {{shariy_marriage_year}} йилда шаърий никоҳ асосида турмуш қурганман, биргаликдаги турмушларимиздан бир нафар {{child_year}} йил {{child_month}} ойининг {{child_day}} кунида туғилган {{child_fio}} исмли фарзанди бор.'),
+  body('Биз ўзаро шаърий никоҳларидан кейин {{cohabitation_address}} умумий рўзғор юритганмиз.'),
+  body('Бизлар ўртамизда қонуний никоҳ бўлмаганлиги сабабли туғилган болага нисбатан у ўзимнинг фамилиямни берганман. Жавобгар кейинчалик ҳам фарзандига ихтиёрий равишда оталигини белгилаш ҳақида ФХДЁ бўлимига мурожаат қилмагани ва фарзандига таъминот кўрсатмасдан келгани учун у судга мурожаат қилишга мажбур бўлдим.'),
+  body('Эр-хотинлик муносабатларида бир оила бўлиб яшаб келгани, маҳалла томонидан берилган далолатнома билан ўз тасдиғини топади.'),
+  body('{{paternity_reasons}}'),
+  body('Шу сабабли жавобгар {{defendant_fio}}нинг {{child_year}} йил {{child_month}} ойининг {{child_day}} кунида туғилган {{child_fio}}га нисбатан оталигини белгилаб, алимент ундиришингизни сўрайман.'),
+  { text: '' },
+  ...signatureBlock('Даъвогар:'),
+  { text: '' },
+  ...attachmentBlock('Даъво аризага қуйидаги ҳужжатлар илова қилиниши лозим.', [
+    'Даъво ариза икки нусхада;',
+    'Маҳалла фуқаролар йиғини далолатномаси ва бошқа далиллар;',
+    'Тарафларнинг паспорт нусхалари;',
+    'Фарзандлар туғилганлик ҳақидаги гувоҳнома нусхаси;',
+    'почта харажати тўланганлиги тўғрисидаги патта.',
+  ]),
+];
+
+const T8_RU: BlockSpec[] = [
+  ...stdHeaderRU(),
+  ...partyBlockRU('Истец', 'plaintiff'),
+  ...partyBlockRU('Ответчик', 'defendant'),
+  ...titleBlock('И С К О В О Е   З А Я В Л Е Н И Е', 'об установлении отцовства и взыскании алиментов'),
+  body('Я, истец {{plaintiff_fio}}, состоял(а) с ответчиком {{defendant_fio}} в фактических брачных отношениях с {{shariy_marriage_year}} года; от совместной жизни имеется один ребёнок — {{child_fio}}, {{child_day}} {{child_month}} {{child_year}} года рождения.'),
+  body('Совместно проживали по адресу: {{cohabitation_address}}.'),
+  body('Поскольку наш брак не был зарегистрирован, ребёнку присвоена моя фамилия. Ответчик отказался добровольно установить отцовство в органе ЗАГС и не предоставляет средств на содержание ребёнка.'),
+  body('Совместное проживание в качестве супругов подтверждается справкой махалли.'),
+  body('{{paternity_reasons}}'),
+  body('На основании изложенного прошу установить отцовство ответчика {{defendant_fio}} в отношении ребёнка {{child_fio}}, {{child_day}} {{child_month}} {{child_year}} года рождения, и взыскать с него алименты.'),
+  { text: '' },
+  ...signatureBlockRU('Истец:'),
+  { text: '' },
+  ...attachmentBlock('Приложение:', [
+    'исковое заявление в 2 экз.;',
+    'справка из махалли и иные доказательства;',
+    'копии паспортов сторон;',
+    'копия свидетельства о рождении ребёнка;',
+    'квитанция почтовых расходов.',
+  ]),
+];
+
+/* ============================================================
+ * Template 9 — Болани олиш
+ * ============================================================ */
+const T9_CY: BlockSpec[] = [
+  ...stdHeaderCY(),
+  ...partyBlockCY('Даъвогар', 'plaintiff'),
+  ...partyBlockCY('Жавобгар', 'defendant'),
+  ...titleBlock('Д А Ъ В О   А Р И З А', 'Болани олиш ҳақида'),
+  body('Мен {{plaintiff_fio}} жавобгар {{defendant_fio}} билан {{marriage_year}} йил {{marriage_month}} ойининг {{marriage_day}} кунида қонуний никоҳдан ўтиб турмуш қурганмиз.'),
+  body('Биргаликдаги турмушимиздан {{children_count}} нафар фарзандимиз бор. Шу жумладан, {{requested_child_year}} йил {{requested_child_month}} ойининг {{requested_child_day}} кунида туғилган {{requested_child_fio}}.'),
+  body('{{custody_reasons}}'),
+  body('Жавобгар билан ўзаро келишмовчиликлар оқибатида {{separation_year}} йил {{separation_month}} ойидан буён бирга яшамаяпмиз. Жавобгар билан бошқа бир оила бўлиб яшашнинг имкони қолмаган.'),
+  body('Жавобгар боламни асоссиз равишда ушлаб турмоқда.'),
+  body('Шу сабабли суддан жавобгардан {{requested_child_year}} йил {{requested_child_month}} ойининг {{requested_child_day}} кунида туғилган {{requested_child_fio}}ни менинг тарбимга олиб беришингизни сўрайман.'),
+  { text: '' },
+  ...signatureBlock('Даъвогар:'),
+  { text: '' },
+  ...attachmentBlock('Даъво аризага қуйидаги ҳужжатлар илова қилиниши лозим.', [
+    'Даъво ариза икки нусхада;',
+    'Тарафларнинг паспорт нусхалари;',
+    'Никоҳ тузилганлиги ҳақидаги гувоҳнома асли;',
+    'Фарзандлар туғилганлик ҳақидаги гувоҳнома нусхаси;',
+    'Никоҳдан ажратиш учун асос ҳисоблаётган ҳужжатлар (мавжуд бўлса);',
+    'Давлат божи ва почта харажати тўланганлиги тўғрисидаги патта.',
+  ]),
+];
+
+const T9_RU: BlockSpec[] = [
+  ...stdHeaderRU(),
+  ...partyBlockRU('Истец', 'plaintiff'),
+  ...partyBlockRU('Ответчик', 'defendant'),
+  ...titleBlock('И С К О В О Е   З А Я В Л Е Н И Е', 'о передаче ребёнка на воспитание'),
+  body('Я, {{plaintiff_fio}}, вступил(а) в брак с ответчиком {{defendant_fio}} {{marriage_day}} {{marriage_month}} {{marriage_year}} года.'),
+  body('От совместной жизни имеется {{children_count}} ребёнок (детей), в том числе — {{requested_child_fio}}, {{requested_child_day}} {{requested_child_month}} {{requested_child_year}} года рождения.'),
+  body('{{custody_reasons}}'),
+  body('С {{separation_month}} {{separation_year}} года совместно с ответчиком не проживаем; совместная семейная жизнь невозможна.'),
+  body('Ответчик без законных оснований удерживает ребёнка.'),
+  body('На основании изложенного прошу передать на моё воспитание ребёнка {{requested_child_fio}}, {{requested_child_day}} {{requested_child_month}} {{requested_child_year}} года рождения.'),
+  { text: '' },
+  ...signatureBlockRU('Истец:'),
+  { text: '' },
+  ...attachmentBlock('Приложение:', [
+    'исковое заявление в 2 экз.;',
+    'копии паспортов сторон;',
+    'оригинал свидетельства о браке;',
+    'копии свидетельств о рождении детей;',
+    'документы об основаниях развода (при наличии);',
+    'квитанция гос. пошлины и почтовых расходов.',
+  ]),
+];
+
+/* ============================================================
+ * Template 10 — Уй-жойга киритиш
+ * ============================================================ */
+const T10_CY: BlockSpec[] = [
+  ...stdHeaderCY(),
+  ...partyBlockCY('Даъвогар', 'plaintiff'),
+  ...partyBlockCY('Жавобгар', 'defendant'),
+  ...titleBlock('Д А Ъ В О   А Р И З А', 'Уй-жойга киритиш ҳақида'),
+  body('Мен {{plaintiff_fio}} жавобгар {{defendant_fio}} билан {{marriage_year}} йил {{marriage_month}} ойининг {{marriage_day}} кунида қонуний никоҳдан ўтиб турмуш қурганмиз.'),
+  body('Биргаликдаги турмушимиздан {{children_count}} нафар фарзандимиз бор.'),
+  body('{{leaving_reasons}}'),
+  body('Менинг бошқа турар жойим мавжуд эмас. Мен ва фарзандларимнинг шу уй-жойда яшаш ҳуқуқимиз бор.'),
+  body('Шу сабабли суддан мени вояга етмаган фарзандларим билан биргаликда {{housing_address}}га келин бўлиб тушган хонасига киритиб қўйишингизни сўрайман.'),
+  { text: '' },
+  ...signatureBlock('Даъвогар:'),
+  { text: '' },
+  ...attachmentBlock('Даъво аризага қуйидаги ҳужжатлар илова қилиниши лозим.', [
+    'Даъво ариза икки нусхада;',
+    'Уй-жой кадастр ҳужжати;',
+    'Тарафларнинг паспорт нусхалари;',
+    'Никоҳ тузилганлиги ҳақидаги гувоҳнома асли;',
+    'Фарзандлар туғилганлик ҳақидаги гувоҳнома нусхаси;',
+    'Давлат божи ва почта харажати тўланганлиги тўғрисидаги патта.',
+  ]),
+];
+
+const T10_RU: BlockSpec[] = [
+  ...stdHeaderRU(),
+  ...partyBlockRU('Истец', 'plaintiff'),
+  ...partyBlockRU('Ответчик', 'defendant'),
+  ...titleBlock('И С К О В О Е   З А Я В Л Е Н И Е', 'о допуске в жилище'),
+  body('Я, {{plaintiff_fio}}, вступил(а) в брак с ответчиком {{defendant_fio}} {{marriage_day}} {{marriage_month}} {{marriage_year}} года.'),
+  body('От совместной жизни имеется {{children_count}} ребёнок (детей).'),
+  body('{{leaving_reasons}}'),
+  body('Иного жилья у меня нет. Я и мои дети имеем право проживать в указанном жилище.'),
+  body('Прошу суд впустить меня вместе с несовершеннолетними детьми в комнату, выделенную нам как невестке, по адресу: {{housing_address}}.'),
+  { text: '' },
+  ...signatureBlockRU('Истец:'),
+  { text: '' },
+  ...attachmentBlock('Приложение:', [
+    'исковое заявление в 2 экз.;',
+    'кадастровый документ на жильё;',
+    'копии паспортов сторон;',
+    'оригинал свидетельства о браке;',
+    'копии свидетельств о рождении детей;',
+    'квитанция гос. пошлины и почтовых расходов.',
+  ]),
+];
+
+/* ============================================================
+ * Template 11 — Уй-жойдан кўчириш
+ * ============================================================ */
+const T11_CY: BlockSpec[] = [
+  ...stdHeaderCY(),
+  ...partyBlockCY('Даъвогар', 'plaintiff'),
+  ...partyBlockCY('Жавобгар', 'defendant'),
+  ...titleBlock('Д А Ъ В О   А Р И З А', 'Уй-жойдан кўчириш ҳақида'),
+  body('Жиззах шаҳрида хусусий амалиёт билан шуғулланувчи нотариус {{notary_fio}} томонидан {{contract_year}} йил {{contract_month}} ойининг {{contract_day}} кунида расмийлаштирилган ва реестрга {{contract_number}}-сон билан қайд қилинган олди-сотди шартномасига кўра, {{property_address}}-жойни сотиб олганман. Мазкур турар жой Давлат кадастрлари палатасининг {{court_name}} вилоят бошқармаси томонидан {{contract_year}} йил {{contract_month}} ойининг {{contract_day}} кунида {{cadastre_number}}-сон билан менинг номимга давлат рўйхатидан ўтказилган.'),
+  body('Бундай ҳолатда {{property_address}}-жойнинг мулкдори мен ҳисобланаман.'),
+  body('Бироқ, жавобгарлар менга тегишли бўлган уй-жойдан чиқмасдан келишмоқда.'),
+  body('Шу сабабли суддан жавобгарни оила аъзолари билан биргаликда менга тегишли бўлган {{property_address}}-жой чиқаришингизни сўрайман.'),
+  { text: '' },
+  ...signatureBlock('Даъвогар:'),
+  { text: '' },
+  ...attachmentBlock('Даъво аризага қуйидаги ҳужжатлар илова қилиниши лозим.', [
+    'Даъво ариза икки нусхада;',
+    'Уй-жой кадастр ҳужжати;',
+    'Тарафларнинг паспорт нусхалари;',
+    'Давлат божи ва почта харажати тўланганлиги тўғрисидаги патта.',
+  ]),
+];
+
+const T11_RU: BlockSpec[] = [
+  ...stdHeaderRU(),
+  ...partyBlockRU('Истец', 'plaintiff'),
+  ...partyBlockRU('Ответчик', 'defendant'),
+  ...titleBlock('И С К О В О Е   З А Я В Л Е Н И Е', 'о выселении из жилища'),
+  body('По договору купли-продажи, удостоверенному нотариусом {{notary_fio}} {{contract_day}} {{contract_month}} {{contract_year}} года, реестровый № {{contract_number}}, мною приобретено жилое помещение по адресу: {{property_address}}. Право собственности зарегистрировано Гос. кадастровой палатой по {{court_name}} обл. {{contract_day}} {{contract_month}} {{contract_year}} года, № {{cadastre_number}}.'),
+  body('Следовательно, я являюсь собственником указанного жилья.'),
+  body('Однако ответчик отказывается освободить принадлежащее мне жилое помещение.'),
+  body('Прошу выселить ответчика вместе с членами его семьи из принадлежащего мне жилого помещения по адресу: {{property_address}}.'),
+  { text: '' },
+  ...signatureBlockRU('Истец:'),
+  { text: '' },
+  ...attachmentBlock('Приложение:', [
+    'исковое заявление в 2 экз.;',
+    'кадастровый документ на жильё;',
+    'копии паспортов сторон;',
+    'квитанция гос. пошлины и почтовых расходов.',
+  ]),
+];
+
+/* ============================================================
+ * Template 12 — Мол-мулкни олиб бериш
+ * ============================================================ */
+const T12_CY: BlockSpec[] = [
+  ...stdHeaderCY(),
+  ...partyBlockCY('Даъвогар', 'plaintiff'),
+  ...partyBlockCY('Жавобгар', 'defendant'),
+  ...titleBlock('Д А Ъ В О   А Р И З А', 'Мол-мулкни олиб бериш ҳақида'),
+  body('Мен {{plaintiff_fio}} жавобгар {{defendant_fio}} билан {{marriage_year}} йил {{marriage_month}} ойининг {{marriage_day}} кунида қонуний никоҳдан ўтиб турмуш қурганмиз.'),
+  body('Биргаликдаги турмушимиздан {{children_count}} нафар фарзандимиз бор.'),
+  body('Ўзаро келишмовчиликлар сабабли алоҳида-алоҳида яшаб келмоқдамиз, эндиликда бирга яшамоқчи эмасмиз. Аммо, жавобгар унга ҳаде ва бошқа асосларга кўра тегишли шахсий мол-мулкларимни олиб қолган ва ўз ихтиёри билан ушбу мол-мулкларимни бермасдан келмоқда.'),
+  body('Қуйидаги мол-мулклар мен томонимга тегишли:'),
+  body('{{property_list}}'),
+  body('Шу сабабли суддан илова рўйхатида келтирилган мол-мулкларимни олиб беришингизни сўрайман.'),
+  { text: '' },
+  ...signatureBlock('Даъвогар:'),
+  { text: '' },
+  ...attachmentBlock('Даъво аризага қуйидаги ҳужжатлар илова қилиниши лозим.', [
+    'Даъво ариза икки нусхада;',
+    'Мол-мулклар рўйхати ва унинг тегишли ташкилотдан олинган бозор баҳоси тўғрисида маълумотнома ёки хулоса;',
+    'Тарафларнинг паспорт нусхалари;',
+    'Никоҳ тузилганлиги ҳақидаги гувоҳнома асли;',
+    'Фарзандлар туғилганлик ҳақидаги гувоҳнома нусхаси;',
+    'Давлат божи ва почта харажати тўланганлиги тўғрисидаги патта.',
+  ]),
+  { text: [{ text: 'Изоҳ: Давлат божи мол-мулкнинг умумий баҳосининг 4 фоиз миқдорида тўланади.', italics: true }] },
+];
+
+const T12_RU: BlockSpec[] = [
+  ...stdHeaderRU(),
+  ...partyBlockRU('Истец', 'plaintiff'),
+  ...partyBlockRU('Ответчик', 'defendant'),
+  ...titleBlock('И С К О В О Е   З А Я В Л Е Н И Е', 'о возврате имущества'),
+  body('Я, {{plaintiff_fio}}, состою(ял) в браке с ответчиком {{defendant_fio}} с {{marriage_day}} {{marriage_month}} {{marriage_year}} года.'),
+  body('От совместной жизни имеется {{children_count}} ребёнок (детей).'),
+  body('Вследствие разногласий мы проживаем раздельно, совместная жизнь невозможна. Однако ответчик удерживает у себя моё личное имущество и отказывается его возвращать.'),
+  body('Указанное имущество принадлежит мне:'),
+  body('{{property_list}}'),
+  body('Прошу обязать ответчика возвратить перечисленное имущество.'),
+  { text: '' },
+  ...signatureBlockRU('Истец:'),
+  { text: '' },
+  ...attachmentBlock('Приложение:', [
+    'исковое заявление в 2 экз.;',
+    'список имущества и справка о его рыночной стоимости;',
+    'копии паспортов сторон;',
+    'оригинал свидетельства о браке;',
+    'копии свидетельств о рождении детей;',
+    'квитанция гос. пошлины и почтовых расходов.',
+  ]),
+  { text: [{ text: 'Примечание: гос. пошлина — 4% от общей стоимости имущества.', italics: true }] },
+];
+
+/* ============================================================
+ * Template 13 — Қарз ундириш (тилхат)
+ * ============================================================ */
+const T13_CY: BlockSpec[] = [
+  ...stdHeaderCY(),
+  ...partyBlockCY('Даъвогар', 'plaintiff'),
+  ...partyBlockCY('Жавобгар', 'defendant'),
+  ...titleBlock('Д А Ъ В О   А Р И З А', 'Қарз ундириш ҳақида'),
+  body('Мен {{plaintiff_fio}} жавобгар {{defendant_fio}} билан {{debt_year}} йилнинг {{debt_month}} ойида ўзаро қарз муносабатига киришганман ва шу муносабатларимиз юзасидан жавобгар мендан жами {{debt_amount}} сўм қарз бўлиб қолган. Бу тўғрисида жавобгарнинг ёзма тилхати мавжуд.'),
+  body('Жавобгар томонидан ёзилган тилхатда мавжуд бўлган қарзни {{repayment_period}} муддат ичида тўлиқ қайтариб беришини баён қилган.'),
+  body('Жавобгар тилхатида олинган қарзни қайтариб беришини баён қилган бўлса-да, бироқ қарздорликни бермасдан тилхатдаги мажбуриятини бажармасдан келмоқда.'),
+  body('{{debt_circumstances}}'),
+  body('Шу сабабли суддан жавобгардан {{debt_amount}} сўм қарзни ва тўланган суд харажатларини ундиришингизни сўрайман.'),
+  { text: '' },
+  ...signatureBlock('Даъвогар:'),
+  { text: '' },
+  ...attachmentBlock('Даъво аризага қуйидаги ҳужжатлар илова қилиниши лозим.', [
+    'Даъво ариза икки нусхада;',
+    'ёзма тилхат асли ёки унга қарз берувчи томонидан муайян сумма ёки муайян миқдордаги ашёлар топширилганлигини тасдиқлайдиган бошқа ҳужжат;',
+    'Давлат божи ва почта харажати тўланганлиги тўғрисидаги патта;',
+    'Паспорт котияси.',
+  ]),
+  { text: [{ text: 'Изоҳ: Давлат божи қарз миқдорининг умумий баҳосидан 4 фоиз миқдорида тўланади.', italics: true }] },
+];
+
+const T13_RU: BlockSpec[] = [
+  ...stdHeaderRU(),
+  ...partyBlockRU('Истец', 'plaintiff'),
+  ...partyBlockRU('Ответчик', 'defendant'),
+  ...titleBlock('И С К О В О Е   З А Я В Л Е Н И Е', 'о взыскании долга'),
+  body('Я, {{plaintiff_fio}}, в {{debt_month}} {{debt_year}} года вступил(а) в долговые отношения с ответчиком {{defendant_fio}}, по которым ответчик остался должен {{debt_amount}} сум. В подтверждение имеется собственноручно написанная им расписка.'),
+  body('По расписке ответчик обязался вернуть долг в течение {{repayment_period}}.'),
+  body('Несмотря на письменное обязательство, ответчик долг не возвращает.'),
+  body('{{debt_circumstances}}'),
+  body('Прошу взыскать с ответчика {{debt_amount}} сум долга и уплаченные судебные расходы.'),
+  { text: '' },
+  ...signatureBlockRU('Истец:'),
+  { text: '' },
+  ...attachmentBlock('Приложение:', [
+    'исковое заявление в 2 экз.;',
+    'оригинал расписки или иной документ, подтверждающий получение средств / имущества;',
+    'квитанция гос. пошлины и почтовых расходов;',
+    'копия паспорта.',
+  ]),
+  { text: [{ text: 'Примечание: гос. пошлина — 4% от суммы долга.', italics: true }] },
+];
+
+/* ============================================================
+ * Template 14 — Пул(қарз) ундириш — алдов
+ * ============================================================ */
+const T14_CY: BlockSpec[] = [
+  ...stdHeaderCY(),
+  ...partyBlockCY('Даъвогар', 'plaintiff'),
+  ...partyBlockCY('Жавобгар', 'defendant'),
+  ...titleBlock('Д А Ъ В О   А Р И З А', 'Пул(қарз) ундириш ҳақида'),
+  body('Менга олдиндан таниш бўлган (бўлмаган) жавобгар {{defendant_fio}} {{debt_year}} йилнинг {{debt_month}} ойларида жами {{debt_amount}} сўм қийматидаги {{debt_goods}}ни қарзга олган, бироқ жавобгар мени алдаб кетди.'),
+  body('Берган нарсаларнинг пулларни қайтаришни сўраган вақтимда жавобгар уни қайтариб юборди. Кейинчалик ҳам унга бир неча бор учрашдим, аммо фойдаси бўлмади. Жавобгар олган нарса пулини "эртага-индин бераман" деб қочиб юрибди.'),
+  body('Жавобгар пулларни қайтариб бермагандан кейин ИИБ ариза билан мурожаат қилдим. ИИБ томонидан "Жиноят ишини қўзғатишни рад қилиш тўғрисида"ги қарорига асосан жавобгарнинг ҳаракатларида жиноят аломатлари аниқланмаганлиги сабабли Ўзбекистон Республикаси ЖПКнинг 83-моддаси 2-қисмига асосан жиноят ишини қўзғатишни рад қилинди.'),
+  body('Жавобгар ИИБ бошлиғи номига тушунтириш ёзиб, унда ҳақиқатдан ҳам ундан қарз эканлигини тан олган.'),
+  body('{{iib_details}}'),
+  body('Шу сабабли суддан жавобгардан {{debt_amount}} сўм қарзни ва тўланган суд харажатларини ундиришингизни сўрайман.'),
+  { text: '' },
+  ...signatureBlock('Даъвогар:'),
+  { text: '' },
+  ...attachmentBlock('Даъво аризага қуйидаги ҳужжатлар илова қилиниши лозим.', [
+    'Даъво ариза икки нусхада;',
+    'ИИБ қарори ва тушунтириш хатлари;',
+    'Давлат божи ва почта харажати тўланганлиги тўғрисидаги патта;',
+    'Паспорт нусхаси.',
+  ]),
+  { text: [{ text: 'Изоҳ: Давлат божи пул (қарз) миқдорининг умумий баҳосидан 4 фоиз миқдорида тўланади.', italics: true }] },
+];
+
+const T14_RU: BlockSpec[] = [
+  ...stdHeaderRU(),
+  ...partyBlockRU('Истец', 'plaintiff'),
+  ...partyBlockRU('Ответчик', 'defendant'),
+  ...titleBlock('И С К О В О Е   З А Я В Л Е Н И Е', 'о взыскании денежных средств (обман)'),
+  body('Знакомый/незнакомый мне ранее ответчик {{defendant_fio}} в {{debt_month}} {{debt_year}} года получил у меня в долг {{debt_goods}} на сумму {{debt_amount}} сум, однако обманул меня.'),
+  body('При требовании вернуть полученное ответчик уклонялся, ссылаясь на «завтра-послезавтра».'),
+  body('Я обратился в ОВД. Постановлением ОВД в возбуждении уголовного дела отказано в связи с отсутствием признаков преступления (ст. 83 ч. 2 УПК РУ).'),
+  body('При этом в объяснении на имя начальника ОВД ответчик признал факт долга.'),
+  body('{{iib_details}}'),
+  body('Прошу взыскать с ответчика {{debt_amount}} сум долга и уплаченные судебные расходы.'),
+  { text: '' },
+  ...signatureBlockRU('Истец:'),
+  { text: '' },
+  ...attachmentBlock('Приложение:', [
+    'исковое заявление в 2 экз.;',
+    'постановление ОВД и объяснения;',
+    'квитанция гос. пошлины и почтовых расходов;',
+    'копия паспорта.',
+  ]),
+  { text: [{ text: 'Примечание: гос. пошлина — 4% от суммы долга.', italics: true }] },
+];
+
+/* ============================================================
+ * Template 15 — Иш ҳужжатларидан нусхалар (single-party applicant)
+ * ============================================================ */
+const T15_CY: BlockSpec[] = [
+  ...stdHeaderCY(),
+  ...partyBlockCY('Аризачи', 'plaintiff'),
+  ...titleBlock('А Р И З А', 'Иш ҳужжатларидан нусхалар олиш ҳақида'),
+  body('Менга фуқаролик ишлари бўйича {{court_name}} туманлараро судининг {{case_year}} йил {{case_month}} ойининг {{case_day}} куни даъвогар {{case_plaintiff_fio}}нинг жавобгар {{case_defendant_fio}}га нисбатан {{case_subject}} ҳақидаги {{case_number}}-сонли фуқаролик иши кўриб чиқилиб ҳал қилув қарори чиқарилган.'),
+  body('Мен иш бўйича тараф бўлиб ҳисобланаман.'),
+  body('{{copy_request}}'),
+  body('Шу сабабли мазкур фуқаролик иши юзасидан чиқарилган ҳал қилув қарори (ёки иш ҳужжатлари ном кўрсатилган ҳолда) нусхаларини беришингизни сўрайман.'),
+  { text: '' },
+  ...signatureBlock('Аризачи:'),
+];
+
+const T15_RU: BlockSpec[] = [
+  ...stdHeaderRU(),
+  ...partyBlockRU('Заявитель', 'plaintiff'),
+  ...titleBlock('З А Я В Л Е Н И Е', 'о выдаче копий материалов дела'),
+  body('В межрайонном гражданском суде {{court_name}} {{case_day}} {{case_month}} {{case_year}} года было рассмотрено гражданское дело № {{case_number}} по иску {{case_plaintiff_fio}} к {{case_defendant_fio}} о {{case_subject}}, по которому вынесено решение.'),
+  body('Я являюсь стороной по делу.'),
+  body('{{copy_request}}'),
+  body('Прошу выдать копии судебного решения (или указанных материалов дела) по указанному делу.'),
+  { text: '' },
+  ...signatureBlockRU('Заявитель:'),
+];
+
+/* ============================================================
+ * Template 16 — Янги очилган ҳолат бўйича бекор қилиш
+ * ============================================================ */
+const T16_CY: BlockSpec[] = [
+  ...stdHeaderCY(),
+  ...partyBlockCY('Аризачи (Даъвогар/Жавобгар)', 'plaintiff'),
+  ...partyBlockCY('Даъвогар/Жавобгар', 'opposite_party', 'opposite_party_fio'),
+  ...titleBlock('А Р И З А', 'Суд ҳужжати янги очилган ҳолат бўйича бекор қилиш ҳақида'),
+  body('Даъвогар {{plaintiff_fio}} ва жавобгар {{opposite_party_fio}} ўртасида тузилган {{case_subject}} бўйича иш суд қарори билан ҳал қилинган.'),
+  { text: [{ text: 'Суд қарорини янги очилган ҳолат бўйича бекор қилиш учун асос қилиб кўрсатаётган сабаблар ёзилиши керак', italics: true, bold: true }], spaceAfter: TIGHT },
+  body('{{annul_reasons}}'),
+  body('Шу сабабли суддан суд қарорини янги очилган ҳолат бўйича бекор қилиб, ишни мазмунан кўриб чиқишингизни сўрайман.'),
+  { text: '' },
+  ...attachmentBlock('Иловалар:', [
+    'Ариза икки нусхада;',
+    'Кечиктириш учун асос ҳужжатлар;',
+    'Аризачи паспорт нусхаси;',
+    'Почта харажати тўланганлиги тўғрисидаги патта.',
+  ]),
+  ...signatureBlock('Аризачи:'),
+];
+
+const T16_RU: BlockSpec[] = [
+  ...stdHeaderRU(),
+  ...partyBlockRU('Заявитель (истец/ответчик)', 'plaintiff'),
+  ...partyBlockRU('Истец/ответчик', 'opposite_party', 'opposite_party_fio'),
+  ...titleBlock('З А Я В Л Е Н И Е', 'об отмене решения по вновь открывшимся обстоятельствам'),
+  body('Между истцом {{plaintiff_fio}} и ответчиком {{opposite_party_fio}} рассматривалось дело по {{case_subject}}, по которому вынесено решение суда.'),
+  { text: [{ text: 'Основания для отмены решения по вновь открывшимся обстоятельствам', italics: true, bold: true }], spaceAfter: TIGHT },
+  body('{{annul_reasons}}'),
+  body('Прошу суд отменить решение по вновь открывшимся обстоятельствам и рассмотреть дело по существу.'),
+  { text: '' },
+  ...attachmentBlock('Приложение:', [
+    'заявление в 2 экз.;',
+    'документы, обосновывающие новые обстоятельства;',
+    'копия паспорта заявителя;',
+    'квитанция почтовых расходов.',
+  ]),
+  ...signatureBlockRU('Заявитель:'),
+];
+
+/* ============================================================
+ * Template 17 — Суд ҳужжати ижросини кечиктириш
+ * ============================================================ */
+const T17_CY: BlockSpec[] = [
+  ...stdHeaderCY(),
+  ...partyBlockCY('Аризачи (Даъвогар/Жавобгар)', 'plaintiff'),
+  ...partyBlockCY('Даъвогар/Жавобгар', 'opposite_party', 'opposite_party_fio'),
+  ...titleBlock('А Р И З А', 'Суд ҳужжати ижросини кечиктириш ҳақида'),
+  body('{{opposite_party_fio}} билан тузилган {{case_subject}} бўйича суд қарори чиқарилган.'),
+  { text: [{ text: 'Суд қарорини кечиктириш учун асос қилиб кўрсатаётган сабаблар ёзилиши керак', italics: true, bold: true }], spaceAfter: TIGHT },
+  body('{{postpone_reasons}}'),
+  body('Шу сабабли суддан суд қарорининг ижросини {{postpone_period}} муддатга кечиктириб туришингизни сўрайман.'),
+  { text: '' },
+  ...attachmentBlock('Иловалар:', [
+    'Ариза икки нусхада;',
+    'Кечиктириш учун асос ҳужжатлар;',
+    'Аризачи паспорт нусхаси;',
+    'Почта харажати тўланганлиги тўғрисидаги патта.',
+  ]),
+  ...signatureBlock('Аризачи:'),
+];
+
+const T17_RU: BlockSpec[] = [
+  ...stdHeaderRU(),
+  ...partyBlockRU('Заявитель (истец/ответчик)', 'plaintiff'),
+  ...partyBlockRU('Истец/ответчик', 'opposite_party', 'opposite_party_fio'),
+  ...titleBlock('З А Я В Л Е Н И Е', 'об отсрочке исполнения судебного акта'),
+  body('По делу с {{opposite_party_fio}} по {{case_subject}} вынесено решение суда.'),
+  { text: [{ text: 'Основания для отсрочки исполнения', italics: true, bold: true }], spaceAfter: TIGHT },
+  body('{{postpone_reasons}}'),
+  body('Прошу суд предоставить отсрочку исполнения судебного акта сроком на {{postpone_period}}.'),
+  { text: '' },
+  ...attachmentBlock('Приложение:', [
+    'заявление в 2 экз.;',
+    'документы, подтверждающие необходимость отсрочки;',
+    'копия паспорта заявителя;',
+    'квитанция почтовых расходов.',
+  ]),
+  ...signatureBlockRU('Заявитель:'),
+];
+
+/* ============================================================
+ * Templates 18-20 — Appeal / Review / Cassation (regional panel)
+ * Share the same shape; only the title and addressee differ.
+ * ============================================================ */
+
+const buildAppealCY = (
+  instance: 'апелляция' | 'тафтиш' | 'кассация',
+  title: string,
+): BlockSpec[] => [
+  ...appellateHeaderCY(instance),
+  ...partyBlockCY('Аризачи', 'plaintiff'),
+  ...titleBlock(title, 'ҳал қилув қарорига нисбатан'),
+  body('Фуқаролик ишлари бўйича {{court_name}} туманлараро судининг {{ruling_year}} йил {{ruling_month}} ойининг {{ruling_day}} кунидаги ҳал қилув қароридан куйидагиларга кўра норозиман;'),
+  { text: [{ text: 'Ҳал қилув қарорини бекор қилишга асос қилиб кўрсатаётган важлар ёзилиши керак', italics: true, bold: true }], spaceAfter: TIGHT },
+  body('{{appeal_reasons}}'),
+  body('Юқоридагиларга кўра ' + instance + ' инстанцияси судлов ҳайъатидан фуқаролик ишлари бўйича {{court_name}} туманлараро судининг {{ruling_year}} йил {{ruling_month}} ойининг {{ruling_day}} кунидаги ҳал қилув қарорини бекор қилиб, иш бўйича даъвони қаноатлантириш (рад қилиш) ҳақида янги қарор қабул қилишингизни сўрайман.'),
+  { text: '' },
+  ...attachmentBlock('Иловалар:', [
+    title + ' нусхаси;',
+    'Ҳал қилув қарори нусхаси;',
+    'Давлат божи паттаси ва почта харажати паттаси;',
+    'Бошқа ҳужжатлар.',
+  ]),
+  ...signatureBlock('Аризачи:'),
+];
+
+const buildAppealRU = (
+  instance: 'апелляционная' | 'надзорная' | 'кассационная',
+  title: string,
+): BlockSpec[] => [
+  ...appellateHeaderRU(instance),
+  ...partyBlockRU('Заявитель', 'plaintiff'),
+  ...titleBlock(title, 'на решение суда'),
+  body('С решением межрайонного суда по гражданским делам {{court_name}} от {{ruling_day}} {{ruling_month}} {{ruling_year}} года не согласен(на) по следующим основаниям:'),
+  { text: [{ text: 'Основания для отмены решения', italics: true, bold: true }], spaceAfter: TIGHT },
+  body('{{appeal_reasons}}'),
+  body('На основании изложенного прошу ' + instance + ' инстанцию отменить решение межрайонного суда по гражданским делам {{court_name}} от {{ruling_day}} {{ruling_month}} {{ruling_year}} года и принять новое решение об удовлетворении / отклонении иска.'),
+  { text: '' },
+  ...attachmentBlock('Приложение:', [
+    'копия жалобы;',
+    'копия решения суда;',
+    'квитанция гос. пошлины и почтовых расходов;',
+    'иные документы.',
+  ]),
+  ...signatureBlockRU('Заявитель:'),
+];
+
+const T18_CY = buildAppealCY('апелляция', 'А П Е Л Л Я Ц И Я   Ш И К О Я Т И');
+const T18_RU = buildAppealRU('апелляционная', 'А П Е Л Л Я Ц И О Н Н А Я   Ж А Л О Б А');
+const T19_CY = buildAppealCY('тафтиш', 'Т А Ф Т И Ш   Ш И К О Я Т И');
+const T19_RU = buildAppealRU('надзорная', 'Н А Д З О Р Н А Я   Ж А Л О Б А');
+const T20_CY = buildAppealCY('кассация', 'К А С С А Ц И Я   Ш И К О Я Т И');
+const T20_RU = buildAppealRU('кассационная', 'К А С С А Ц И О Н Н А Я   Ж А Л О Б А');
+
 /* ============================================================ */
 
 // QR code is no longer embedded in the document — it's sent as a
@@ -1133,6 +1759,71 @@ const BUILDERS: Record<string, Record<Locale, BlockSpec[]>> = {
     uz_cyrillic: T7_CY,
     uz_latin: deriveLatin(T7_CY),
     ru: T7_RU,
+  },
+  'davo-ariza-otalik-aliment': {
+    uz_cyrillic: T8_CY,
+    uz_latin: deriveLatin(T8_CY),
+    ru: T8_RU,
+  },
+  'davo-ariza-bolani-olish': {
+    uz_cyrillic: T9_CY,
+    uz_latin: deriveLatin(T9_CY),
+    ru: T9_RU,
+  },
+  'davo-ariza-uy-kiritish': {
+    uz_cyrillic: T10_CY,
+    uz_latin: deriveLatin(T10_CY),
+    ru: T10_RU,
+  },
+  'davo-ariza-uy-kochirish': {
+    uz_cyrillic: T11_CY,
+    uz_latin: deriveLatin(T11_CY),
+    ru: T11_RU,
+  },
+  'davo-ariza-mol-mulkni-olish': {
+    uz_cyrillic: T12_CY,
+    uz_latin: deriveLatin(T12_CY),
+    ru: T12_RU,
+  },
+  'davo-ariza-qarz-undirish': {
+    uz_cyrillic: T13_CY,
+    uz_latin: deriveLatin(T13_CY),
+    ru: T13_RU,
+  },
+  'davo-ariza-pul-undirish': {
+    uz_cyrillic: T14_CY,
+    uz_latin: deriveLatin(T14_CY),
+    ru: T14_RU,
+  },
+  'ariza-hujjatdan-nuskha': {
+    uz_cyrillic: T15_CY,
+    uz_latin: deriveLatin(T15_CY),
+    ru: T15_RU,
+  },
+  'ariza-yangi-holat-bekor': {
+    uz_cyrillic: T16_CY,
+    uz_latin: deriveLatin(T16_CY),
+    ru: T16_RU,
+  },
+  'ariza-ijroni-kechiktirish': {
+    uz_cyrillic: T17_CY,
+    uz_latin: deriveLatin(T17_CY),
+    ru: T17_RU,
+  },
+  'appellatsiya-shikoyati': {
+    uz_cyrillic: T18_CY,
+    uz_latin: deriveLatin(T18_CY),
+    ru: T18_RU,
+  },
+  'taftish-shikoyati': {
+    uz_cyrillic: T19_CY,
+    uz_latin: deriveLatin(T19_CY),
+    ru: T19_RU,
+  },
+  'kassatsiya-shikoyati': {
+    uz_cyrillic: T20_CY,
+    uz_latin: deriveLatin(T20_CY),
+    ru: T20_RU,
   },
 };
 

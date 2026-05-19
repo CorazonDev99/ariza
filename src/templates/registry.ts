@@ -728,15 +728,622 @@ const T_NIKOH: TemplateDef = {
   ],
 };
 
+/* ============================================================
+ * Shared helpers for the family / civil-suit templates below.
+ * Most of them ask for the same plaintiff + defendant block at
+ * the top, then one or two case-specific fields, then a free-form
+ * "circumstances" multiline. The helpers reduce the boilerplate.
+ * ============================================================ */
+
+const PLAINTIFF_BLOCK: FieldDef[] = [
+  F.fio('plaintiff_fio', L('👤 Даъвогар Ф.И.Ш.', '👤 Da’vogar F.I.SH.', '👤 Истец (Ф.И.О.)')),
+  F.address('plaintiff_address', L('🏠 Даъвогар манзили', '🏠 Da’vogar manzili', '🏠 Адрес истца')),
+  F.phone('plaintiff_phone', L('📱 Даъвогар телефон', '📱 Da’vogar telefon', '📱 Телефон истца')),
+];
+
+const DEFENDANT_BLOCK: FieldDef[] = [
+  F.fio('defendant_fio', L('👤 Жавобгар Ф.И.Ш.', '👤 Javobgar F.I.SH.', '👤 Ответчик (Ф.И.О.)')),
+  F.address('defendant_address', L('🏠 Жавобгар манзили', '🏠 Javobgar manzili', '🏠 Адрес ответчика')),
+  F.phone('defendant_phone', L('📱 Жавобгар телефон', '📱 Javobgar telefon', '📱 Телефон ответчика')),
+];
+
+const APPLICANT_BLOCK: FieldDef[] = [
+  F.fio('plaintiff_fio', L('👤 Аризачи Ф.И.Ш.', '👤 Arizachi F.I.SH.', '👤 Заявитель (Ф.И.О.)')),
+  F.address('plaintiff_address', L('🏠 Аризачи манзили', '🏠 Arizachi manzili', '🏠 Адрес заявителя')),
+  F.phone('plaintiff_phone', L('📱 Аризачи телефон', '📱 Arizachi telefon', '📱 Телефон заявителя')),
+];
+
+const SEPARATION_DATE_FIELD: FieldDef = {
+  key: 'separation_date',
+  validator: 'year-month',
+  splitYearMonth: { yearKey: 'separation_year', monthKey: 'separation_month' },
+  label: L(
+    '💔 Қачондан буён бирга яшамаяпсиз',
+    "💔 Qachondan buyon birga yashamayapsiz",
+    '💔 С какого момента живёте отдельно',
+  ),
+  hint: L('Календардан йил ва ойни танланг', 'Kalendardan yil va oyni tanlang', 'Выберите год и месяц из календаря'),
+};
+
+const NARRATIVE = (
+  key: string,
+  label: Record<Locale, string>,
+  hintLabel: Record<Locale, string>,
+): FieldDef =>
+  F.multiline(
+    key,
+    label,
+    L(
+      `${hintLabel.uz_cyrillic} Қисқа, фактик, ҳурматли тилда ёзинг. Овозли хабар ҳам мумкин 🎙`,
+      `${hintLabel.uz_latin} Qisqa, faktik, hurmatli tilda yozing. Ovozli xabar ham mumkin 🎙`,
+      `${hintLabel.ru} Коротко, по фактам, в уважительном тоне. Можно голосовым 🎙`,
+    ),
+  );
+
+/* ============================================================
+ * 7. Оталикни белгилаш + алимент ундириш (paternity + alimony)
+ * ============================================================ */
+const T_OTALIK: TemplateDef = {
+  code: 'davo-ariza-otalik-aliment',
+  category: 'davo_ariza',
+  title: L('👶 Оталикни белгилаш', '👶 Otalikni belgilash', '👶 Установление отцовства'),
+  subtitle: L(
+    'ва алимент ундириш',
+    "va aliment undirish",
+    '+ взыскание алиментов',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `👶 <b>Оталикни белгилаш ва алимент ундириш</b>\n\n📋 <b>Қачон бериш:</b>\nҚонуний никоҳсиз туғилган боланинг отаси оталикни эътироф этмаса. Иккита масала бирваракай: оталикни белгилаш + алимент ундириш.\n\n🏛 <b>Қаерга:</b>\nЖавобгарнинг (фараз қилинаётган ота) яшаш жойи бўйича туманлараро фуқаролик суди.\n\n📎 <b>Ҳужжатлар:</b>\n• Паспорт нусхаси\n• Боланинг туғилганлик гувоҳномаси\n• МФЙ далолатномаси (бирга яшаганлик)\n• Фотолар, ёзишмалар, гувоҳлар\n\n📝 <b>Бот сўрайди:</b>\nДаъвогар ва жавобгар маълумотлари → шаърий никоҳ йили → бола маълумотлари → бирга яшаган жой → ҳолатлар (эркин).`,
+    `👶 <b>Otalikni belgilash va aliment undirish</b>\n\n📋 <b>Qachon berish:</b>\nQonuniy nikohsiz tug‘ilgan bolaning otasi otalikni e'tirof etmasa. Ikkita masala birvarakay: otalikni belgilash + aliment undirish.\n\n🏛 <b>Qayerga:</b>\nJavobgarning (faraz qilinayotgan ota) yashash joyi bo‘yicha tumanlararo fuqarolik sudi.\n\n📎 <b>Hujjatlar:</b>\n• Pasport nusxasi\n• Bolaning tug‘ilganlik guvohnomasi\n• MFY dalolatnomasi (birga yashaganlik)\n• Fotolar, yozishmalar, guvohlar\n\n📝 <b>Bot so‘raydi:</b>\nDa'vogar va javobgar ma'lumotlari → shariy nikoh yili → bola ma'lumotlari → birga yashagan joy → holatlar (erkin).`,
+    `👶 <b>Установление отцовства + взыскание алиментов</b>\n\n📋 <b>Когда подавать:</b>\nЕсли ребёнок рождён вне зарегистрированного брака, а отец не признаёт отцовство. Два вопроса сразу: установление отцовства + алименты.\n\n🏛 <b>Куда:</b>\nМежрайонный гражданский суд по месту жительства ответчика (предполагаемого отца).\n\n📎 <b>Документы:</b>\n• Копия паспорта\n• Свидетельство о рождении ребёнка\n• Справка из махалли (о совместном проживании)\n• Фото, переписка, показания свидетелей\n\n📝 <b>Бот спросит:</b>\nданные истца и ответчика → год шариатского брака → данные ребёнка → место совместного проживания → обстоятельства (свободно).`,
+  ),
+  fileNameBase: 'davo-ariza-otalik-aliment',
+  fields: [
+    ...PLAINTIFF_BLOCK,
+    ...DEFENDANT_BLOCK,
+    F.year('shariy_marriage_year', L('💍 Шаърий никоҳ йили', '💍 Shariy nikoh yili', '💍 Год шариатского брака')),
+    F.fio('child_fio', L('👶 Бола Ф.И.Ш.', '👶 Bola F.I.SH.', '👶 Ф.И.О. ребёнка')),
+    F.splitDate('child_dob', L('🎂 Бола туғилган санаси', "🎂 Bola tug‘ilgan sanasi", '🎂 Дата рождения ребёнка'), {
+      yearKey: 'child_year', monthKey: 'child_month', dayKey: 'child_day',
+    }),
+    F.text('cohabitation_address', L(
+      '🏠 Бирга яшаган жой (манзил)',
+      '🏠 Birga yashagan joy (manzil)',
+      '🏠 Адрес совместного проживания',
+    ), L(
+      'Масалан: Жиззах шаҳар, Боғизор маҳалласи, Аброр кўчаси, 90-уй',
+      "Masalan: Jizzax shahar, Bog‘izor mahallasi, Abror ko‘chasi, 90-uy",
+      'Например: г. Жиззак, махалля Богизор, ул. Аброр, 90',
+    )),
+    NARRATIVE(
+      'paternity_reasons',
+      L('📝 Ҳолатлар', '📝 Holatlar', '📝 Обстоятельства'),
+      L('Оталикни тан олмаслик, нима учун судга мурожаат қилаяпсиз.', "Otalikni tan olmaslik, nima uchun sudga murojaat qilayapsiz.", 'Почему обращаетесь в суд: ответчик не признаёт отцовство, и т.п.'),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 8. Болани олиш (custody)
+ * ============================================================ */
+const T_BOLA_OLISH: TemplateDef = {
+  code: 'davo-ariza-bolani-olish',
+  category: 'davo_ariza',
+  title: L('👨‍👧 Болани олиш', '👨‍👧 Bolani olish', '👨‍👧 Передача ребёнка'),
+  subtitle: L('тарбияга олиш', 'tarbiyaga olish', 'передача на воспитание'),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `👨‍👧 <b>Болани олиш (тарбияга бериш)</b>\n\n📋 <b>Қачон бериш:</b>\nЭр-хотин ажрашгандан сўнг бола қайси отаона билан қолиши бўйича низо чиққан бўлса. Болалар манфаатини ҳимоя қилиш.\n\n🏛 <b>Қаерга:</b>\nЖавобгарнинг ёки бола яшайдиган жой бўйича туманлараро фуқаролик суди.\n\n📝 <b>Бот сўрайди:</b>\nДаъвогар ва жавобгар → никоҳ ва туғилган сана → бола маълумотлари → қачондан буён ажралганлар → сабаблар.`,
+    `👨‍👧 <b>Bolani olish (tarbiyaga berish)</b>\n\n📋 <b>Qachon berish:</b>\nEr-xotin ajrashgandan so‘ng bola qaysi ota-ona bilan qolishi bo‘yicha nizo chiqqan bo‘lsa.\n\n🏛 <b>Qayerga:</b>\nJavobgarning yoki bola yashaydigan joy bo‘yicha tumanlararo fuqarolik sudi.\n\n📝 <b>Bot so‘raydi:</b>\nDa'vogar va javobgar → nikoh va tug‘ilgan sana → bola ma'lumotlari → qachondan buyon ajralganlar → sabablar.`,
+    `👨‍👧 <b>Передача ребёнка на воспитание</b>\n\n📋 <b>Когда подавать:</b>\nКогда после развода возник спор о том, с кем из родителей будет жить ребёнок.\n\n🏛 <b>Куда:</b>\nМежрайонный гражданский суд по месту жительства ответчика или ребёнка.\n\n📝 <b>Бот спросит:</b>\nистец и ответчик → дата брака и развода → данные ребёнка → причины.`,
+  ),
+  fileNameBase: 'davo-ariza-bolani-olish',
+  fields: [
+    ...PLAINTIFF_BLOCK,
+    ...DEFENDANT_BLOCK,
+    F.splitDate('marriage_date', L('💒 Никоҳ санаси', '💒 Nikoh sanasi', '💒 Дата брака'), {
+      yearKey: 'marriage_year', monthKey: 'marriage_month', dayKey: 'marriage_day',
+    }),
+    F.num('children_count', L('👶 Фарзандлар сони', "👶 Farzandlar soni", '👶 Количество детей')),
+    ...childFields(),
+    F.fio('requested_child_fio', L(
+      '👶 Тарбига олинаётган бола Ф.И.Ш.',
+      "👶 Tarbiyaga olinayotgan bola F.I.SH.",
+      '👶 Ф.И.О. ребёнка (на воспитание)',
+    )),
+    F.splitDate('requested_child_dob', L(
+      '🎂 Боланинг туғилган санаси',
+      "🎂 Bolaning tug‘ilgan sanasi",
+      '🎂 Дата рождения ребёнка',
+    ), {
+      yearKey: 'requested_child_year', monthKey: 'requested_child_month', dayKey: 'requested_child_day',
+    }),
+    SEPARATION_DATE_FIELD,
+    NARRATIVE(
+      'custody_reasons',
+      L('📝 Болани олиш сабаблари', "📝 Bolani olish sabablari", '📝 Причины передачи ребёнка'),
+      L('Нима учун бола сиз билан қолиши керак.', "Nima uchun bola siz bilan qolishi kerak.", 'Почему ребёнок должен остаться с вами.'),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 9. Уй-жойга киритиш (housing entry)
+ * ============================================================ */
+const T_UY_KIRITISH: TemplateDef = {
+  code: 'davo-ariza-uy-kiritish',
+  category: 'davo_ariza',
+  title: L('🏠 Уй-жойга киритиш', '🏠 Uy-joyga kiritish', '🏠 Допуск в жилище'),
+  subtitle: L('эр оиласи уйига', 'er oilasi uyiga', 'в дом семьи мужа'),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `🏠 <b>Уй-жойга киритиш</b>\n\n📋 <b>Қачон бериш:</b>\nКелин бўлиб тушган уйдан ҳайдалган ёки кириш мумкин эмаслигида. Бола билан бирга яшаш жойи бўлмаса.\n\n📝 <b>Бот сўрайди:</b>\nДаъвогар ва жавобгар → никоҳ санаси → фарзандлар маълумотлари → уйдан чиқиб кетиш сабаблари → манзил (қаерга киритиш керак).`,
+    `🏠 <b>Uy-joyga kiritish</b>\n\n📋 <b>Qachon berish:</b>\nKelin bo‘lib tushgan uydan haydalgan yoki kirishga ruxsat berilmaganda. Bola bilan birga yashash joyi bo‘lmasa.\n\n📝 <b>Bot so‘raydi:</b>\nDa'vogar va javobgar → nikoh sanasi → farzandlar ma'lumotlari → uydan chiqib ketish sabablari → manzil.`,
+    `🏠 <b>Допуск в жилище</b>\n\n📋 <b>Когда подавать:</b>\nКогда невестку (или жену) не пускают в дом семьи мужа, а другого жилья у неё с детьми нет.\n\n📝 <b>Бот спросит:</b>\nистец и ответчик → дата брака → дети → причины ухода → адрес дома.`,
+  ),
+  fileNameBase: 'davo-ariza-uy-kiritish',
+  fields: [
+    ...PLAINTIFF_BLOCK,
+    ...DEFENDANT_BLOCK,
+    F.splitDate('marriage_date', L('💒 Никоҳ санаси', '💒 Nikoh sanasi', '💒 Дата брака'), {
+      yearKey: 'marriage_year', monthKey: 'marriage_month', dayKey: 'marriage_day',
+    }),
+    F.num('children_count', L('👶 Фарзандлар сони', "👶 Farzandlar soni", '👶 Количество детей')),
+    ...childFields(),
+    F.text('housing_address', L(
+      '🏠 Киритиш керак бўлган уй манзили',
+      "🏠 Kirish kerak bo‘lgan uy manzili",
+      '🏠 Адрес дома (куда впустить)',
+    ), L(
+      'Масалан: Жиззах шаҳар, Лолазор маҳалласи, Лолазор кўчаси, 23-уй',
+      "Masalan: Jizzax shahar, Lolazor mahallasi, Lolazor ko‘chasi, 23-uy",
+      'Например: г. Жиззак, ул. Лолазор, 23',
+    )),
+    NARRATIVE(
+      'leaving_reasons',
+      L('📝 Уйдан чиқиб кетиш сабаблари', "📝 Uydan chiqib ketish sabablari", '📝 Причины ухода из дома'),
+      L('Нима учун уйдан чиқиб кетдингиз ва нима учун қайтиб кириш керак.', "Nima uchun uydan chiqib ketdingiz va nima uchun qaytib kirish kerak.", 'Почему пришлось уйти и почему нужно вернуться.'),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 10. Уй-жойдан кўчириш (eviction)
+ * ============================================================ */
+const T_KOCHIRISH: TemplateDef = {
+  code: 'davo-ariza-uy-kochirish',
+  category: 'davo_ariza',
+  title: L('🚪 Уй-жойдан кўчириш', '🚪 Uy-joydan ko‘chirish', '🚪 Выселение из жилища'),
+  subtitle: L('собственник арзимаганини', "egasi bo‘lganligi uchun", 'как собственник'),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `🚪 <b>Уй-жойдан кўчириш</b>\n\n📋 <b>Қачон бериш:</b>\nСиз нотариал шартнома орқали уйни сотиб олдингиз, ҳозирги яшовчилар уйни бўшатишни истамайдилар.\n\n📝 <b>Бот сўрайди:</b>\nДаъвогар ва жавобгар → нотариус Ф.И.Ш. → шартнома санаси ва рақами → давлат рўйхати рақами → уй манзили.`,
+    `🚪 <b>Uy-joydan ko‘chirish</b>\n\n📋 <b>Qachon berish:</b>\nSiz notarial shartnoma orqali uyni sotib oldingiz, hozirgi yashovchilar uyni bo‘shatishni xohlamaydilar.\n\n📝 <b>Bot so‘raydi:</b>\nDa'vogar va javobgar → notarius F.I.SH. → shartnoma sanasi va raqami → davlat ro‘yxati raqami → uy manzili.`,
+    `🚪 <b>Выселение из жилища</b>\n\n📋 <b>Когда подавать:</b>\nВы купили жильё по нотариальному договору, текущие жильцы не хотят освобождать.\n\n📝 <b>Бот спросит:</b>\nистец и ответчик → ФИО нотариуса → дата и номер договора → номер госрегистрации → адрес.`,
+  ),
+  fileNameBase: 'davo-ariza-uy-kochirish',
+  fields: [
+    ...PLAINTIFF_BLOCK,
+    ...DEFENDANT_BLOCK,
+    F.fio('notary_fio', L('👨‍⚖️ Нотариус Ф.И.Ш.', '👨‍⚖️ Notarius F.I.SH.', '👨‍⚖️ ФИО нотариуса')),
+    F.splitDate('contract_date', L('📅 Шартнома санаси', "📅 Shartnoma sanasi", '📅 Дата договора'), {
+      yearKey: 'contract_year', monthKey: 'contract_month', dayKey: 'contract_day',
+    }),
+    F.text('contract_number', L('🔢 Реестр рақами', "🔢 Reyestr raqami", '🔢 Реестровый номер'),
+      L('Масалан: 000012345', "Masalan: 000012345", 'Например: 000012345')),
+    F.text('cadastre_number', L('🏛 Давлат рўйхати рақами', "🏛 Davlat ro‘yxati raqami", '🏛 Номер госрегистрации'),
+      L('Масалан: 00006789', "Masalan: 00006789", 'Например: 00006789')),
+    F.text('property_address', L(
+      '🏠 Уй манзили',
+      "🏠 Uy manzili",
+      '🏠 Адрес жилья',
+    ), L(
+      'Масалан: Шароф Рашидов тумани, Янгикўрғон МФЙ, Узун кўчаси, 99-уй',
+      "Masalan: Sharof Rashidov tumani, Yangiko‘rg‘on MFY, Uzun ko‘chasi, 99-uy",
+      'Например: Шараф Рашидовский р-н, Янгикурганская МФЙ, ул. Узун, 99',
+    )),
+  ],
+};
+
+/* ============================================================
+ * 11. Мол-мулкни олиб бериш (property recovery from spouse)
+ * ============================================================ */
+const T_MOL_MULK: TemplateDef = {
+  code: 'davo-ariza-mol-mulkni-olish',
+  category: 'davo_ariza',
+  title: L('📦 Мол-мулкни олиб бериш', "📦 Mol-mulkni olib berish", '📦 Возврат имущества'),
+  subtitle: L('шахсий мол-мулк', "shaxsiy mol-mulk", 'личного имущества'),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `📦 <b>Мол-мулкни олиб бериш</b>\n\n📋 <b>Қачон бериш:</b>\nАлоҳида яшай бошлаганда жавобгар сизга тегишли шахсий мол-мулкингизни бермайди.\n\n📝 <b>Бот сўрайди:</b>\nДаъвогар, жавобгар → никоҳ санаси → фарзандлар → мол-мулклар рўйхати.`,
+    `📦 <b>Mol-mulkni olib berish</b>\n\n📋 <b>Qachon berish:</b>\nAlohida yashay boshlaganda javobgar sizga tegishli shaxsiy mol-mulkingizni bermaydi.\n\n📝 <b>Bot so‘raydi:</b>\nDa'vogar, javobgar → nikoh sanasi → farzandlar → mol-mulklar ro‘yxati.`,
+    `📦 <b>Возврат личного имущества</b>\n\n📋 <b>Когда подавать:</b>\nПосле раздельного проживания ответчик отказывается отдать ваше личное имущество.\n\n📝 <b>Бот спросит:</b>\nистец, ответчик → дата брака → дети → список имущества.`,
+  ),
+  fileNameBase: 'davo-ariza-mol-mulkni-olish',
+  fields: [
+    ...PLAINTIFF_BLOCK,
+    ...DEFENDANT_BLOCK,
+    F.splitDate('marriage_date', L('💒 Никоҳ санаси', '💒 Nikoh sanasi', '💒 Дата брака'), {
+      yearKey: 'marriage_year', monthKey: 'marriage_month', dayKey: 'marriage_day',
+    }),
+    F.num('children_count', L('👶 Фарзандлар сони', "👶 Farzandlar soni", '👶 Количество детей')),
+    ...childFields(),
+    NARRATIVE(
+      'property_list',
+      L('📦 Мол-мулклар рўйхати', "📦 Mol-mulklar ro‘yxati", '📦 Список имущества'),
+      L('Ҳар бирини алоҳида қаторда: ном, миқдор, бозор баҳоси.', "Har birini alohida qatorda: nom, miqdor, bozor bahosi.", 'Каждый предмет на отдельной строке: название, количество, рыночная цена.'),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 12. Қарз ундириш — с тилхатом (debt with written note)
+ * ============================================================ */
+const T_QARZ: TemplateDef = {
+  code: 'davo-ariza-qarz-undirish',
+  category: 'davo_ariza',
+  title: L('💵 Қарз ундириш', '💵 Qarz undirish', '💵 Взыскание долга'),
+  subtitle: L('тилхат асосида', 'tilxat asosida', 'по расписке'),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `💵 <b>Қарз ундириш (тилхат асосида)</b>\n\n📋 <b>Қачон бериш:</b>\nҚарзга пул берганингизни тилхат тасдиқлайди, лекин жавобгар муддатида қайтарилмаяпти.\n\n💡 Давлат божи: қарз суммасининг 4% миқдорида.\n\n📝 <b>Бот сўрайди:</b>\nДаъвогар, жавобгар → қарз олинган сана ва миқдор → тилхат бўйича қайтариш муддати → қўшимча ҳолатлар.`,
+    `💵 <b>Qarz undirish (tilxat asosida)</b>\n\n📋 <b>Qachon berish:</b>\nQarzga pul berganingizni tilxat tasdiqlaydi, lekin javobgar muddatida qaytarmayapti.\n\n💡 Davlat boji: qarz summasining 4% miqdorida.\n\n📝 <b>Bot so‘raydi:</b>\nDa'vogar, javobgar → qarz olingan sana va miqdor → tilxat bo‘yicha qaytarish muddati → qo‘shimcha holatlar.`,
+    `💵 <b>Взыскание долга по расписке</b>\n\n📋 <b>Когда подавать:</b>\nВы дали в долг под расписку, ответчик не возвращает в срок.\n\n💡 Госпошлина: 4% от суммы долга.\n\n📝 <b>Бот спросит:</b>\nистец, ответчик → дата и сумма займа → срок возврата по расписке → дополнительные обстоятельства.`,
+  ),
+  fileNameBase: 'davo-ariza-qarz-undirish',
+  fields: [
+    ...PLAINTIFF_BLOCK,
+    ...DEFENDANT_BLOCK,
+    {
+      key: 'debt_date',
+      validator: 'year-month',
+      splitYearMonth: { yearKey: 'debt_year', monthKey: 'debt_month' },
+      label: L('📅 Қарз олинган сана (йил+ой)', "📅 Qarz olingan sana (yil+oy)", '📅 Когда взяли в долг (год+месяц)'),
+      hint: L('Календардан танланг', 'Kalendardan tanlang', 'Выберите из календаря'),
+    },
+    F.money('debt_amount', L('💰 Қарз миқдори (сўмда)', "💰 Qarz miqdori (so‘mda)", '💰 Сумма долга (в сумах)')),
+    F.text('repayment_period', L(
+      '⏱ Қайтариш муддати',
+      "⏱ Qaytarish muddati",
+      '⏱ Срок возврата',
+    ), L(
+      'Масалан: 3 ой, 1 йил, 30 кун',
+      "Masalan: 3 oy, 1 yil, 30 kun",
+      'Например: 3 месяца, 1 год, 30 дней',
+    )),
+    NARRATIVE(
+      'debt_circumstances',
+      L('📝 Қўшимча ҳолатлар', "📝 Qo‘shimcha holatlar", '📝 Дополнительные обстоятельства'),
+      L('Қачон қайтарилиши керак эди, неча марта илтимос қилдингиз.', "Qachon qaytarilishi kerak edi, necha marta iltimos qildingiz.", 'Когда должны были вернуть, сколько раз просили.'),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 13. Пул(қарз) ундириш — алдов, ИИБ қарори (money - fraud)
+ * ============================================================ */
+const T_PUL: TemplateDef = {
+  code: 'davo-ariza-pul-undirish',
+  category: 'davo_ariza',
+  title: L('💸 Пул(қарз) ундириш', "💸 Pul(qarz) undirish", '💸 Взыскание (алдов)'),
+  subtitle: L('ИИБ қарорига асосан', "IIB qaroriga asosan", 'на основании постановления ОВД'),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `💸 <b>Пул(қарз) ундириш — алдов ҳолати</b>\n\n📋 <b>Қачон бериш:</b>\nЖавобгар сизни алдаб товар/пул олиб қочди. ИИБга мурожаат қилдингиз, ИИБ жиноят иши қўзғатишни рад қилди — энди фуқаролик суди орқали.\n\n📝 <b>Бот сўрайди:</b>\nДаъвогар, жавобгар → қарз олинган сана, миқдор → товар тури → ИИБ қарори санаси ва тафсилотлари.`,
+    `💸 <b>Pul(qarz) undirish — aldov holati</b>\n\n📋 <b>Qachon berish:</b>\nJavobgar sizni aldab tovar/pul olib qochdi. IIBga murojaat qildingiz, IIB jinoyat ishi qo‘zg‘atishni rad qildi — endi fuqarolik sudi orqali.\n\n📝 <b>Bot so‘raydi:</b>\nDa'vogar, javobgar → qarz olingan sana, miqdor → tovar turi → IIB qarori sanasi va tafsilotlari.`,
+    `💸 <b>Взыскание (мошенничество)</b>\n\n📋 <b>Когда подавать:</b>\nОтветчик обманом получил у вас товар/деньги. Вы обратились в ОВД, отказ в возбуждении уг.дела — теперь через гражданский суд.\n\n📝 <b>Бот спросит:</b>\nистец, ответчик → дата и сумма займа → тип товара → дата постановления ОВД и обстоятельства.`,
+  ),
+  fileNameBase: 'davo-ariza-pul-undirish',
+  fields: [
+    ...PLAINTIFF_BLOCK,
+    ...DEFENDANT_BLOCK,
+    {
+      key: 'debt_date',
+      validator: 'year-month',
+      splitYearMonth: { yearKey: 'debt_year', monthKey: 'debt_month' },
+      label: L('📅 Қарз олинган сана (йил+ой)', "📅 Qarz olingan sana (yil+oy)", '📅 Когда взято в долг (год+месяц)'),
+      hint: L('Календардан танланг', 'Kalendardan tanlang', 'Выберите из календаря'),
+    },
+    F.money('debt_amount', L('💰 Жами қарз миқдори (сўмда)', "💰 Jami qarz miqdori (so‘mda)", '💰 Сумма долга (в сумах)')),
+    F.text('debt_goods', L(
+      '📦 Товар тури',
+      "📦 Tovar turi",
+      '📦 Тип товара/имущества',
+    ), L(
+      'Масалан: озиқ-овқат, рўзғор техникаси',
+      "Masalan: oziq-ovqat, ro‘zg‘or texnikasi",
+      'Например: продукты, бытовая техника',
+    )),
+    NARRATIVE(
+      'iib_details',
+      L('📝 ИИБ қарори ва ҳолатлар', "📝 IIB qarori va holatlar", '📝 Постановление ОВД и обстоятельства'),
+      L('ИИБ қарори санаси, рад этилиш сабаби, жавобгарнинг тушунтириши.', "IIB qarori sanasi, rad etilish sababi, javobgarning tushuntirishi.", 'Дата постановления ОВД, причина отказа, объяснения ответчика.'),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14. Иш ҳужжатларидан нусхалар олиш (request copies)
+ * ============================================================ */
+const T_NUSHA: TemplateDef = {
+  code: 'ariza-hujjatdan-nuskha',
+  category: 'ariza',
+  title: L('📑 Иш ҳужжатларидан нусхалар', "📑 Ish hujjatlaridan nusxalar", '📑 Копии материалов дела'),
+  subtitle: L('олиш ҳақида', "olish haqida", 'получить'),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `📑 <b>Иш ҳужжатларидан нусхалар олиш</b>\n\n📋 <b>Қачон бериш:</b>\nСиз кўрилган суд ишида тараф (даъвогар ёки жавобгар) бўлгансиз, иш материалларидан нусхалар керак.\n\n📝 <b>Бот сўрайди:</b>\nАризачи маълумотлари → суд қарори санаси → иш бўйича даъвогар ва жавобгар → иш рақами → нима керак (эркин).`,
+    `📑 <b>Ish hujjatlaridan nusxalar olish</b>\n\n📋 <b>Qachon berish:</b>\nSiz ko‘rilgan sud ishida taraf (da'vogar yoki javobgar) bo‘lgansiz, ish materiallaridan nusxalar kerak.\n\n📝 <b>Bot so‘raydi:</b>\nArizachi ma'lumotlari → sud qarori sanasi → ish bo‘yicha da'vogar va javobgar → ish raqami → nima kerak.`,
+    `📑 <b>Запрос копий материалов дела</b>\n\n📋 <b>Когда подавать:</b>\nВы были стороной (истцом или ответчиком) по рассмотренному делу, нужны копии материалов.\n\n📝 <b>Бот спросит:</b>\nданные заявителя → дата решения → стороны по делу → номер дела → что именно нужно.`,
+  ),
+  fileNameBase: 'ariza-hujjatdan-nuskha',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.splitDate('case_ruling_date', L('📅 Суд қарори санаси', "📅 Sud qarori sanasi", '📅 Дата судебного решения'), {
+      yearKey: 'case_year', monthKey: 'case_month', dayKey: 'case_day',
+    }),
+    F.fio('case_plaintiff_fio', L('👤 Иш бўйича даъвогар', "👤 Ish bo‘yicha da'vogar", '👤 Истец по делу')),
+    F.fio('case_defendant_fio', L('👤 Иш бўйича жавобгар', "👤 Ish bo‘yicha javobgar", '👤 Ответчик по делу')),
+    F.text('case_subject', L(
+      '⚖️ Иш мазмуни',
+      "⚖️ Ish mazmuni",
+      '⚖️ Предмет дела',
+    ), L(
+      'Масалан: алимент ундириш, никоҳдан ажратиш',
+      "Masalan: aliment undirish, nikohdan ajratish",
+      'Например: взыскание алиментов, расторжение брака',
+    )),
+    F.text('case_number', L(
+      '🔢 Иш рақами',
+      "🔢 Ish raqami",
+      '🔢 Номер дела',
+    ), L(
+      'Масалан: 2-1301-2X01/XXXX',
+      "Masalan: 2-1301-2X01/XXXX",
+      'Например: 2-1301-2X01/XXXX',
+    )),
+    F.choice('party_role', L(
+      '👥 Иш бўйича Сиз кимсиз',
+      "👥 Ish bo‘yicha Siz kimsiz",
+      '👥 Ваша роль в деле',
+    ), [
+      { value: '1', label: L('Даъвогар', "Da'vogar", 'Истец') },
+      { value: '2', label: L('Жавобгар', 'Javobgar', 'Ответчик') },
+    ]),
+    NARRATIVE(
+      'copy_request',
+      L('📝 Қайси ҳужжатлар керак', "📝 Qaysi hujjatlar kerak", '📝 Какие документы нужны'),
+      L('Ҳужжатлар номини рўйхат қилинг: ҳал қилув қарори, иш материаллари ва ҳ.к.', "Hujjatlar nomini ro‘yxat qiling: hal qilish qarori, ish materiallari va h.k.", 'Перечислите: решение суда, материалы дела и т.д.'),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 15. Янги очилган ҳолат бўйича бекор қилиш (annul - new circumstances)
+ * ============================================================ */
+const T_YANGI_HOLAT: TemplateDef = {
+  code: 'ariza-yangi-holat-bekor',
+  category: 'ariza',
+  title: L('🔄 Янги очилган ҳолат', "🔄 Yangi ochilgan holat", '🔄 Новые обстоятельства'),
+  subtitle: L('бўйича бекор қилиш', "bo‘yicha bekor qilish", 'отмена решения'),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `🔄 <b>Янги очилган ҳолат бўйича бекор қилиш</b>\n\n📋 <b>Қачон бериш:</b>\nСуд қарори чиққандан сўнг иш натижасига таъсир кўрсатадиган янги ҳолатлар маълум бўлди (ишда тарафлар билмаган ёки далил топилди).\n\n📝 <b>Бот сўрайди:</b>\nАризачи маълумотлари → иш мазмуни → бекор қилишга асос (эркин тарзда).`,
+    `🔄 <b>Yangi ochilgan holat bo‘yicha bekor qilish</b>\n\n📋 <b>Qachon berish:</b>\nSud qarori chiqqandan so‘ng ish natijasiga ta'sir ko‘rsatadigan yangi holatlar ma'lum bo‘ldi.\n\n📝 <b>Bot so‘raydi:</b>\nArizachi ma'lumotlari → ish mazmuni → bekor qilishga asos.`,
+    `🔄 <b>Отмена по вновь открывшимся обстоятельствам</b>\n\n📋 <b>Когда подавать:</b>\nПосле вынесения решения стали известны новые обстоятельства, которые могли повлиять на исход.\n\n📝 <b>Бот спросит:</b>\nданные заявителя → суть дела → основания для отмены.`,
+  ),
+  fileNameBase: 'ariza-yangi-holat-bekor',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.choice('party_role', L(
+      '👥 Иш бўйича Сиз кимсиз',
+      "👥 Ish bo‘yicha Siz kimsiz",
+      '👥 Ваша роль в деле',
+    ), [
+      { value: '1', label: L('Даъвогар', "Da'vogar", 'Истец') },
+      { value: '2', label: L('Жавобгар', 'Javobgar', 'Ответчик') },
+    ]),
+    F.fio('opposite_party_fio', L(
+      '👤 Иккинчи тараф Ф.И.Ш.',
+      "👤 Ikkinchi taraf F.I.SH.",
+      '👤 Ф.И.О. второй стороны',
+    )),
+    F.text('case_subject', L(
+      '⚖️ Иш мазмуни',
+      "⚖️ Ish mazmuni",
+      '⚖️ Предмет дела',
+    ), L(
+      'Масалан: банк кредити, мерос',
+      "Masalan: bank krediti, meros",
+      'Например: банковский кредит, наследство',
+    )),
+    NARRATIVE(
+      'annul_reasons',
+      L('📝 Бекор қилишга асослар', "📝 Bekor qilishga asoslar", '📝 Основания для отмены'),
+      L('Қандай янги ҳолат маълум бўлди. Қачон билдингиз.', "Qanday yangi holat ma'lum bo‘ldi. Qachon bildingiz.", 'Какое новое обстоятельство открылось. Когда узнали.'),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 16. Суд ҳужжати ижросини кечиктириш (postpone execution)
+ * ============================================================ */
+const T_KECHIKTIRISH: TemplateDef = {
+  code: 'ariza-ijroni-kechiktirish',
+  category: 'ariza',
+  title: L('⏳ Ижрони кечиктириш', "⏳ Ijroni kechiktirish", '⏳ Отсрочка исполнения'),
+  subtitle: L('суд ҳужжати', "sud hujjati", 'судебного акта'),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `⏳ <b>Суд ҳужжати ижросини кечиктириш</b>\n\n📋 <b>Қачон бериш:</b>\nСуд қарорини белгиланган муддатда бажариш мумкин эмаслигида (моддий аҳвол, шартлар).\n\n📝 <b>Бот сўрайди:</b>\nАризачи маълумотлари → иш мазмуни → кечиктириш муддати → сабаблар.`,
+    `⏳ <b>Sud hujjati ijrosini kechiktirish</b>\n\n📋 <b>Qachon berish:</b>\nSud qarorini belgilangan muddatda bajarish mumkin emasligida.\n\n📝 <b>Bot so‘raydi:</b>\nArizachi ma'lumotlari → ish mazmuni → kechiktirish muddati → sabablar.`,
+    `⏳ <b>Отсрочка исполнения судебного акта</b>\n\n📋 <b>Когда подавать:</b>\nКогда исполнить решение в установленный срок невозможно (материальное положение и т.п.).\n\n📝 <b>Бот спросит:</b>\nданные заявителя → суть дела → срок отсрочки → причины.`,
+  ),
+  fileNameBase: 'ariza-ijroni-kechiktirish',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.choice('party_role', L(
+      '👥 Иш бўйича Сиз кимсиз',
+      "👥 Ish bo‘yicha Siz kimsiz",
+      '👥 Ваша роль в деле',
+    ), [
+      { value: '1', label: L('Даъвогар', "Da'vogar", 'Истец') },
+      { value: '2', label: L('Жавобгар', 'Javobgar', 'Ответчик') },
+    ]),
+    F.fio('opposite_party_fio', L(
+      '👤 Иккинчи тараф Ф.И.Ш.',
+      "👤 Ikkinchi taraf F.I.SH.",
+      '👤 Ф.И.О. второй стороны',
+    )),
+    F.text('case_subject', L(
+      '⚖️ Иш мазмуни',
+      "⚖️ Ish mazmuni",
+      '⚖️ Предмет дела',
+    ), L(
+      'Масалан: банк кредити, мерос',
+      "Masalan: bank krediti, meros",
+      'Например: банковский кредит, наследство',
+    )),
+    F.text('postpone_period', L(
+      '⏱ Кечиктириш муддати',
+      "⏱ Kechiktirish muddati",
+      '⏱ Срок отсрочки',
+    ), L(
+      'Масалан: 6 ой, 1 йил',
+      "Masalan: 6 oy, 1 yil",
+      'Например: 6 месяцев, 1 год',
+    )),
+    NARRATIVE(
+      'postpone_reasons',
+      L('📝 Кечиктириш сабаблари', "📝 Kechiktirish sabablari", '📝 Причины отсрочки'),
+      L('Нима учун ҳозир бажариш мумкин эмас. Моддий аҳвол, оила вазияти.', "Nima uchun hozir bajarish mumkin emas. Moddiy ahvol, oila vaziyati.", 'Почему сейчас не можете исполнить. Финансы, семейная ситуация.'),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 17. Апелляция шикояти (appeal — regional appellate panel)
+ * ============================================================ */
+const T_APELLATSIYA: TemplateDef = {
+  code: 'appellatsiya-shikoyati',
+  category: 'shikoyat',
+  title: L('⚖️ Апелляция шикояти', "⚖️ Apellyatsiya shikoyati", '⚖️ Апелляционная жалоба'),
+  subtitle: L('ҳал қилув қарорига', "hal qilish qaroriga", 'на решение суда'),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `⚖️ <b>Апелляция шикояти</b>\n\n📋 <b>Қачон бериш:</b>\nТуманлараро фуқаролик судининг ҳал қилув қарорига норозисиз — биринчи апелляция инстанцияси.\n\n⏱ <b>Муддат:</b> Қарор чиққандан кейин 1 ой ичида.\n\n🏛 <b>Қаерга:</b>\nВилоят суди фуқаролик ишлари бўйича апелляция инстанцияси.\n\n📝 <b>Бот сўрайди:</b>\nАризачи маълумотлари → ҳал қилув қарори санаси → норозилик асослари → талаб (қаноатлантириш/рад этиш).`,
+    `⚖️ <b>Apellyatsiya shikoyati</b>\n\n📋 <b>Qachon berish:</b>\nTumanlararo fuqarolik sudining hal qilish qaroriga rozi emassiz — birinchi apellyatsiya instansiyasi.\n\n⏱ <b>Muddat:</b> Qaror chiqqandan keyin 1 oy ichida.\n\n🏛 <b>Qayerga:</b>\nViloyat sudi fuqarolik ishlari bo‘yicha apellyatsiya instansiyasi.\n\n📝 <b>Bot so‘raydi:</b>\nArizachi ma'lumotlari → hal qilish qarori sanasi → norozilik asoslari → talab.`,
+    `⚖️ <b>Апелляционная жалоба</b>\n\n📋 <b>Когда подавать:</b>\nВы не согласны с решением межрайонного гражданского суда — первая апелляционная инстанция.\n\n⏱ <b>Срок:</b> 1 месяц со дня вынесения решения.\n\n🏛 <b>Куда:</b>\nАпелляционная инстанция областного суда по гражданским делам.\n\n📝 <b>Бот спросит:</b>\nданные заявителя → дата решения → основания несогласия → требование (удовл./отказ).`,
+  ),
+  fileNameBase: 'appellatsiya-shikoyati',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.splitDate('ruling_date', L(
+      '📅 Ҳал қилув қарори санаси',
+      "📅 Hal qilish qarori sanasi",
+      '📅 Дата решения суда',
+    ), {
+      yearKey: 'ruling_year', monthKey: 'ruling_month', dayKey: 'ruling_day',
+    }),
+    F.choice('appeal_outcome', L(
+      '🎯 Талабингиз',
+      "🎯 Talabingiz",
+      '🎯 Ваше требование',
+    ), [
+      { value: '1', label: L('Даъвони қаноатлантириш', "Da'voni qanoatlantirish", 'Удовлетворить иск') },
+      { value: '2', label: L('Даъвони рад қилиш', "Da'voni rad qilish", 'Отказать в иске') },
+    ]),
+    NARRATIVE(
+      'appeal_reasons',
+      L('📝 Норозилик асослари', "📝 Norozilik asoslari", '📝 Основания несогласия'),
+      L('Нима учун қарор нотўғри: фактлар нотўғри баҳоланган, қонун нотўғри қўлланган.', "Nima uchun qaror noto‘g‘ri: faktlar noto‘g‘ri baholangan, qonun noto‘g‘ri qo‘llangan.", 'Почему решение неверно: факты неверно оценены, закон применён неправильно.'),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 18. Тафтиш шикояти (review - second appeal)
+ * ============================================================ */
+const T_TAFTISH: TemplateDef = {
+  code: 'taftish-shikoyati',
+  category: 'shikoyat',
+  title: L('🔍 Тафтиш шикояти', "🔍 Taftish shikoyati", '🔍 Жалоба в порядке надзора'),
+  subtitle: L('тафтиш инстанцияси', "taftish instansiyasi", 'надзорная инстанция'),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `🔍 <b>Тафтиш шикояти</b>\n\n📋 <b>Қачон бериш:</b>\nАпелляция инстанцияси қароридан кейин — иккинчи апелляция (тафтиш).\n\n🏛 <b>Қаерга:</b>\nВилоят суди тафтиш инстанцияси.\n\n📝 <b>Бот сўрайди:</b>\nАризачи маълумотлари → ҳал қилув қарори санаси → норозилик асослари → талаб.`,
+    `🔍 <b>Taftish shikoyati</b>\n\n📋 <b>Qachon berish:</b>\nApellyatsiya instansiyasi qaroridan keyin — ikkinchi apellyatsiya (taftish).\n\n📝 <b>Bot so‘raydi:</b>\nArizachi ma'lumotlari → hal qilish qarori sanasi → norozilik asoslari → talab.`,
+    `🔍 <b>Жалоба в порядке надзора</b>\n\n📋 <b>Когда подавать:</b>\nПосле апелляционного определения — вторая инстанция обжалования (надзор).\n\n📝 <b>Бот спросит:</b>\nданные заявителя → дата решения → основания → требование.`,
+  ),
+  fileNameBase: 'taftish-shikoyati',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.splitDate('ruling_date', L(
+      '📅 Ҳал қилув қарори санаси',
+      "📅 Hal qilish qarori sanasi",
+      '📅 Дата решения суда',
+    ), {
+      yearKey: 'ruling_year', monthKey: 'ruling_month', dayKey: 'ruling_day',
+    }),
+    F.choice('appeal_outcome', L(
+      '🎯 Талабингиз',
+      "🎯 Talabingiz",
+      '🎯 Ваше требование',
+    ), [
+      { value: '1', label: L('Даъвони қаноатлантириш', "Da'voni qanoatlantirish", 'Удовлетворить иск') },
+      { value: '2', label: L('Даъвони рад қилиш', "Da'voni rad qilish", 'Отказать в иске') },
+    ]),
+    NARRATIVE(
+      'appeal_reasons',
+      L('📝 Норозилик асослари', "📝 Norozilik asoslari", '📝 Основания несогласия'),
+      L('Нима учун қарор нотўғри: фактлар, қонун, процессуал бузилишлар.', "Nima uchun qaror noto‘g‘ri: faktlar, qonun, protsessual buzilishlar.", 'Почему решение неверно: факты, закон, процессуальные нарушения.'),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 19. Кассация шикояти (cassation - third appeal)
+ * ============================================================ */
+const T_KASSATSIYA: TemplateDef = {
+  code: 'kassatsiya-shikoyati',
+  category: 'shikoyat',
+  title: L('⚡ Кассация шикояти', "⚡ Kassatsiya shikoyati", '⚡ Кассационная жалоба'),
+  subtitle: L('кассация инстанцияси', "kassatsiya instansiyasi", 'кассационная инстанция'),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `⚡ <b>Кассация шикояти</b>\n\n📋 <b>Қачон бериш:</b>\nТафтиш инстанциясидан сўнг — учинчи инстанция.\n\n🏛 <b>Қаерга:</b>\nВилоят суди кассация инстанцияси.\n\n📝 <b>Бот сўрайди:</b>\nАризачи маълумотлари → ҳал қилув қарори санаси → норозилик асослари → талаб.`,
+    `⚡ <b>Kassatsiya shikoyati</b>\n\n📋 <b>Qachon berish:</b>\nTaftish instansiyasidan so‘ng — uchinchi instansiya.\n\n📝 <b>Bot so‘raydi:</b>\nArizachi ma'lumotlari → hal qilish qarori sanasi → norozilik asoslari → talab.`,
+    `⚡ <b>Кассационная жалоба</b>\n\n📋 <b>Когда подавать:</b>\nПосле надзорной инстанции — третья инстанция.\n\n📝 <b>Бот спросит:</b>\nданные заявителя → дата решения → основания → требование.`,
+  ),
+  fileNameBase: 'kassatsiya-shikoyati',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.splitDate('ruling_date', L(
+      '📅 Ҳал қилув қарори санаси',
+      "📅 Hal qilish qarori sanasi",
+      '📅 Дата решения суда',
+    ), {
+      yearKey: 'ruling_year', monthKey: 'ruling_month', dayKey: 'ruling_day',
+    }),
+    F.choice('appeal_outcome', L(
+      '🎯 Талабингиз',
+      "🎯 Talabingiz",
+      '🎯 Ваше требование',
+    ), [
+      { value: '1', label: L('Даъвони қаноатлантириш', "Da'voni qanoatlantirish", 'Удовлетворить иск') },
+      { value: '2', label: L('Даъвони рад қилиш', "Da'voni rad qilish", 'Отказать в иске') },
+    ]),
+    NARRATIVE(
+      'appeal_reasons',
+      L('📝 Норозилик асослари', "📝 Norozilik asoslari", '📝 Основания несогласия'),
+      L('Нима учун қарор нотўғри: моддий ёки процессуал қонун бузилиши.', "Nima uchun qaror noto‘g‘ri: moddiy yoki protsessual qonun buzilishi.", 'Почему решение неверно: нарушение материального или процессуального закона.'),
+    ),
+  ],
+};
+
 /**
- * The 6 user-facing templates shown right after `/new`,
- * in the exact display order requested:
- *   1) Алимент ундириш
- *   2) 3 ёшгача таъминот ундириш
- *   3) Эътирознома
- *   4) Алимент миқдорини камайтириш
- *   5) Илтимоснома (рассмотрение в отсутствие истца)
- *   6) Никоҳдан ажратиш (расторжение брака)
+ * The 19 user-facing templates shown right after `/new`.
  */
 export const TEMPLATES: TemplateDef[] = [
   T_ARIZA_ALIMENT,
@@ -745,6 +1352,19 @@ export const TEMPLATES: TemplateDef[] = [
   T_KAMAYTIRISH,
   T_ILTIMOSNOMA,
   T_NIKOH,
+  T_OTALIK,
+  T_BOLA_OLISH,
+  T_UY_KIRITISH,
+  T_KOCHIRISH,
+  T_MOL_MULK,
+  T_QARZ,
+  T_PUL,
+  T_NUSHA,
+  T_YANGI_HOLAT,
+  T_KECHIKTIRISH,
+  T_APELLATSIYA,
+  T_TAFTISH,
+  T_KASSATSIYA,
 ];
 
 export function getTemplateByCode(code: string): TemplateDef | undefined {
