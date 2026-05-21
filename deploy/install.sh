@@ -63,15 +63,21 @@ sudo -u "${APP_USER}" -H bash -c "
     npx prisma db push --skip-generate
 "
 
-echo "==> [6/6] Install + start systemd unit"
-install -m 0644 deploy/ariza-bot.service /etc/systemd/system/ariza-bot.service
+echo "==> [6/6] Install + start systemd units (bot + watchdog timer)"
+install -m 0644 deploy/ariza-bot.service           /etc/systemd/system/ariza-bot.service
+install -m 0644 deploy/ariza-bot-watchdog.service  /etc/systemd/system/ariza-bot-watchdog.service
+install -m 0644 deploy/ariza-bot-watchdog.timer    /etc/systemd/system/ariza-bot-watchdog.timer
+chmod +x "${APP_DIR}/deploy/watchdog.sh"
 
 systemctl daemon-reload
 systemctl enable ariza-bot.service
 systemctl restart ariza-bot.service
+systemctl enable --now ariza-bot-watchdog.timer
 
 echo
 echo "Done. Useful commands:"
 echo "  sudo systemctl status ariza-bot"
 echo "  sudo journalctl -u ariza-bot -f"
 echo "  sudo systemctl restart ariza-bot"
+echo "  sudo systemctl list-timers ariza-bot-watchdog.timer"
+echo "  sudo journalctl -u ariza-bot-watchdog -n 20"

@@ -1,0 +1,9 @@
+[Unit]
+Description=Ariza-bot watchdog (health check + auto-restart + Telegram alert)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /var/www/ariza/deploy/watchdog.sh
+# Watchdog itself must run as root so it can systemctl restart the unit.
+User=root

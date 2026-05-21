@@ -1,0 +1,12 @@
+[Unit]
+Description=Run ariza-bot watchdog every minute
+
+[Timer]
+# First check 30 s after boot, then every minute.
+OnBootSec=30s
+OnUnitActiveSec=1min
+AccuracySec=15s
+Unit=ariza-bot-watchdog.service
+
+[Install]
+WantedBy=timers.target

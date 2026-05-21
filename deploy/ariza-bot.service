@@ -16,10 +16,14 @@ Environment=OUTPUT_DIR=./generated
 
 ExecStart=/usr/bin/node /var/www/ariza/dist/main.js
 
-Restart=on-failure
+# Always restart — on crash, clean exit, OOM kill, anything.
+# StartLimitBurst=0 disables systemd's "give up after N restarts" behavior:
+# the bot will be revived forever, even if it crashes in a tight loop
+# (e.g. Postgres is down on boot — keep retrying until it comes back).
+Restart=always
 RestartSec=5
-StartLimitIntervalSec=60
-StartLimitBurst=5
+StartLimitIntervalSec=0
+StartLimitBurst=0
 
 StandardOutput=journal
 StandardError=journal
