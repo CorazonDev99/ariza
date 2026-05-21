@@ -1,0 +1,35 @@
+[Unit]
+Description=Ariza Telegram bot (DOCX/PDF generator)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ariza
+Group=ariza
+WorkingDirectory=/var/www/ariza
+EnvironmentFile=/var/www/ariza/.env
+Environment=NODE_ENV=production
+Environment=LIBREOFFICE_BIN=/usr/bin/libreoffice
+Environment=TEMPLATES_DIR=./templates
+Environment=OUTPUT_DIR=./generated
+
+ExecStart=/usr/bin/node /var/www/ariza/dist/main.js
+
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ariza-bot
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/www/ariza/generated /var/www/ariza/data
+
+[Install]
+WantedBy=multi-user.target

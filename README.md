@@ -3,7 +3,7 @@
 Production-ready Telegram bot that walks the user through filling out an Uzbek
 **Ариза** (legal application) template and returns a generated **DOCX** or **PDF**.
 
-- **Stack:** Node.js 20 + TypeScript (strict), Telegraf, Prisma + SQLite,
+- **Stack:** Node.js 20 + TypeScript (strict), Telegraf, Prisma + PostgreSQL,
   docxtemplater + pizzip, LibreOffice (headless) for DOCX→PDF, Zod for validation,
   Pino for logging.
 - **Architecture:** clean, layered — `config → utils → repositories → services
@@ -15,8 +15,10 @@ Production-ready Telegram bot that walks the user through filling out an Uzbek
 
 ```
 .
-├── docker/
-│   └── entrypoint.sh
+├── deploy/
+│   ├── ariza-bot.service           # systemd unit
+│   ├── install.sh                  # one-shot setup on a fresh Ubuntu host
+│   └── update.sh                   # git pull + rebuild + restart
 ├── prisma/
 │   └── schema.prisma
 ├── scripts/
@@ -54,10 +56,7 @@ Production-ready Telegram bot that walks the user through filling out an Uzbek
 │   │   └── logger.ts
 │   └── main.ts                     # entry point
 ├── templates/                      # generated DOCX templates live here
-├── data/                           # SQLite DB (mounted volume in Docker)
 ├── generated/                      # rendered DOCX/PDF documents
-├── Dockerfile
-├── docker-compose.yml
 ├── package.json
 ├── tsconfig.json
 ├── .env.example
@@ -91,13 +90,13 @@ npm run bootstrap
 
 `bootstrap` runs the full first-time setup:
 1. `prisma generate`
-2. `prisma db push` — syncs schema to `./data/raport.db` (no migrations folder required)
+2. `prisma db push` — syncs schema to the Postgres DB configured via `DATABASE_URL`
 3. `template:sample` — programmatically writes `templates/ariza-alimony.docx`
 4. `template:seed` — inserts the template into the DB
 
 > If you want to use migration history instead, run `npm run prisma:migrate` to create
 > `prisma/migrations/`, commit it, and switch `db push` for `migrate deploy` in
-> `docker/entrypoint.sh`.
+> `deploy/install.sh` / `deploy/update.sh`.
 
 ### 4. Run
 ```bash
@@ -110,21 +109,43 @@ Open the bot in Telegram → `/start`.
 
 ---
 
-## Quickstart (Docker)
+## Production deploy (native, Ubuntu)
+
+The bot runs **directly on the host** under systemd — no Docker. LibreOffice,
+Node.js and PostgreSQL all live on the host. This avoids shipping ~1.5 GB of
+LibreOffice in a container image.
+
+First-time setup on a fresh server:
 
 ```bash
-cp .env.example .env   # set BOT_TOKEN
-docker compose up -d --build
-docker compose logs -f bot
+sudo mkdir -p /var/www && cd /var/www
+sudo git clone <repo-url> ariza
+cd /var/www/ariza
+sudo cp .env.example .env
+sudo nano .env                       # fill BOT_TOKEN, DATABASE_URL, etc.
+sudo bash deploy/install.sh
 ```
 
-The container installs LibreOffice automatically, runs migrations and template
-seeding on first boot via `docker/entrypoint.sh`, then launches the bot.
+`deploy/install.sh` is idempotent and:
 
-Mounted volumes:
-- `./data` → `/app/data` (SQLite DB)
-- `./templates` → `/app/templates` (DOCX templates)
-- `./generated` → `/app/generated` (rendered documents)
+- installs LibreOffice + Cyrillic fonts + Node 20 via apt
+- creates a system user `ariza`
+- `npm ci`, `prisma generate`, `npm run build`, `prisma db push`
+- installs and starts the `ariza-bot.service` systemd unit
+
+Update workflow after `git push` from dev:
+
+```bash
+sudo bash /var/www/ariza/deploy/update.sh
+```
+
+Service management:
+
+```bash
+sudo systemctl status ariza-bot
+sudo journalctl -u ariza-bot -f
+sudo systemctl restart ariza-bot
+```
 
 ---
 
@@ -337,4 +358,4 @@ from the freshly produced DOCX.
 - Repository layer abstracts Prisma so services stay framework-agnostic.
 - Draft FSM state persisted after each input → resilient to restarts.
 - Graceful shutdown on `SIGINT`/`SIGTERM`.
-- Docker image uses Tini as PID 1 + apt-installed LibreOffice & Cyrillic fonts.
+- Runs natively under systemd (`deploy/ariza-bot.service`); LibreOffice + Cyrillic fonts installed on the host via `deploy/install.sh`.
