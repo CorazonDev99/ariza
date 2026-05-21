@@ -4,13 +4,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ariza-bot
-    # `unless-stopped` — Docker restarts the container on ANY exit
-    # (crash, OOM, uncaught error, even exit 0) AND on host reboot
-    # after `systemctl enable docker`. The only thing that keeps it
-    # down is an explicit `docker compose stop` / `down` by the
-    # operator. Combined with the healthcheck below this gives a
-    # self-healing bot that survives DB drops, network hiccups and
-    # rare deadlocks in the long-polling loop.
     restart: unless-stopped
     env_file:
       - .env
@@ -19,23 +12,6 @@ services:
       LIBREOFFICE_BIN: libreoffice
       TEMPLATES_DIR: "./templates"
       OUTPUT_DIR: "./generated"
-    # Health probe: hits the bot's own /health endpoint via the HTTP
-    # server it runs for payment webhooks. If the process is stuck
-    # (long-polling hang, event loop blocked, native lib deadlock)
-    # the HTTP server stops responding too, the check fails 3 times
-    # in a row, Docker marks the container unhealthy and the restart
-    # policy kicks it. `node` is already in the image — no need for
-    # curl/wget.
-    healthcheck:
-      test:
-        - "CMD"
-        - "node"
-        - "-e"
-        - "require('http').get('http://localhost:3000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
     # Share the host's network namespace so the bot can connect to
     # the PostgreSQL instance running NATIVELY on the Ubuntu server
     # at 127.0.0.1:5432.
