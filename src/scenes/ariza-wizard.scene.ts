@@ -47,6 +47,7 @@ import {
 import { explainError, validate } from '../validators';
 import { logger } from '../utils/logger';
 import { config } from '../config';
+import { openAdminPanel, openBroadcast } from '../bot/admin';
 
 export const ARIZA_WIZARD_ID = 'ariza-wizard';
 
@@ -104,6 +105,17 @@ export function buildArizaWizardScene(
   scene.command('cancel', async (ctx) => {
     await actions.cancel(ctx, actionDeps);
     await ctx.scene.leave();
+  });
+  // Admin commands also need to escape the wizard — without these, /admin
+  // and /broadcast typed mid-wizard get swallowed by scene.on('text') and
+  // show "👆 Use buttons" instead of opening the panel.
+  scene.command('admin', async (ctx) => {
+    await ctx.scene.leave();
+    await openAdminPanel(ctx);
+  });
+  scene.command('broadcast', async (ctx) => {
+    await ctx.scene.leave();
+    await openBroadcast(ctx);
   });
 
   const getState = (ctx: BotContext): WizardState | undefined =>

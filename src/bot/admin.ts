@@ -156,26 +156,7 @@ export function registerAdmin(
   bot: Telegraf<BotContext>,
   deps: AdminDeps,
 ): void {
-  // Gate every admin entry on the allowlist.
-  const gate = async (
-    ctx: BotContext,
-    handler: () => Promise<unknown> | unknown,
-  ): Promise<void> => {
-    if (!isAdmin(ctx)) {
-      await ctx.reply(t(ctx.locale, 'admin.denied'));
-      return;
-    }
-    await handler();
-  };
-
-  bot.command('admin', async (ctx) => {
-    await gate(ctx, async () => {
-      await ctx.reply(t(ctx.locale, 'admin.menu'), {
-        parse_mode: 'HTML',
-        ...adminRootKb(ctx.locale),
-      });
-    });
-  });
+  bot.command('admin', (ctx) => openAdminPanel(ctx));
 
   bot.action('admin:menu', async (ctx) => {
     if (!isAdmin(ctx)) {
@@ -277,7 +258,35 @@ export function registerAdmin(
   });
 
   // Shortcut: /broadcast also opens the broadcast scene.
-  bot.command('broadcast', async (ctx) => {
-    await gate(ctx, () => ctx.scene.enter(BROADCAST_SCENE_ID));
+  bot.command('broadcast', (ctx) => openBroadcast(ctx));
+}
+
+/**
+ * Open the admin root panel. Exported so the wizard scene can mirror
+ * `/admin` mid-flow (scenes intercept text/commands by default, so the
+ * top-level `bot.command('admin', ...)` does not fire when the user is
+ * inside the wizard). Same gate semantics as the top-level handler.
+ */
+export async function openAdminPanel(ctx: BotContext): Promise<void> {
+  if (!isAdmin(ctx)) {
+    await ctx.reply(t(ctx.locale, 'admin.denied'));
+    return;
+  }
+  await ctx.reply(t(ctx.locale, 'admin.menu'), {
+    parse_mode: 'HTML',
+    ...adminRootKb(ctx.locale),
   });
+}
+
+/**
+ * Enter the broadcast scene. Mirror of `/broadcast` so the wizard scene
+ * can route the user out of the wizard and into broadcast without losing
+ * the admin gate.
+ */
+export async function openBroadcast(ctx: BotContext): Promise<void> {
+  if (!isAdmin(ctx)) {
+    await ctx.reply(t(ctx.locale, 'admin.denied'));
+    return;
+  }
+  await ctx.scene.enter(BROADCAST_SCENE_ID);
 }
