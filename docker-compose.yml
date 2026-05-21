@@ -1,21 +1,50 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ariza-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ariza}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-ariza}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # No host port exposure — only the bot container reaches it via the
+    # internal Docker network. Uncomment if you need psql / pgAdmin from
+    # outside the host.
+    # ports:
+    #   - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ariza} -d ${POSTGRES_DB:-ariza}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   bot:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: raport-bot
+    container_name: ariza-bot
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     env_file:
       - .env
     environment:
       NODE_ENV: production
       LIBREOFFICE_BIN: libreoffice
-      DATABASE_URL: "file:./data/raport.db"
+      # Override DATABASE_URL from .env to point at the postgres service
+      # (the container DNS name) instead of localhost. Connection inside
+      # the Docker network — not exposed to the host.
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-ariza}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ariza}?schema=public"
       TEMPLATES_DIR: "./templates"
       OUTPUT_DIR: "./generated"
     ports:
-      - "3000:3000" # Click webhook
+      - "${PAYMENT_WEBHOOK_PORT:-3000}:3000" # Click/Payme webhook + QR /download
     volumes:
-      - ./data:/app/data
       - ./generated:/app/generated
       - ./templates:/app/templates
+
+volumes:
+  postgres_data:
