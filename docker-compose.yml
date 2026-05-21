@@ -12,14 +12,13 @@ services:
       LIBREOFFICE_BIN: libreoffice
       TEMPLATES_DIR: "./templates"
       OUTPUT_DIR: "./generated"
-    # Map `host.docker.internal` to the Docker host's gateway so the bot
-    # container can reach the PostgreSQL instance running NATIVELY on the
-    # Ubuntu server (not in a container). DATABASE_URL in .env must use
-    # this hostname — see .env.example.
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "${PAYMENT_WEBHOOK_PORT:-3000}:3000" # Click/Payme webhook + QR /download
+    # Share the host's network namespace so the bot can connect to
+    # the PostgreSQL instance running NATIVELY on the Ubuntu server
+    # at 127.0.0.1:5432 — no need to expose Postgres on the Docker
+    # bridge or edit pg_hba.conf. The webhook port (3000) is bound
+    # directly to the host as well, so the `ports:` mapping is no
+    # longer needed (network_mode: host ignores it).
+    network_mode: host
     volumes:
       - ./generated:/app/generated
       - ./templates:/app/templates
