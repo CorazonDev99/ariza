@@ -40,6 +40,22 @@ function D(
   };
 }
 
+/** Same shape as D(), but for criminal-court entries. */
+function Dj(
+  code: string,
+  regionCode: string,
+  cy: string,
+  la: string,
+  ru: string,
+): DistrictCourtDef {
+  return {
+    code,
+    regionCode,
+    courtTypeCode: 'jinoyat',
+    name: L(cy, la, ru),
+  };
+}
+
 export const DISTRICT_COURTS: DistrictCourtDef[] = [
   // ===== Андижон вилояти =====
   D('fuq-andijan-vsudi', 'andijan',
@@ -408,6 +424,25 @@ export const DISTRICT_COURTS: DistrictCourtDef[] = [
     'Шовот туманлараро фуқаролик суди',
     'Shovot tumanlararo fuqarolik sudi',
     'Шаватский межрайонный гражданский суд'),
+
+  /* =====================================================================
+   * JINOYAT (criminal) courts. First batch covers Jizzakh region —
+   * the only one with criminal-court templates so far. Other regions
+   * will be added as templates for them are written.
+   * ===================================================================== */
+
+  // ===== Жиззах вилояти — Jinoyat =====
+  // Short names — the per-template DOCX builder prefixes them with
+  // "Жиноят ишлари бўйича …нинг раиси …га" so the final court name
+  // composes naturally in the document header.
+  Dj('jin-jizzakh-shahar', 'jizzakh',
+    'Жиззах шаҳар суди',
+    'Jizzax shahar sudi',
+    'Джизакский городской суд'),
+  Dj('jin-jizzakh-vsudi', 'jizzakh',
+    'Жиззах вилоят суди',
+    'Jizzax viloyat sudi',
+    'Джизакский областной суд'),
 ];
 
 export function getDistrictCourtByCode(code: string): DistrictCourtDef | undefined {

@@ -10,8 +10,8 @@ import type { TranscriptionService } from '../services/transcription.service';
 import type { BotContext } from '../bot/context';
 import { actions, type ActionDeps } from '../bot/actions';
 import {
-  TEMPLATES,
   getTemplateByCode,
+  getTemplatesForCourtType,
 } from '../templates/registry';
 import { REGIONS, getRegionByCode } from '../templates/regions';
 import { COURT_TYPES, getCourtTypeByCode } from '../templates/court-types';
@@ -328,19 +328,25 @@ export function buildArizaWizardScene(
         await selectTemplate(ctx, pending, false);
         return;
       }
-      // No template chosen yet — show the template picker.
+      // No template chosen yet — show the template picker filtered by
+      // the pre-picked court type.
       await ctx.reply(t(ctx.locale, 'tmpl.pick'), {
         parse_mode: 'HTML',
-        ...templatesInline(ctx.locale, TEMPLATES),
+        ...templatesInline(
+          ctx.locale,
+          getTemplatesForCourtType(prePicked.courtTypeCode),
+        ),
       });
       return;
     }
 
     if (pending) {
       // Deep-link path: the template is fixed, but the user still needs
-      // to pick a region + district. All current templates are Fuqarolik,
-      // so pre-select that court type and jump to the region picker.
-      ctx.scene.session.picker.courtTypeCode = 'fuqarolik';
+      // to pick a region + district. Derive the court type from the
+      // template itself (defaulting to 'fuqarolik' for older entries).
+      const pendingDef = getTemplateByCode(pending);
+      ctx.scene.session.picker.courtTypeCode =
+        pendingDef?.courtTypeCode ?? 'fuqarolik';
       await ctx.reply(t(ctx.locale, 'region.pick'), {
         parse_mode: 'HTML',
         ...regionsInline(ctx.locale, REGIONS),
@@ -441,7 +447,10 @@ export function buildArizaWizardScene(
 
     await ctx.reply(t(ctx.locale, 'tmpl.pick'), {
       parse_mode: 'HTML',
-      ...templatesInline(ctx.locale, TEMPLATES),
+      ...templatesInline(
+        ctx.locale,
+        getTemplatesForCourtType(picker.courtTypeCode ?? 'fuqarolik'),
+      ),
     });
   });
 

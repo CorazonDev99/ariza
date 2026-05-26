@@ -1718,6 +1718,47 @@ const T19_RU = buildAppealRU('надзорная', 'Н А Д З О Р Н А Я  
 const T20_CY = buildAppealCY('кассация', 'К А С С А Ц И Я   Ш И К О Я Т И');
 const T20_RU = buildAppealRU('кассационная', 'К А С С А Ц И О Н Н А Я   Ж А Л О Б А');
 
+/* ============================================================
+ * JINOYAT (criminal court) header helpers. Address line is composed
+ * from `{{district_court_name}}` (short name like "Жиззах шаҳар суди")
+ * + the wizard-collected `{{chairman_name}}`. Final line reads e.g.:
+ *   "Жиноят ишлари бўйича Жиззах шаҳар судининг раиси С.Расуловга"
+ * ============================================================ */
+
+const jinHeaderCY = (): BlockSpec[] => [
+  { text: [{ text: 'Жиноят ишлари бўйича {{district_court_name}}нинг', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'раиси {{chairman_name}}га', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const jinHeaderRU = (): BlockSpec[] => [
+  { text: [{ text: 'Председателю {{district_court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'по уголовным делам {{chairman_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+/* ============================================================
+ * Template — Жиноят: суд ҳукми нусхаси
+ *   ariza-jinoyat-nuskha (T_JIN_NUSHA)
+ * ============================================================ */
+const T_JIN_NUSHA_CY: BlockSpec[] = [
+  ...jinHeaderCY(),
+  ...partyBlockCY('Аризачи', 'plaintiff'),
+  ...titleBlock('А Р И З А', 'суд ҳукми ва иш ҳужжатлари нусхаси ҳақида'),
+  body('Ушбу орқали Сиздан, жиноят ишлари бўйича {{district_court_name}}да {{case_day}}.{{case_month}}.{{case_year}} йилда кўрилган, {{defendant_fio}}га оид {{case_type_label}} бўйича суд ҳукмидан ҳамда бошқа иш ҳужжатларидан нусха беришингизни сўрайман.'),
+  { text: '' },
+  ...signatureBlock('Фуқаро:'),
+];
+
+const T_JIN_NUSHA_RU: BlockSpec[] = [
+  ...jinHeaderRU(),
+  ...partyBlockRU('Заявитель', 'plaintiff'),
+  ...titleBlock('З А Я В Л Е Н И Е', 'о выдаче копии приговора и материалов дела'),
+  body('Настоящим прошу Вас выдать копию приговора и иных материалов дела по {{case_type_label}}, рассмотренному в {{district_court_name}} {{case_day}}.{{case_month}}.{{case_year}} в отношении {{defendant_fio}}.'),
+  { text: '' },
+  ...signatureBlockRU('Гражданин:'),
+];
+
 /* ============================================================ */
 
 // QR code is no longer embedded in the document — it's sent as a
@@ -1794,6 +1835,11 @@ const BUILDERS: Record<string, Record<Locale, BlockSpec[]>> = {
     uz_cyrillic: T14_CY,
     uz_latin: deriveLatin(T14_CY),
     ru: T14_RU,
+  },
+  'ariza-jinoyat-nuskha': {
+    uz_cyrillic: T_JIN_NUSHA_CY,
+    uz_latin: deriveLatin(T_JIN_NUSHA_CY),
+    ru: T_JIN_NUSHA_RU,
   },
   'ariza-hujjatdan-nuskha': {
     uz_cyrillic: T15_CY,

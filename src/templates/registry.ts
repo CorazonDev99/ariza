@@ -1120,6 +1120,91 @@ const T_NUSHA: TemplateDef = {
 };
 
 /* ============================================================
+ * 14b. JINOYAT — нусха олиш (criminal court: request verdict copy)
+ * ============================================================ */
+const T_JIN_NUSHA: TemplateDef = {
+  code: 'ariza-jinoyat-nuskha',
+  category: 'ariza',
+  courtTypeCode: 'jinoyat',
+  title: L(
+    '📑 Суд ҳукми нусхаси',
+    '📑 Sud hukmi nusxasi',
+    '📑 Копия приговора',
+  ),
+  subtitle: L(
+    'жиноят/маъмурий иш бўйича',
+    "jinoyat/ma'muriy ish bo‘yicha",
+    'по уголовному/административному делу',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `📑 <b>Суд ҳукми ва иш ҳужжатларидан нусхалар олиш</b>\n\n📋 <b>Қачон бериш:</b>\nСиз кўрилган жиноят ёки маъмурий ҳуқуқбузарлик иши бўйича жабрланувчи, гувоҳ, судланувчи ёки бошқа қатнашчи бўлгансиз — суд ҳукми ёки бошқа иш ҳужжатларининг нусхасини олиш керак.\n\n🏛 <b>Қаерга:</b>\nИш кўрилган жиноят суди раисига.\n\n📎 <b>Илова қилинадиган ҳужжатлар:</b>\n• Паспорт нусхаси\n• Иш бўйича Сизнинг иштирокингизни тасдиқловчи ҳужжат (бўлса)\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → суд раиси Ф.И.Ш. → иш тури (жиноят ёки маъмурий) → иш кўрилган сана → судланувчи Ф.И.Ш.`,
+    `📑 <b>Sud hukmi va ish hujjatlaridan nusxalar olish</b>\n\n📋 <b>Qachon berish:</b>\nSiz ko‘rilgan jinoyat yoki ma'muriy huquqbuzarlik ishi bo‘yicha jabrlanuvchi, guvoh, sudlanuvchi yoki boshqa qatnashchi bo‘lgansiz — sud hukmi yoki boshqa ish hujjatlarining nusxasini olish kerak.\n\n🏛 <b>Qayerga:</b>\nIsh ko‘rilgan jinoyat sudi raisiga.\n\n📎 <b>Ilova qilinadigan hujjatlar:</b>\n• Pasport nusxasi\n• Ish bo‘yicha Sizning ishtirokingizni tasdiqlovchi hujjat (bo‘lsa)\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → sud raisi F.I.SH. → ish turi (jinoyat yoki ma'muriy) → ish ko‘rilgan sana → sudlanuvchi F.I.SH.`,
+    `📑 <b>Получение копий приговора и материалов дела</b>\n\n📋 <b>Когда подавать:</b>\nВы были потерпевшим, свидетелем, подсудимым или иным участником по рассмотренному уголовному либо административному делу — нужны копии приговора суда или иных материалов дела.\n\n🏛 <b>Куда:</b>\nПредседателю уголовного суда, рассмотревшего дело.\n\n📎 <b>Документы:</b>\n• Копия паспорта\n• Документ, подтверждающий ваше участие в деле (если есть)\n\n📝 <b>Бот спросит:</b>\nваши данные → ФИО председателя суда → тип дела (уголовное или административное) → дата рассмотрения дела → ФИО подсудимого.`,
+  ),
+  fileNameBase: 'ariza-jinoyat-nuskha',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.text(
+      'chairman_name',
+      L(
+        '👨‍⚖️ Суд раиси Ф.И.Ш.',
+        '👨‍⚖️ Sud raisi F.I.SH.',
+        '👨‍⚖️ Ф.И.О. председателя суда',
+      ),
+      L(
+        'Масалан: С.Расулов',
+        'Masalan: S.Rasulov',
+        'Например: С.Расулов',
+      ),
+    ),
+    F.choice(
+      'case_type',
+      L(
+        '⚖️ Иш тури',
+        '⚖️ Ish turi',
+        '⚖️ Тип дела',
+      ),
+      [
+        {
+          value: 'jinoyat',
+          label: L(
+            'Жиноят иши',
+            'Jinoyat ishi',
+            'Уголовное дело',
+          ),
+        },
+        {
+          value: 'mamuriy',
+          label: L(
+            'Маъмурий ҳуқуқбузарлик',
+            "Ma'muriy huquqbuzarlik",
+            'Административное правонарушение',
+          ),
+        },
+      ],
+    ),
+    F.splitDate(
+      'case_date',
+      L(
+        '📅 Иш кўрилган сана',
+        "📅 Ish ko‘rilgan sana",
+        '📅 Дата рассмотрения дела',
+      ),
+      { yearKey: 'case_year', monthKey: 'case_month', dayKey: 'case_day' },
+    ),
+    F.fio(
+      'defendant_fio',
+      L(
+        '👤 Судланувчи Ф.И.Ш.',
+        "👤 Sudlanuvchi F.I.SH.",
+        '👤 Ф.И.О. подсудимого',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
  * 15. Янги очилган ҳолат бўйича бекор қилиш (annul - new circumstances)
  * ============================================================ */
 const T_YANGI_HOLAT: TemplateDef = {
@@ -1360,6 +1445,7 @@ export const TEMPLATES: TemplateDef[] = [
   T_QARZ,
   T_PUL,
   T_NUSHA,
+  T_JIN_NUSHA,
   T_YANGI_HOLAT,
   T_KECHIKTIRISH,
   T_APELLATSIYA,
@@ -1369,4 +1455,17 @@ export const TEMPLATES: TemplateDef[] = [
 
 export function getTemplateByCode(code: string): TemplateDef | undefined {
   return TEMPLATES.find((t) => t.code === code);
+}
+
+/**
+ * Templates whose `courtTypeCode` matches the given code. A missing
+ * `courtTypeCode` on a template is treated as 'fuqarolik' — historical
+ * templates were all civil-court ones before this field existed.
+ */
+export function getTemplatesForCourtType(
+  courtTypeCode: string,
+): TemplateDef[] {
+  return TEMPLATES.filter(
+    (t) => (t.courtTypeCode ?? 'fuqarolik') === courtTypeCode,
+  );
 }

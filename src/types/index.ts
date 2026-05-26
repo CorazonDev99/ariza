@@ -72,6 +72,12 @@ export interface CategoryDef {
 export interface TemplateDef {
   code: string;
   category: string;
+  /** Which court type this template targets — matches a code from
+   *  `COURT_TYPES` in `templates/court-types.ts`. The template picker
+   *  shows only templates whose `courtTypeCode` matches the type the
+   *  user selected. Defaults to 'fuqarolik' when omitted for backwards
+   *  compatibility — all historical templates target the civil court. */
+  courtTypeCode?: string;
   title: Record<Locale, string>;
   subtitle: Record<Locale, string>;
   description: Record<Locale, string>;

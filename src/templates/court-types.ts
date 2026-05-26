@@ -25,7 +25,7 @@ export const COURT_TYPES: CourtTypeDef[] = [
       '⚖️ Jinoyat ishlari boʻyicha',
       '⚖️ По уголовным делам',
     ),
-    active: false,
+    active: true,
   },
   {
     code: 'mamuriy',

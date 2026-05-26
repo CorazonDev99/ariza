@@ -124,6 +124,29 @@ function buildChildrenBlock(
  * a static blob, so any branching ("if plaintiff is an org…") has to be
  * resolved into plain strings before docxtemplater renders the file.
  */
+/**
+ * Localized noun phrase for the `case_type` choice in jinoyat templates,
+ * inflected so it fits the body sentence "…рассматривалось <X> дело".
+ */
+function jinoyatCaseTypeLabel(
+  value: 'jinoyat' | 'mamuriy',
+  locale: Locale,
+): string {
+  if (locale === 'ru') {
+    return value === 'jinoyat'
+      ? 'уголовное дело'
+      : 'дело об административном правонарушении';
+  }
+  if (locale === 'uz_latin') {
+    return value === 'jinoyat'
+      ? 'jinoyat ishi'
+      : "ma'muriy huquqbuzarlik to‘g‘risidagi ish";
+  }
+  return value === 'jinoyat'
+    ? 'жиноят иши'
+    : 'маъмурий ҳуқуқбузарлик тўғрисидаги иш';
+}
+
 function enrichIltimosnomaData(
   data: Record<string, string>,
   values: Record<string, string>,
@@ -272,6 +295,14 @@ export class DocumentService {
     // these once here so the .docx itself stays static.
     if (input.templateCode === 'iltimosnoma-ishtiroksiz') {
       enrichIltimosnomaData(data, input.values, input.locale);
+    }
+
+    // Jinoyat (criminal-court) templates: translate the `case_type`
+    // choice ('jinoyat' / 'mamuriy') into a localized noun phrase so
+    // the body sentence reads naturally regardless of selection.
+    const caseType = input.values.case_type;
+    if (caseType === 'jinoyat' || caseType === 'mamuriy') {
+      data.case_type_label = jinoyatCaseTypeLabel(caseType, input.locale);
     }
 
     // Build the single combined `children_block` paragraph used by the
