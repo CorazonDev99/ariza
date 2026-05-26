@@ -2,29 +2,35 @@
 # Pull latest code, rebuild, run migrations, restart service.
 #
 # Usage (on the server):
-#   cd /var/www/ariza
-#   sudo bash deploy/update.sh
+#   sudo bash /var/www/ariza/deploy/update.sh
 #
-# Why two users:
-#   - Git operations run as root (the user invoking sudo) so we don't
-#     depend on the `ariza` system user having SSH keys / known_hosts
-#     configured for github.com. The remote should be HTTPS — see
-#     `git remote set-url origin https://github.com/...` if you cloned
-#     with SSH and want this script to work non-interactively.
-#   - Build + runtime ownership stay with `ariza` so the systemd service
-#     can read files without root.
+# Self-healing — handles two common gotchas automatically:
+#   1. Repo files owned by `ariza` while we run as root → `safe.directory`
+#      exception added on first run.
+#   2. Remote configured as SSH (`git@github.com:…`) → switched to HTTPS
+#      so the script doesn't depend on the `ariza` user having SSH keys.
 
 set -euo pipefail
 
 APP_DIR="/var/www/ariza"
 APP_USER="ariza"
+REPO_HTTPS_URL="https://github.com/CorazonDev99/ariza.git"
 
 cd "${APP_DIR}"
 
-# Git refuses to touch a repo it doesn't think it owns. Add an exception
-# for root once — idempotent — so `git pull` below works after the
-# `chown ariza:ariza` from a previous run.
+# Trust the repo for the user running this script (root, via sudo).
 git config --global --add safe.directory "${APP_DIR}" >/dev/null
+
+# If origin still points at SSH, rewrite to HTTPS. Pulling over HTTPS
+# only needs network access — no SSH key on the box, no fiddling with
+# known_hosts for the `ariza` system user.
+current_url="$(git remote get-url origin 2>/dev/null || echo "")"
+case "${current_url}" in
+    git@github.com:*|ssh://git@github.com/*)
+        echo "==> Rewriting origin from SSH to HTTPS"
+        git remote set-url origin "${REPO_HTTPS_URL}"
+        ;;
+esac
 
 echo "==> git pull (as root)"
 git pull --ff-only
