@@ -1707,6 +1707,208 @@ const T_JIN_3243: TemplateDef = {
 };
 
 /* ============================================================
+ * 14h. MAMURIY — мансабдор шахс хатти-ҳаракати қонунга хилоф
+ *      (declaring official's act illegal + imposing duty)
+ * ============================================================ */
+const T_MAM_MANSABDOR: TemplateDef = {
+  code: 'ariza-mamuriy-mansabdor',
+  category: 'ariza',
+  courtTypeCode: 'mamuriy',
+  title: L(
+    '⚖️ Мансабдор шахс ҳаракати',
+    "⚖️ Mansabdor shaxs harakati",
+    '⚖️ Действия должностного лица',
+  ),
+  subtitle: L(
+    'қонунга хилоф деб топиб, мажбурият юклаш',
+    "qonunga xilof deb topib, majburiyat yuklash",
+    'признать незаконными + наложить обязанность',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `⚖️ <b>Мансабдор шахс ҳаракати/ҳаракатсизлиги қонунга хилоф деб топиш</b>\n\n📋 <b>Қачон бериш:</b>\nДавлат идораси, ваколатли орган ёки уларнинг мансабдор шахси Сизнинг ҳуқуқларингизни бузувчи ҳаракат/ҳаракатсизликни амалга оширган бўлса. Бот суддан буларни қонунга хилоф деб топишни ва жавобгарга маълум бир мажбуриятни (масалан, ҳужжат бериш, рад қарорини бекор қилиш) юклашни сўрашга ёрдам беради.\n\n📜 <b>Қонуний асос:</b>\nМаъмурий суд ишларини юритиш тўғрисидаги кодексининг 27-моддаси.\n\n🏛 <b>Қаерга:</b>\nТуманлараро маъмурий суди раисига.\n\n📎 <b>Илова қилинадиган ҳужжатлар (МСИЮКнинг 130-моддаси):</b>\n• давлат божи квитанцияси (МСИЮКнинг 10-моддаси бўйича айрим тоифалар озод қилинади)\n• почта харажати квитанцияси\n• ариза ва ҳужжатлар нусхалари жавобгарга/учинчи шахсларга юборилганлиги\n• талабларга асос бўлган ҳолатлар бўйича ҳужжатлар\n• ваколатнома (вакил орқали юборилса)\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → жавобгар (ташкилот) номи ва манзили → нима юз берди (далиллар ва қонуний асослар) → ҳаракат/ҳаракатсизлик қайси мансабдор томонидан → суддан қайси мажбуриятни юклашни сўрайсиз → илова рўйхати.`,
+    `⚖️ <b>Mansabdor shaxs harakati/harakatsizligini qonunga xilof deb topish</b>\n\n📋 <b>Qachon berish:</b>\nDavlat idorasi yoki vakolatli organ Sizning huquqlaringizni buzuvchi harakat/harakatsizlik amalga oshirgan bo‘lsa. Bot suddan buni qonunga xilof deb topishni va javobgarga ma'lum bir majburiyatni yuklashni so‘rashga yordam beradi.\n\n📜 <b>Qonuniy asos:</b>\nMa'muriy sud ishlarini yuritish to‘g‘risidagi kodeksning 27-moddasi.\n\n🏛 <b>Qayerga:</b>\nTumanlararo ma'muriy sudi raisiga.\n\n📎 <b>Ilova qilinadigan hujjatlar (MSIYUKning 130-moddasi):</b>\n• davlat boji kvitansiyasi\n• pochta xarajati kvitansiyasi\n• ariza nusxalari javobgarga/uchinchi shaxslarga yuborilgani\n• talablarga asos bo‘lgan hujjatlar\n• vakolatnoma (vakil orqali)\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → javobgar (tashkilot) nomi va manzili → nima yuz berdi (dalillar va qonuniy asoslar) → qaysi mansabdor harakati → suddan qaysi majburiyatni yuklashni so‘raysiz → ilova ro‘yxati.`,
+    `⚖️ <b>Признание действий/бездействия должностного лица незаконными</b>\n\n📋 <b>Когда подавать:</b>\nЕсли государственный орган либо его должностное лицо совершило действие или допустило бездействие, нарушающее Ваши права. Бот поможет составить заявление о признании этих действий незаконными и о возложении на ответчика конкретной обязанности (выдать документ, отменить отказ и т. п.).\n\n📜 <b>Правовое основание:</b>\nСтатья 27 Кодекса об административном судопроизводстве (МСИЮК).\n\n🏛 <b>Куда:</b>\nПредседателю межрайонного административного суда.\n\n📎 <b>Документы для приложения (ст. 130 МСИЮК):</b>\n• квитанция о госпошлине (ст. 10 МСИЮК освобождает от пошлины ряд категорий)\n• квитанция о почтовых расходах\n• копии заявления и документов, направленных ответчику и третьим лицам\n• документы, подтверждающие основания требований\n• доверенность (если подаётся через представителя)\n\n📝 <b>Бот спросит:</b>\nваши данные → название и адрес организации-ответчика → что произошло (факты + правовые основания) → какое именно действие/бездействие должностного лица → какую обязанность просите наложить → перечень приложений.`,
+  ),
+  fileNameBase: 'ariza-mamuriy-mansabdor',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.text(
+      'defendant_org_name',
+      L(
+        '🏛 Жавобгар (ташкилот) номи',
+        '🏛 Javobgar (tashkilot) nomi',
+        '🏛 Название организации-ответчика',
+      ),
+      L(
+        'Масалан: Жиззах вилояти Кадастр агентлиги',
+        "Masalan: Jizzax viloyati Kadastr agentligi",
+        'Например: Кадастровое агентство Джизакской области',
+      ),
+    ),
+    F.address(
+      'defendant_address',
+      L(
+        '🏠 Жавобгар почта манзили',
+        "🏠 Javobgar pochta manzili",
+        '🏠 Почтовый адрес ответчика',
+      ),
+    ),
+    NARRATIVE(
+      'complaint_facts',
+      L(
+        '📝 Ҳолатлар, далиллар ва қонуний асос',
+        "📝 Holatlar, dalillar va qonuniy asos",
+        '📝 Обстоятельства, доказательства, правовые основания',
+      ),
+      L(
+        'Нима бўлди, қандай ҳолатлар бор, қайси қонуний нормалар бузилди.',
+        "Nima bo‘ldi, qanday holatlar bor, qaysi qonuniy normalar buzildi.",
+        'Что произошло, какие обстоятельства, какие нормы права нарушены.',
+      ),
+    ),
+    F.text(
+      'official_action',
+      L(
+        '🏛 Қайси ҳаракат/ҳаракатсизлик қонунга хилоф',
+        "🏛 Qaysi harakat/harakatsizlik qonunga xilof",
+        '🏛 Какое действие/бездействие незаконно',
+      ),
+      L(
+        'Масалан: ариза рад этилди, ҳужжат берилмади',
+        "Masalan: ariza rad etildi, hujjat berilmadi",
+        'Например: отказано в заявлении, не выдан документ',
+      ),
+    ),
+    F.text(
+      'duty_to_impose',
+      L(
+        '✅ Суддан қайси мажбуриятни юклашни сўрайсиз',
+        "✅ Suddan qaysi majburiyatni yuklashni so‘raysiz",
+        '✅ Какую обязанность просите наложить',
+      ),
+      L(
+        'Масалан: ҳужжатни бериш, рад қарорини бекор қилиш',
+        "Masalan: hujjatni berish, rad qarorini bekor qilish",
+        'Например: выдать документ, отменить отказ',
+      ),
+    ),
+    F.text(
+      'attachments_list',
+      L(
+        '📎 Иловалар рўйхати',
+        "📎 Ilovalar ro‘yxati",
+        '📎 Перечень приложений',
+      ),
+      L(
+        'Қисқа рўйхат: 1) ... 2) ... 3) ...',
+        "Qisqa ro‘yxat: 1) ... 2) ... 3) ...",
+        'Краткий перечень: 1) ... 2) ... 3) ...',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14i. MAMURIY — қарорни ҳақиқий эмас деб топиш
+ *      (declaring administrative decision invalid)
+ * ============================================================ */
+const T_MAM_QAROR_BEKOR: TemplateDef = {
+  code: 'ariza-mamuriy-qaror-bekor',
+  category: 'ariza',
+  courtTypeCode: 'mamuriy',
+  title: L(
+    '📋 Қарорни ҳақиқий эмас деб топиш',
+    "📋 Qarorni haqiqiy emas deb topish",
+    '📋 Признать решение недействительным',
+  ),
+  subtitle: L(
+    'давлат органи қарорини бекор қилиш',
+    "davlat organi qarorini bekor qilish",
+    'отмена решения государственного органа',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `📋 <b>Маъмурий органнинг қарорини ҳақиқий эмас деб топиш</b>\n\n📋 <b>Қачон бериш:</b>\nДавлат идораси ёки бошқа маъмурий орган Сизга нисбатан қарор қабул қилган бўлса (масалан, лицензия рад этилиши, рўйхатдан ўтказиш рад этилиши, кадастр қайдида хатолик) ва Сиз бу қарорни ноқонуний деб ҳисоблайсангиз.\n\n📜 <b>Қонуний асос:</b>\nМСИЮКнинг 27-моддаси.\n\n🏛 <b>Қаерга:</b>\nТуманлараро маъмурий суди раисига.\n\n📎 <b>Илова қилинадиган ҳужжатлар:</b>\n• давлат божи квитанцияси (МСИЮК 10-модда — айрим тоифалар озод)\n• почта харажати квитанцияси\n• ариза нусхалари жавобгарга юборилгани\n• бекор қилишни сўраётган қарор нусхаси\n• қарорнинг қонунга хилофлигини тасдиқловчи бошқа ҳужжатлар\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → жавобгар (қарор чиқарган орган) → қарор санаси ва рақами → ҳолатлар ва қонуний асослар → илова рўйхати.`,
+    `📋 <b>Ma'muriy organ qarorini haqiqiy emas deb topish</b>\n\n📋 <b>Qachon berish:</b>\nDavlat idorasi yoki boshqa ma'muriy organ Sizga nisbatan qaror qabul qilgan bo‘lsa va Siz uni noqonuniy deb hisoblasangiz.\n\n📜 <b>Qonuniy asos:</b>\nMSIYUKning 27-moddasi.\n\n🏛 <b>Qayerga:</b>\nTumanlararo ma'muriy sudi raisiga.\n\n📎 <b>Ilova qilinadigan hujjatlar:</b>\n• davlat boji kvitansiyasi\n• pochta xarajati kvitansiyasi\n• ariza nusxalari javobgarga yuborilgani\n• bekor qilishni so‘ralayotgan qaror nusxasi\n• qaror noqonuniyligini tasdiqlovchi boshqa hujjatlar\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → javobgar (qaror chiqargan organ) → qaror sanasi va raqami → holatlar va qonuniy asoslar → ilova ro‘yxati.`,
+    `📋 <b>Признание решения административного органа недействительным</b>\n\n📋 <b>Когда подавать:</b>\nГосударственный орган принял в отношении Вас решение (отказ в лицензии, отказ в регистрации, ошибочная кадастровая запись и т. п.), а Вы считаете это решение незаконным.\n\n📜 <b>Правовое основание:</b>\nСтатья 27 МСИЮК.\n\n🏛 <b>Куда:</b>\nПредседателю межрайонного административного суда.\n\n📎 <b>Документы для приложения:</b>\n• квитанция о госпошлине (ст. 10 МСИЮК — ряд категорий освобождены)\n• квитанция о почтовых расходах\n• копии заявления, направленные ответчику\n• копия оспариваемого решения\n• иные документы, подтверждающие незаконность решения\n\n📝 <b>Бот спросит:</b>\nваши данные → ответчик (вынесший решение орган) → дата и номер решения → обстоятельства и правовые основания → перечень приложений.`,
+  ),
+  fileNameBase: 'ariza-mamuriy-qaror-bekor',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.text(
+      'defendant_org_name',
+      L(
+        '🏛 Жавобгар (ташкилот) номи',
+        '🏛 Javobgar (tashkilot) nomi',
+        '🏛 Название организации-ответчика',
+      ),
+      L(
+        'Масалан: Жиззах вилояти Кадастр агентлиги',
+        "Masalan: Jizzax viloyati Kadastr agentligi",
+        'Например: Кадастровое агентство Джизакской области',
+      ),
+    ),
+    F.address(
+      'defendant_address',
+      L(
+        '🏠 Жавобгар почта манзили',
+        "🏠 Javobgar pochta manzili",
+        '🏠 Почтовый адрес ответчика',
+      ),
+    ),
+    NARRATIVE(
+      'complaint_facts',
+      L(
+        '📝 Ҳолатлар, далиллар ва қонуний асос',
+        "📝 Holatlar, dalillar va qonuniy asos",
+        '📝 Обстоятельства, доказательства, правовые основания',
+      ),
+      L(
+        'Нима бўлди, қандай ҳолатлар бор, қайси қонуний нормалар бузилди.',
+        "Nima bo‘ldi, qanday holatlar bor, qaysi qonuniy normalar buzildi.",
+        'Что произошло, какие обстоятельства, какие нормы права нарушены.',
+      ),
+    ),
+    F.splitDate(
+      'decision_date',
+      L(
+        '📅 Қарор санаси',
+        '📅 Qaror sanasi',
+        '📅 Дата решения',
+      ),
+      { yearKey: 'decision_year', monthKey: 'decision_month', dayKey: 'decision_day' },
+    ),
+    F.text(
+      'decision_number',
+      L(
+        '🔢 Қарор рақами',
+        '🔢 Qaror raqami',
+        '🔢 Номер решения',
+      ),
+      L(
+        'Масалан: 123-сонли',
+        "Masalan: 123-sonli",
+        'Например: № 123',
+      ),
+    ),
+    F.text(
+      'attachments_list',
+      L(
+        '📎 Иловалар рўйхати',
+        "📎 Ilovalar ro‘yxati",
+        '📎 Перечень приложений',
+      ),
+      L(
+        'Қисқа рўйхат: 1) ... 2) ... 3) ...',
+        "Qisqa ro‘yxat: 1) ... 2) ... 3) ...",
+        'Краткий перечень: 1) ... 2) ... 3) ...',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
  * 15. Янги очилган ҳолат бўйича бекор қилиш (annul - new circumstances)
  * ============================================================ */
 const T_YANGI_HOLAT: TemplateDef = {
@@ -1953,6 +2155,8 @@ export const TEMPLATES: TemplateDef[] = [
   T_JIN_TANISH,
   T_JIN_APPEAL,
   T_JIN_3243,
+  T_MAM_MANSABDOR,
+  T_MAM_QAROR_BEKOR,
   T_YANGI_HOLAT,
   T_KECHIKTIRISH,
   T_APELLATSIYA,

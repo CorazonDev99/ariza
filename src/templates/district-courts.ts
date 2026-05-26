@@ -56,6 +56,22 @@ function Dj(
   };
 }
 
+/** Same shape as D(), but for administrative-court entries. */
+function Dm(
+  code: string,
+  regionCode: string,
+  cy: string,
+  la: string,
+  ru: string,
+): DistrictCourtDef {
+  return {
+    code,
+    regionCode,
+    courtTypeCode: 'mamuriy',
+    name: L(cy, la, ru),
+  };
+}
+
 export const DISTRICT_COURTS: DistrictCourtDef[] = [
   // ===== Андижон вилояти =====
   D('fuq-andijan-vsudi', 'andijan',
@@ -443,6 +459,14 @@ export const DISTRICT_COURTS: DistrictCourtDef[] = [
     'Жиззах вилоят суди',
     'Jizzax viloyat sudi',
     'Джизакский областной суд'),
+
+  // ===== Жиззах вилояти — Mamuriy (administrative) =====
+  // The document header is `{{district_court_name}} раисига`, so the
+  // name is the full court name as it should appear in the addressee.
+  Dm('mam-jizzakh-tlms', 'jizzakh',
+    'Жиззах туманлараро маъмурий суди',
+    'Jizzax tumanlararo ma’muriy sudi',
+    'Джизакский межрайонный административный суд'),
 ];
 
 export function getDistrictCourtByCode(code: string): DistrictCourtDef | undefined {

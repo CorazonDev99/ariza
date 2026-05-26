@@ -1813,6 +1813,185 @@ const T_JIN_NUSHA_RU: BlockSpec[] = [
 ];
 
 /* ============================================================
+ * MAMURIY (administrative court) helpers.
+ * Header reads "<district_court_name> раисига" — short, addresses the
+ * court chairman by office. Party block is two stacked rows
+ * (АРИЗАЧИ + ЖАВОБГАР), each with a small `(...)` italic caption
+ * underneath like in the reference paper form. Signature is a single
+ * row of three labeled cells: ФИО / имзо / сана.
+ * ============================================================ */
+const mamHeaderCY = (): BlockSpec[] => [
+  { text: [{ text: '{{district_court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'раисига', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const mamHeaderRU = (): BlockSpec[] => [
+  { text: [{ text: 'Председателю {{district_court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const mamPartyBlockCY = (): BlockSpec[] => [
+  {
+    text: [
+      { text: 'АРИЗАЧИ:', bold: true, tab: true },
+      { text: '{{plaintiff_fio}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: '{{plaintiff_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '(шикоят муаллифининг фамилияси, исми ва отасининг исми, жойлашган ери (почта манзили) ёки яшаш жойи)', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  {
+    text: [
+      { text: 'ЖАВОБГАР:', bold: true, tab: true },
+      { text: '{{defendant_org_name}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: '{{defendant_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{defendant_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '(ташкилотнинг номи ва почта манзили)', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+];
+
+const mamPartyBlockRU = (): BlockSpec[] => [
+  {
+    text: [
+      { text: 'ЗАЯВИТЕЛЬ:', bold: true, tab: true },
+      { text: '{{plaintiff_fio}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: '{{plaintiff_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '(Ф.И.О. заявителя, почтовый адрес или место жительства)', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  {
+    text: [
+      { text: 'ОТВЕТЧИК:', bold: true, tab: true },
+      { text: '{{defendant_org_name}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+    spaceAfter: TIGHT,
+  },
+  { text: [{ text: '{{defendant_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{defendant_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '(наименование и почтовый адрес организации)', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+];
+
+const mamSignatureBlockCY = (): BlockSpec[] => [
+  { text: '' },
+  { text: '' },
+  { text: [
+    { text: '{{plaintiff_fio}}', bold: true },
+    { text: `${BLOCK_GAP}(имзо)${BLOCK_GAP}` },
+    { text: '________________', italics: true },
+  ] },
+  { text: [
+    { text: '(Аризачининг Ф.И.Ш)', italics: true },
+    { text: `${BLOCK_GAP}(имзо)${BLOCK_GAP}` },
+    { text: '(сана)', italics: true },
+  ] },
+];
+
+const mamSignatureBlockRU = (): BlockSpec[] => [
+  { text: '' },
+  { text: '' },
+  { text: [
+    { text: '{{plaintiff_fio}}', bold: true },
+    { text: `${BLOCK_GAP}(подпись)${BLOCK_GAP}` },
+    { text: '________________', italics: true },
+  ] },
+  { text: [
+    { text: '(Ф.И.О. заявителя)', italics: true },
+    { text: `${BLOCK_GAP}(подпись)${BLOCK_GAP}` },
+    { text: '(дата)', italics: true },
+  ] },
+];
+
+/* ============================================================
+ * Template — Маъмурий: мансабдор шахс ҳаракати қонунга хилоф
+ *   ariza-mamuriy-mansabdor (T_MAM_MANSABDOR)
+ * ============================================================ */
+const T_MAM_MANSABDOR_CY: BlockSpec[] = [
+  ...mamHeaderCY(),
+  ...mamPartyBlockCY(),
+  ...titleBlock(
+    'А Р И З А   (Ш И К О Я Т)',
+    'мансабдор шахсларнинг хатти-ҳаракатларини қонунга хилоф деб топиб, мажбуриятни юклаш ҳақида',
+  ),
+  body('Менга {{complaint_facts}}'),
+  body('Шу сабабли Ўзбекистон Республикаси маъмурий суд ишларини юритиш тўғрисидаги кодексининг 27-моддасига асосан жавобгар {{defendant_org_name}} мансабдор шахсларининг {{official_action}} ҳаракатини (ҳаракатсизлигини) қонунга хилоф деб топиб, {{duty_to_impose}} мажбуриятини юклашингизни сўрайман.'),
+  { text: '' },
+  { text: [{ text: 'Илова: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...mamSignatureBlockCY(),
+];
+
+const T_MAM_MANSABDOR_RU: BlockSpec[] = [
+  ...mamHeaderRU(),
+  ...mamPartyBlockRU(),
+  ...titleBlock(
+    'З А Я В Л Е Н И Е   (Ж А Л О Б А)',
+    'о признании действий должностных лиц незаконными и возложении обязанности',
+  ),
+  body('Мне {{complaint_facts}}'),
+  body('На основании статьи 27 Кодекса об административном судопроизводстве Республики Узбекистан прошу признать действия (бездействие) должностных лиц ответчика {{defendant_org_name}} — {{official_action}} — незаконными и возложить на ответчика обязанность {{duty_to_impose}}.'),
+  { text: '' },
+  { text: [{ text: 'Приложение: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...mamSignatureBlockRU(),
+];
+
+/* ============================================================
+ * Template — Маъмурий: қарорни ҳақиқий эмас деб топиш
+ *   ariza-mamuriy-qaror-bekor (T_MAM_QAROR_BEKOR)
+ * ============================================================ */
+const T_MAM_QAROR_BEKOR_CY: BlockSpec[] = [
+  ...mamHeaderCY(),
+  ...mamPartyBlockCY(),
+  ...titleBlock(
+    'А Р И З А   (Ш И К О Я Т)',
+    'қарорни ҳақиқий эмас деб топиш ҳақида',
+  ),
+  body('Менга {{complaint_facts}}'),
+  body('Шу сабабли Ўзбекистон Республикаси маъмурий суд ишларини юритиш тўғрисидаги кодексининг 27-моддасига асосан жавобгар {{defendant_org_name}}нинг {{decision_year}}-йил {{decision_month}}-ойдаги {{decision_number}}-сонли қарорини ҳақиқий эмас деб топишингизни сўрайман.'),
+  { text: '' },
+  { text: [{ text: 'Илова: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...mamSignatureBlockCY(),
+];
+
+const T_MAM_QAROR_BEKOR_RU: BlockSpec[] = [
+  ...mamHeaderRU(),
+  ...mamPartyBlockRU(),
+  ...titleBlock(
+    'З А Я В Л Е Н И Е   (Ж А Л О Б А)',
+    'о признании решения недействительным',
+  ),
+  body('Мне {{complaint_facts}}'),
+  body('На основании статьи 27 Кодекса об административном судопроизводстве Республики Узбекистан прошу признать решение ответчика {{defendant_org_name}} № {{decision_number}} от {{decision_day}}.{{decision_month}}.{{decision_year}} недействительным.'),
+  { text: '' },
+  { text: [{ text: 'Приложение: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...mamSignatureBlockRU(),
+];
+
+/* ============================================================
  * Template — Жиноят: МЖтК 315 (objection to admin penalty)
  *   ariza-jinoyat-315 (T_JIN_315)
  * ============================================================ */
@@ -2068,6 +2247,16 @@ const BUILDERS: Record<string, Record<Locale, BlockSpec[]>> = {
     uz_cyrillic: T_JIN_3243_CY,
     uz_latin: deriveLatin(T_JIN_3243_CY),
     ru: T_JIN_3243_RU,
+  },
+  'ariza-mamuriy-mansabdor': {
+    uz_cyrillic: T_MAM_MANSABDOR_CY,
+    uz_latin: deriveLatin(T_MAM_MANSABDOR_CY),
+    ru: T_MAM_MANSABDOR_RU,
+  },
+  'ariza-mamuriy-qaror-bekor': {
+    uz_cyrillic: T_MAM_QAROR_BEKOR_CY,
+    uz_latin: deriveLatin(T_MAM_QAROR_BEKOR_CY),
+    ru: T_MAM_QAROR_BEKOR_RU,
   },
   'ariza-hujjatdan-nuskha': {
     uz_cyrillic: T15_CY,

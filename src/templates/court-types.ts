@@ -34,7 +34,7 @@ export const COURT_TYPES: CourtTypeDef[] = [
       '📋 Mamuriy ishlar boʻyicha',
       '📋 По административным делам',
     ),
-    active: false,
+    active: true,
   },
   {
     code: 'fuqarolik',
