@@ -2,15 +2,16 @@ import type { Locale } from '../i18n';
 
 /**
  * District / interdistrict court within a region. After the user picks
- * one, its `name` is stored in `state.values.court_name` and rendered
- * into the document header.
+ * one, its `name` is stored in `state.values.district_court_name` and
+ * rendered into the document header.
  *
- * Currently only `courtTypeCode: 'fuqarolik'` is populated. The data
- * was derived from the user-supplied screenshots of the Iqtisodiy
- * court list; per their decision the "iqtisodiy" word is replaced by
- * "fuqarolik" in court names. Some real Fuqarolik courts may differ —
- * the list is a starting point and should be revised when authoritative
- * Fuqarolik data is available.
+ * The civil-court (fuqarolik) list below is the source of truth for
+ * region/district coverage. The three other court types — jinoyat,
+ * mamuriy, iqtisodiy — are derived from it by mirrorFuqarolikFor()
+ * so every region the user picks always shows a populated list of
+ * courts, no matter which court type they chose. Names may not be
+ * 100% accurate to real-world court registries and can be refined
+ * later as authoritative data becomes available.
  */
 export interface DistrictCourtDef {
   code: string;
@@ -40,55 +41,68 @@ function D(
   };
 }
 
-/** Same shape as D(), but for criminal-court entries. */
-function Dj(
-  code: string,
-  regionCode: string,
-  cy: string,
-  la: string,
-  ru: string,
+/**
+ * Mirror a fuqarolik (civil) court entry to one of the other court
+ * types. Cuts down on hand-written duplication — the civil-court list
+ * is the source of truth for region/district coverage, and the other
+ * three court types are derived from it by swapping the type word in
+ * the displayed name.
+ *
+ * Why per-type substitutions are different:
+ *   - jinoyat (criminal): document templates already prepend
+ *     "Жиноят ишлари бўйича ..." themselves, so the name must NOT
+ *     repeat the word — we strip " фуқаролик" entirely.
+ *   - mamuriy (administrative) / iqtisodiy (economic): templates use
+ *     the name as-is with just a postposition ("…раисига" / "…га"),
+ *     so we swap "фуқаролик" with the appropriate type word.
+ *
+ * The code prefix changes ("fuq-" → "jin-" / "mam-" / "iqt-") so each
+ * court type gets a unique key suitable for callback data.
+ */
+function mirrorFuqarolikFor(
+  base: DistrictCourtDef,
+  type: 'jinoyat' | 'mamuriy' | 'iqtisodiy',
 ): DistrictCourtDef {
+  const codePrefix =
+    type === 'jinoyat' ? 'jin' : type === 'mamuriy' ? 'mam' : 'iqt';
+
+  const subs: Record<'cy' | 'la' | 'ru', [RegExp, string]> =
+    type === 'jinoyat'
+      ? {
+          cy: [/ фуқаролик/g, ''],
+          la: [/ fuqarolik/g, ''],
+          ru: [/ гражданский/g, ''],
+        }
+      : type === 'mamuriy'
+        ? {
+            cy: [/фуқаролик/g, 'маъмурий'],
+            la: [/fuqarolik/g, 'ma’muriy'],
+            ru: [/гражданский/g, 'административный'],
+          }
+        : {
+            cy: [/фуқаролик/g, 'иқтисодий'],
+            la: [/fuqarolik/g, 'iqtisodiy'],
+            ru: [/гражданский/g, 'экономический'],
+          };
+
   return {
-    code,
-    regionCode,
-    courtTypeCode: 'jinoyat',
-    name: L(cy, la, ru),
+    code: base.code.replace(/^fuq-/, `${codePrefix}-`),
+    regionCode: base.regionCode,
+    courtTypeCode: type,
+    name: {
+      uz_cyrillic: base.name.uz_cyrillic.replace(subs.cy[0], subs.cy[1]),
+      uz_latin: base.name.uz_latin.replace(subs.la[0], subs.la[1]),
+      ru: base.name.ru.replace(subs.ru[0], subs.ru[1]),
+    },
   };
 }
 
-/** Same shape as D(), but for administrative-court entries. */
-function Dm(
-  code: string,
-  regionCode: string,
-  cy: string,
-  la: string,
-  ru: string,
-): DistrictCourtDef {
-  return {
-    code,
-    regionCode,
-    courtTypeCode: 'mamuriy',
-    name: L(cy, la, ru),
-  };
-}
-
-/** Same shape as D(), but for economic-court entries. */
-function Di(
-  code: string,
-  regionCode: string,
-  cy: string,
-  la: string,
-  ru: string,
-): DistrictCourtDef {
-  return {
-    code,
-    regionCode,
-    courtTypeCode: 'iqtisodiy',
-    name: L(cy, la, ru),
-  };
-}
-
-export const DISTRICT_COURTS: DistrictCourtDef[] = [
+/**
+ * The civil-court list — hand-written, the source of truth for what
+ * regions/districts exist. The arrays for jinoyat, mamuriy and
+ * iqtisodiy are mechanically derived from this via mirrorFuqarolikFor.
+ */
+const FUQAROLIK_COURTS: DistrictCourtDef[] = [
   // ===== Андижон вилояти =====
   D('fuq-andijan-vsudi', 'andijan',
     'Андижон вилоят суди',
@@ -457,50 +471,20 @@ export const DISTRICT_COURTS: DistrictCourtDef[] = [
     'Shovot tumanlararo fuqarolik sudi',
     'Шаватский межрайонный гражданский суд'),
 
-  /* =====================================================================
-   * JINOYAT (criminal) courts. First batch covers Jizzakh region —
-   * the only one with criminal-court templates so far. Other regions
-   * will be added as templates for them are written.
-   * ===================================================================== */
+];
 
-  // ===== Жиззах вилояти — Jinoyat =====
-  // Short names — the per-template DOCX builder prefixes them with
-  // "Жиноят ишлари бўйича …нинг раиси …га" so the final court name
-  // composes naturally in the document header.
-  Dj('jin-jizzakh-shahar', 'jizzakh',
-    'Жиззах шаҳар суди',
-    'Jizzax shahar sudi',
-    'Джизакский городской суд'),
-  Dj('jin-jizzakh-vsudi', 'jizzakh',
-    'Жиззах вилоят суди',
-    'Jizzax viloyat sudi',
-    'Джизакский областной суд'),
-
-  // ===== Жиззах вилояти — Mamuriy (administrative) =====
-  // The document header is `{{district_court_name}} раисига`, so the
-  // name is the full court name as it should appear in the addressee.
-  Dm('mam-jizzakh-tlms', 'jizzakh',
-    'Жиззах туманлараро маъмурий суди',
-    'Jizzax tumanlararo ma’muriy sudi',
-    'Джизакский межрайонный административный суд'),
-
-  // ===== Жиззах вилояти — Iqtisodiy (economic) =====
-  // District-level economic courts hear claims at first instance. The
-  // regional court ("Жиззах вилоят суди") is the appellate / cassation
-  // panel — the user picks it when filing an appellate or cassation
-  // complaint.
-  Di('iqt-jizzakh-tlmis', 'jizzakh',
-    'Жиззах туманлараро иқтисодий суди',
-    'Jizzax tumanlararo iqtisodiy sudi',
-    'Джизакский межрайонный экономический суд'),
-  Di('iqt-dustlik-tlmis', 'jizzakh',
-    'Дўстлик туманлараро иқтисодий суди',
-    'Doʻstlik tumanlararo iqtisodiy sudi',
-    'Дустликский межрайонный экономический суд'),
-  Di('iqt-jizzakh-vsudi', 'jizzakh',
-    'Жиззах вилоят суди',
-    'Jizzax viloyat sudi',
-    'Джизакский областной суд'),
+/**
+ * Final list shown to users: the civil-court entries plus mechanically
+ * mirrored entries for jinoyat (criminal), mamuriy (administrative)
+ * and iqtisodiy (economic). Mirroring keeps the picker symmetric —
+ * every region that exists for civil cases also exists for the other
+ * three court types — without copy-pasting ~85 entries three times.
+ */
+export const DISTRICT_COURTS: DistrictCourtDef[] = [
+  ...FUQAROLIK_COURTS,
+  ...FUQAROLIK_COURTS.map((c) => mirrorFuqarolikFor(c, 'jinoyat')),
+  ...FUQAROLIK_COURTS.map((c) => mirrorFuqarolikFor(c, 'mamuriy')),
+  ...FUQAROLIK_COURTS.map((c) => mirrorFuqarolikFor(c, 'iqtisodiy')),
 ];
 
 export function getDistrictCourtByCode(code: string): DistrictCourtDef | undefined {
