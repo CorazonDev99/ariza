@@ -147,6 +147,92 @@ function jinoyatCaseTypeLabel(
     : 'маъмурий ҳуқуқбузарлик тўғрисидаги иш';
 }
 
+/** МЖтК 315 — verb that combines with "…қарорни <X>ингизни сўрайман". */
+function jinoyatActionLabel(
+  value: 'bekor' | 'ozgartirish',
+  locale: Locale,
+): string {
+  if (locale === 'ru') {
+    return value === 'bekor' ? 'отменить' : 'изменить';
+  }
+  if (locale === 'uz_latin') {
+    return value === 'bekor' ? 'bekor qilish' : "o‘zgartirish";
+  }
+  return value === 'bekor' ? 'бекор қилиш' : 'ўзгартириш';
+}
+
+/** Tanishuv — "considered" (past) vs "being considered" (ongoing). */
+function jinoyatCaseStatusLabel(
+  value: 'considered' | 'in-progress',
+  locale: Locale,
+): string {
+  if (locale === 'ru') {
+    return value === 'considered' ? 'рассмотренного' : 'рассматривающегося';
+  }
+  if (locale === 'uz_latin') {
+    return value === 'considered' ? "ko‘rilgan" : "ko‘rilayotgan";
+  }
+  return value === 'considered' ? 'кўрилган' : 'кўрилаётган';
+}
+
+/** Tanishuv — opening clause of the body, "in respect of whom" the case
+ *  was about. Self vs through-victim wording is significantly different. */
+function jinoyatTanishSubjectPhrase(
+  partyRole: string | undefined,
+  victimFio: string | undefined,
+  locale: Locale,
+): string {
+  const isVictim = partyRole === 'victim';
+  const fio = victimFio && victimFio !== '—' ? victimFio : '____________';
+  if (locale === 'ru') {
+    return isVictim
+      ? `в отношении потерпевшего ${fio}`
+      : 'в отношении меня';
+  }
+  if (locale === 'uz_latin') {
+    return isVictim
+      ? `men jabrlanuvchi bo‘lgan ${fio} nisbatan`
+      : 'menga nisbatan';
+  }
+  return isVictim
+    ? `мен жабрланувчи бўлган ${fio} нисбатан`
+    : 'менга нисбатан';
+}
+
+/** Appellate complaint — centered title varies per instance. */
+function jinoyatInstanceTitle(
+  value: 'apellyatsiya' | 'kassatsiya',
+  locale: Locale,
+): string {
+  if (locale === 'ru') {
+    return value === 'apellyatsiya'
+      ? 'А П Е Л Л Я Ц И О Н Н А Я   Ж А Л О Б А'
+      : 'К А С С А Ц И О Н Н А Я   Ж А Л О Б А';
+  }
+  if (locale === 'uz_latin') {
+    return value === 'apellyatsiya'
+      ? 'A P E L L Y A T S I Y A   S H I K O Y A T I'
+      : 'K A S S A T S I Y A   S H I K O Y A T I';
+  }
+  return value === 'apellyatsiya'
+    ? 'А П Е Л Л Я Ц И Я   Ш И К О Я Т И'
+    : 'К А С С А Ц И Я   Ш И К О Я Т И';
+}
+
+/** Appellate complaint — short noun form used in the body sentence. */
+function jinoyatInstanceLabel(
+  value: 'apellyatsiya' | 'kassatsiya',
+  locale: Locale,
+): string {
+  if (locale === 'ru') {
+    return value === 'apellyatsiya' ? 'апелляционной' : 'кассационной';
+  }
+  if (locale === 'uz_latin') {
+    return value === 'apellyatsiya' ? 'apellyatsiya' : 'kassatsiya';
+  }
+  return value === 'apellyatsiya' ? 'апелляция' : 'кассация';
+}
+
 function enrichIltimosnomaData(
   data: Record<string, string>,
   values: Record<string, string>,
@@ -303,6 +389,37 @@ export class DocumentService {
     const caseType = input.values.case_type;
     if (caseType === 'jinoyat' || caseType === 'mamuriy') {
       data.case_type_label = jinoyatCaseTypeLabel(caseType, input.locale);
+    }
+
+    // Jinoyat MЖтК 315: localize the cancel/modify action verb so
+    // the body sentence "…қарорни <X>ингизни сўрайман" reads right.
+    const actionType = input.values.action_type;
+    if (actionType === 'bekor' || actionType === 'ozgartirish') {
+      data.action_type_label = jinoyatActionLabel(actionType, input.locale);
+    }
+
+    // Jinoyat tanishuv: case_status ('considered' / 'in-progress').
+    const caseStatus = input.values.case_status;
+    if (caseStatus === 'considered' || caseStatus === 'in-progress') {
+      data.case_status_label = jinoyatCaseStatusLabel(caseStatus, input.locale);
+    }
+
+    // Jinoyat tanishuv: build the subject phrase that opens the body
+    // ("менга нисбатан" vs "мен жабрланувчи бўлган <FIO> нисбатан").
+    if (input.templateCode === 'ariza-jinoyat-tanishuv') {
+      data.tanish_subject_phrase = jinoyatTanishSubjectPhrase(
+        input.values.party_role,
+        input.values.victim_fio,
+        input.locale,
+      );
+    }
+
+    // Jinoyat appellate complaint: title differs per instance type, and
+    // the body uses a noun form of the instance ("апелляция" / "кассация").
+    const instanceType = input.values.instance_type;
+    if (instanceType === 'apellyatsiya' || instanceType === 'kassatsiya') {
+      data.instance_type_title = jinoyatInstanceTitle(instanceType, input.locale);
+      data.instance_type_label = jinoyatInstanceLabel(instanceType, input.locale);
     }
 
     // Build the single combined `children_block` paragraph used by the

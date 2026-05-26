@@ -1737,6 +1737,59 @@ const jinHeaderRU = (): BlockSpec[] => [
   { text: '' },
 ];
 
+/** Tergov-sudya (investigative judge) header — for the МЖтК templates
+ *  that address the criminal court's investigative judge by office, not
+ *  by name. */
+const jinTergovHeaderCY = (): BlockSpec[] => [
+  { text: [{ text: 'Жиноят ишлари бўйича {{district_court_name}}нинг', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'тергов судьясига', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const jinTergovHeaderRU = (): BlockSpec[] => [
+  { text: [{ text: 'Следственному судье {{district_court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'по уголовным делам', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+/** Regional appellate-panel header — for criminal-court appeals.
+ *  Uses `{{court_name}}` (the region's short name, e.g. "Жиззах") so the
+ *  rendered line reads "Жиззах вилоят судининг жиноят ишлари бўйича
+ *  судлов ҳайъатига". */
+const jinAppellateHeaderCY = (): BlockSpec[] => [
+  { text: [{ text: '{{court_name}} вилоят судининг', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'жиноят ишлари бўйича судлов ҳайъатига', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const jinAppellateHeaderRU = (): BlockSpec[] => [
+  { text: [{ text: 'В судебную коллегию по уголовным делам', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'областного суда {{court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+/** Signature block for jinoyat administrative-violation templates —
+ *  signed as "Маъмурий ҳуқуқбузар" (offender) instead of "Аризачи". */
+const signatureBlockOffenderCY = (): BlockSpec[] => [
+  { text: '' },
+  { text: '' },
+  { text: [
+    { text: 'Маъмурий ҳуқуқбузар:', bold: true },
+    { text: `${SIGNATURE_GAP}(имзо)${BLOCK_GAP}` },
+    { text: '{{plaintiff_fio}}', bold: true },
+  ] },
+];
+
+const signatureBlockOffenderRU = (): BlockSpec[] => [
+  { text: '' },
+  { text: '' },
+  { text: [
+    { text: 'Правонарушитель:', bold: true },
+    { text: `${SIGNATURE_GAP}(подпись)${BLOCK_GAP}` },
+    { text: '{{plaintiff_fio}}', bold: true },
+  ] },
+];
+
 /* ============================================================
  * Template — Жиноят: суд ҳукми нусхаси
  *   ariza-jinoyat-nuskha (T_JIN_NUSHA)
@@ -1757,6 +1810,156 @@ const T_JIN_NUSHA_RU: BlockSpec[] = [
   body('Настоящим прошу Вас выдать копию приговора и иных материалов дела по {{case_type_label}}, рассмотренному в {{district_court_name}} {{case_day}}.{{case_month}}.{{case_year}} в отношении {{defendant_fio}}.'),
   { text: '' },
   ...signatureBlockRU('Гражданин:'),
+];
+
+/* ============================================================
+ * Template — Жиноят: МЖтК 315 (objection to admin penalty)
+ *   ariza-jinoyat-315 (T_JIN_315)
+ * ============================================================ */
+const T_JIN_315_CY: BlockSpec[] = [
+  ...jinTergovHeaderCY(),
+  ...partyBlockCY('Аризачи', 'plaintiff'),
+  ...titleBlock('А Р И З А', 'Ўзбекистон Республикаси МЖтКнинг 315-моддаси тартибида'),
+  body('Ушбу орқали Сизга, {{penalty_org}} томонидан менга нисбатан {{order_day}}.{{order_month}}.{{order_year}} йилда МЖтКнинг {{mjtk_article}}-моддасида кўрсатилган маъмурий ҳуқуқбузарликни содир этганлигим ҳолати юзасидан маъмурий жарима қўллаш тўғрисида қарор қабул қилинган.'),
+  body('Бироқ, мен ушбу маъмурий жарима қўллаш тўғрисидаги қарордан қуйидаги сабабларга кўра норозиман:'),
+  body('{{disagreement_reasons}}'),
+  body('Шу сабабли мазкур {{penalty_org}} томонидан қабул қилинган {{order_number}}-сонли маъмурий жарима қўллаш тўғрисидаги қарорни {{action_type_label}}ингизни сўрайман.'),
+  { text: '' },
+  { text: [{ text: 'Илова: "', bold: true }, { text: '{{attached_docs_count}}' }, { text: '" ҳужжатлар варақда.' }] },
+  ...signatureBlock('Фуқаро:'),
+];
+
+const T_JIN_315_RU: BlockSpec[] = [
+  ...jinTergovHeaderRU(),
+  ...partyBlockRU('Заявитель', 'plaintiff'),
+  ...titleBlock('З А Я В Л Е Н И Е', 'в порядке статьи 315 МЖтК Республики Узбекистан'),
+  body('Настоящим сообщаю, что {{penalty_org}} в отношении меня {{order_day}}.{{order_month}}.{{order_year}} вынес постановление о наложении административного штрафа по статье {{mjtk_article}} МЖтК.'),
+  body('С данным постановлением я не согласен(а) по следующим причинам:'),
+  body('{{disagreement_reasons}}'),
+  body('На основании изложенного прошу постановление № {{order_number}}, вынесенное {{penalty_org}}, {{action_type_label}}.'),
+  { text: '' },
+  { text: [{ text: 'Приложение: "', bold: true }, { text: '{{attached_docs_count}}' }, { text: '" документов на листах.' }] },
+  ...signatureBlockRU('Гражданин:'),
+];
+
+/* ============================================================
+ * Template — Жиноят: МЖтК 316 (restore 10-day complaint deadline)
+ *   iltimosnoma-jinoyat-316 (T_JIN_316)
+ * ============================================================ */
+const T_JIN_316_CY: BlockSpec[] = [
+  ...jinTergovHeaderCY(),
+  ...partyBlockCY('Аризачи', 'plaintiff'),
+  ...titleBlock('И Л Т И М О С Н О М А', 'Ўзбекистон Республикаси МЖтКнинг 316-моддаси тартибида'),
+  body('Ушбу орқали Сизга, {{penalty_org}} томонидан менга нисбатан {{order_day}}.{{order_month}}.{{order_year}} йилда МЖтКнинг {{mjtk_article}}-моддасида кўрсатилган маъмурий ҳуқуқбузарликни содир этганлигим ҳолати юзасидан маъмурий жарима қўллаш тўғрисида қарор қабул қилинган.'),
+  body('Мен маъмурий жарима қўллашга оид қарор қабул қилинганлигини {{learned_day}}.{{learned_month}}.{{learned_year}} йилда {{learned_how}} орқали билдим.'),
+  body('Шу сабабли Ўзбекистон Республикаси МЖтКнинг 316-моддасида кўрсатилган 10 кунлик шикоят бериш муддатини қуйидаги узрли сабабларга кўра ўтказиб юбордим:'),
+  body('{{missing_reason}}'),
+  body('Шу сабабли Сиздан узрли сабабларга кўра ўтказиб юборилган шикоят бериш муддатини тиклаб, менинг аризамни кўриб чиқишингизни сўрайман.'),
+  { text: '' },
+  ...signatureBlock('Фуқаро:'),
+];
+
+const T_JIN_316_RU: BlockSpec[] = [
+  ...jinTergovHeaderRU(),
+  ...partyBlockRU('Заявитель', 'plaintiff'),
+  ...titleBlock('Х О Д А Т А Й С Т В О', 'в порядке статьи 316 МЖтК Республики Узбекистан'),
+  body('Настоящим сообщаю, что {{penalty_org}} в отношении меня {{order_day}}.{{order_month}}.{{order_year}} вынес постановление о наложении административного штрафа по статье {{mjtk_article}} МЖтК.'),
+  body('О вынесении данного постановления я узнал(а) {{learned_day}}.{{learned_month}}.{{learned_year}} через {{learned_how}}.'),
+  body('Установленный статьёй 316 МЖтК 10-дневный срок обжалования был пропущен по следующим уважительным причинам:'),
+  body('{{missing_reason}}'),
+  body('На основании изложенного прошу восстановить пропущенный по уважительной причине срок обжалования и рассмотреть моё заявление по существу.'),
+  { text: '' },
+  ...signatureBlockRU('Гражданин:'),
+];
+
+/* ============================================================
+ * Template — Жиноят: иш ҳужжатлари билан танишув
+ *   ariza-jinoyat-tanishuv (T_JIN_TANISH)
+ * ============================================================ */
+const T_JIN_TANISH_CY: BlockSpec[] = [
+  ...jinHeaderCY(),
+  ...partyBlockCY('Аризачи', 'plaintiff'),
+  ...titleBlock('А Р И З А', 'иш ҳужжатлари билан танишиш ҳақида'),
+  body('Ушбу орқали Сиздан, {{tanish_subject_phrase}} жиноят ишлари бўйича {{district_court_name}}да {{case_day}}.{{case_month}}.{{case_year}} йилда {{case_status_label}} иш ({{case_type_label}}га оид) юзасидан иш ҳужжатлари билан танишиб чиқишимга рухсат беришингизни сўрайман.'),
+  { text: '' },
+  ...signatureBlock('Фуқаро:'),
+];
+
+const T_JIN_TANISH_RU: BlockSpec[] = [
+  ...jinHeaderRU(),
+  ...partyBlockRU('Заявитель', 'plaintiff'),
+  ...titleBlock('З А Я В Л Е Н И Е', 'об ознакомлении с материалами дела'),
+  body('Настоящим прошу разрешить мне ознакомиться с материалами дела {{tanish_subject_phrase}}, {{case_status_label}} в {{district_court_name}} {{case_day}}.{{case_month}}.{{case_year}} ({{case_type_label}}).'),
+  { text: '' },
+  ...signatureBlockRU('Гражданин:'),
+];
+
+/* ============================================================
+ * Template — Жиноят: апелляция/кассация шикояти (admin penalty)
+ *   shikoyat-jinoyat-apellyatsiya (T_JIN_APPEAL)
+ * ============================================================ */
+const T_JIN_APPEAL_CY: BlockSpec[] = [
+  ...jinAppellateHeaderCY(),
+  { text: [{ text: '{{plaintiff_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'да яшовчи {{lower_court_name}}нинг {{order_day}}.{{order_month}}.{{order_year}} кунги қарори билан маъмурий жавобгарликка тортилган ҳуқуқбузар', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_fio}}', italics: true, bold: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'томонидан', italics: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  ...titleBlock('{{instance_type_title}}', 'маъмурий жазо қарорига нисбатан'),
+  body('{{lower_court_name}}нинг {{order_day}}.{{order_month}}.{{order_year}} кунги қарори билан мен Ўзбекистон Республикаси МЖтКнинг {{mjtk_article}}-моддаси билан айбли деб топилиб, менга нисбатан маъмурий жазо қўлланди.'),
+  body('Мен мазкур {{lower_court_name}}нинг қароридан қуйидаги сабабларга кўра норозиман ва суд қарори адолатсиз қабул қилинди деб ўйлайман:'),
+  body('{{disagreement_reasons}}'),
+  body('Иш бўйича бошқа далиллар, гувоҳлар ва бошқа асослар:'),
+  body('{{additional_evidence}}'),
+  body('Шу сабабли Сиздан мазкур менга нисбатан кўрилган маъмурий ҳуқуқбузарликка оид иш материалини қайта {{instance_type_label}} инстанцияда кўриб чиқиб, мен келтирган важларни ўрганиб, иш бўйича адолатли қарор қабул қилишингизни сўрайман.'),
+  ...signatureBlockOffenderCY(),
+];
+
+const T_JIN_APPEAL_RU: BlockSpec[] = [
+  ...jinAppellateHeaderRU(),
+  { text: [{ text: '{{plaintiff_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'правонарушитель, привлечённый к административной ответственности постановлением', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{lower_court_name}} от {{order_day}}.{{order_month}}.{{order_year}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_fio}}', italics: true, bold: true }], leftIndent: PARTY_INDENT },
+  { text: '' },
+  ...titleBlock('{{instance_type_title}}', 'на решение об административном наказании'),
+  body('Постановлением {{lower_court_name}} от {{order_day}}.{{order_month}}.{{order_year}} я был(а) признан(а) виновным(ой) по статье {{mjtk_article}} МЖтК Республики Узбекистан, и в отношении меня применено административное наказание.'),
+  body('С данным решением {{lower_court_name}} я не согласен(а) и считаю его несправедливым по следующим основаниям:'),
+  body('{{disagreement_reasons}}'),
+  body('Иные доказательства, свидетели и обстоятельства по делу:'),
+  body('{{additional_evidence}}'),
+  body('На основании изложенного прошу пересмотреть материалы дела об административном правонарушении в {{instance_type_label}} инстанции, изучить приведённые доводы и принять справедливое решение.'),
+  ...signatureBlockOffenderRU(),
+];
+
+/* ============================================================
+ * Template — Жиноят: МЖтК 324³ (restore appellate deadline)
+ *   iltimosnoma-jinoyat-3243 (T_JIN_3243)
+ * ============================================================ */
+const T_JIN_3243_CY: BlockSpec[] = [
+  ...jinTergovHeaderCY(),
+  ...partyBlockCY('Аризачи', 'plaintiff'),
+  ...titleBlock('И Л Т И М О С Н О М А', 'Ўзбекистон Республикаси МЖтКнинг 324³-моддаси тартибида'),
+  body('{{district_court_name}}нинг {{order_day}}.{{order_month}}.{{order_year}} кунги қарори билан мен Ўзбекистон Республикаси МЖтКнинг {{mjtk_article}}-моддаси билан айбли деб топилиб, менга нисбатан маъмурий жазо қўлланган экан.'),
+  body('Мени маъмурий жавобгарликка тортишга оид қарор қабул қилинганлигини {{learned_day}}.{{learned_month}}.{{learned_year}} йилда {{learned_how}} орқали билдим.'),
+  body('Шу сабабли мен Ўзбекистон Республикаси МЖтКнинг 324³-моддасида кўрсатилган 10 суткалик шикоят бериш муддатини қуйидаги узрли сабабларга кўра ўтказиб юбордим:'),
+  body('{{missing_reason}}'),
+  body('Шу сабабли Сиздан узрли сабабларга кўра ўтказиб юборилган апелляция шикояти бериш муддатини тиклашингизни ва апелляция шикоятимни расмийлаштириб, {{court_name}} вилоят судининг жиноят ишлари бўйича судлов ҳайъатига маъмурий иш материалини юборишингизни сўрайман.'),
+  ...signatureBlockOffenderCY(),
+];
+
+const T_JIN_3243_RU: BlockSpec[] = [
+  ...jinTergovHeaderRU(),
+  ...partyBlockRU('Заявитель', 'plaintiff'),
+  ...titleBlock('Х О Д А Т А Й С Т В О', 'в порядке статьи 324³ МЖтК Республики Узбекистан'),
+  body('Постановлением {{district_court_name}} от {{order_day}}.{{order_month}}.{{order_year}} я был(а) признан(а) виновным(ой) по статье {{mjtk_article}} МЖтК Республики Узбекистан, и в отношении меня применено административное наказание.'),
+  body('О вынесении данного постановления я узнал(а) {{learned_day}}.{{learned_month}}.{{learned_year}} через {{learned_how}}.'),
+  body('Установленный статьёй 324³ МЖтК 10-суточный срок апелляционного обжалования был пропущен по следующим уважительным причинам:'),
+  body('{{missing_reason}}'),
+  body('На основании изложенного прошу восстановить пропущенный по уважительной причине срок апелляционного обжалования, оформить мою апелляционную жалобу и направить материалы административного дела в судебную коллегию по уголовным делам областного суда {{court_name}}.'),
+  ...signatureBlockOffenderRU(),
 ];
 
 /* ============================================================ */
@@ -1840,6 +2043,31 @@ const BUILDERS: Record<string, Record<Locale, BlockSpec[]>> = {
     uz_cyrillic: T_JIN_NUSHA_CY,
     uz_latin: deriveLatin(T_JIN_NUSHA_CY),
     ru: T_JIN_NUSHA_RU,
+  },
+  'ariza-jinoyat-315': {
+    uz_cyrillic: T_JIN_315_CY,
+    uz_latin: deriveLatin(T_JIN_315_CY),
+    ru: T_JIN_315_RU,
+  },
+  'iltimosnoma-jinoyat-316': {
+    uz_cyrillic: T_JIN_316_CY,
+    uz_latin: deriveLatin(T_JIN_316_CY),
+    ru: T_JIN_316_RU,
+  },
+  'ariza-jinoyat-tanishuv': {
+    uz_cyrillic: T_JIN_TANISH_CY,
+    uz_latin: deriveLatin(T_JIN_TANISH_CY),
+    ru: T_JIN_TANISH_RU,
+  },
+  'shikoyat-jinoyat-apellyatsiya': {
+    uz_cyrillic: T_JIN_APPEAL_CY,
+    uz_latin: deriveLatin(T_JIN_APPEAL_CY),
+    ru: T_JIN_APPEAL_RU,
+  },
+  'iltimosnoma-jinoyat-3243': {
+    uz_cyrillic: T_JIN_3243_CY,
+    uz_latin: deriveLatin(T_JIN_3243_CY),
+    ru: T_JIN_3243_RU,
   },
   'ariza-hujjatdan-nuskha': {
     uz_cyrillic: T15_CY,

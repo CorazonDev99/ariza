@@ -1205,6 +1205,508 @@ const T_JIN_NUSHA: TemplateDef = {
 };
 
 /* ============================================================
+ * 14c. JINOYAT — МЖтК 315 (objection to administrative penalty)
+ * ============================================================ */
+const T_JIN_315: TemplateDef = {
+  code: 'ariza-jinoyat-315',
+  category: 'ariza',
+  courtTypeCode: 'jinoyat',
+  title: L(
+    '🛡 МЖтК 315: жарима қарорига эътироз',
+    "🛡 MJtK 315: jarima qaroriga e'tiroz",
+    '🛡 МЖтК 315: возражение на штраф',
+  ),
+  subtitle: L(
+    'маъмурий жарима қарорини бекор қилиш/ўзгартириш',
+    "ma'muriy jarima qarorini bekor qilish/o‘zgartirish",
+    'отмена или изменение постановления',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `🛡 <b>МЖтК 315: маъмурий жарима қарорига эътироз</b>\n\n📋 <b>Қачон бериш:</b>\nСизга нисбатан давлат органи (солиқ, ИИБ, ЙХХБ ва ҳ.к.) маъмурий жарима қўллаш тўғрисида қарор қабул қилган бўлса ва Сиз у билан рози бўлмасангиз.\n\n⚠️ <b>Муддат — 10 кун</b> (қарор нусхасини қўлингизга олганингиздан бошлаб).\n\n🏛 <b>Қаерга:</b>\nЖиноят ишлари бўйича туман/шаҳар судининг тергов судьясига.\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → қарор чиқарган орган → қарор санаси → МЖтК моддаси → норозилик сабаблари → қарор сериси ва рақами → бекор қилиш/ўзгартириш танлови → илова ҳужжатлар сони.`,
+    `🛡 <b>MJtK 315: ma'muriy jarima qaroriga e'tiroz</b>\n\n📋 <b>Qachon berish:</b>\nSizga nisbatan davlat organi (soliq, IIB, YXXB va h.k.) ma'muriy jarima qo‘llash to‘g‘risida qaror qabul qilgan bo‘lsa va Siz u bilan rozi bo‘lmasangiz.\n\n⚠️ <b>Muddat — 10 kun</b> (qaror nusxasini qo‘lingizga olganingizdan boshlab).\n\n🏛 <b>Qayerga:</b>\nJinoyat ishlari bo‘yicha tuman/shahar sudining tergov sudyasiga.\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → qaror chiqargan organ → qaror sanasi → MJtK moddasi → norozilik sabablari → qaror seriya va raqami → bekor qilish/o‘zgartirish tanlovi → ilova hujjatlar soni.`,
+    `🛡 <b>МЖтК 315: возражение на постановление об административном штрафе</b>\n\n📋 <b>Когда подавать:</b>\nЕсли в отношении Вас государственный орган (налоговая, ОВД, БДД и т.п.) вынес постановление о наложении штрафа, а Вы с ним не согласны.\n\n⚠️ <b>Срок — 10 дней</b> (с момента получения копии постановления).\n\n🏛 <b>Куда:</b>\nСледственному судье уголовного суда района/города.\n\n📝 <b>Бот спросит:</b>\nваши данные → орган, вынесший постановление → дата постановления → статья МЖтК → причины несогласия → серия и номер постановления → выбор «отменить»/«изменить» → количество прилагаемых документов.`,
+  ),
+  fileNameBase: 'ariza-jinoyat-315',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.text(
+      'penalty_org',
+      L(
+        '🏛 Қарор чиқарган орган',
+        '🏛 Qaror chiqargan organ',
+        '🏛 Орган, вынесший постановление',
+      ),
+      L(
+        'Масалан: Давлат солиқ инспекцияси, ИИБ ЙХХБ',
+        "Masalan: Davlat soliq inspeksiyasi, IIB YXXB",
+        'Например: Государственная налоговая инспекция, ОВД БДД',
+      ),
+    ),
+    F.splitDate(
+      'order_date',
+      L(
+        '📅 Қарор санаси',
+        '📅 Qaror sanasi',
+        '📅 Дата постановления',
+      ),
+      { yearKey: 'order_year', monthKey: 'order_month', dayKey: 'order_day' },
+    ),
+    F.text(
+      'mjtk_article',
+      L(
+        '📑 МЖтК моддаси',
+        '📑 MJtK moddasi',
+        '📑 Статья МЖтК',
+      ),
+      L('Масалан: 128, 184', 'Masalan: 128, 184', 'Например: 128, 184'),
+    ),
+    NARRATIVE(
+      'disagreement_reasons',
+      L(
+        '📝 Норозилик сабаблари',
+        "📝 Norozilik sabablari",
+        '📝 Причины несогласия',
+      ),
+      L(
+        'Нима учун қарор билан рози эмассиз — фактик асосларни кўрсатинг.',
+        "Nima uchun qaror bilan rozi emassiz — faktik asoslarni ko‘rsating.",
+        'Почему Вы не согласны с постановлением — приведите фактические основания.',
+      ),
+    ),
+    F.text(
+      'order_number',
+      L(
+        '🔢 Қарор рақами',
+        '🔢 Qaror raqami',
+        '🔢 Номер постановления',
+      ),
+      L(
+        'Масалан: АА-123456',
+        'Masalan: AA-123456',
+        'Например: АА-123456',
+      ),
+    ),
+    F.choice(
+      'action_type',
+      L(
+        '⚖️ Сўралаётган ҳаракат',
+        '⚖️ So‘ralayotgan harakat',
+        '⚖️ Запрашиваемое действие',
+      ),
+      [
+        {
+          value: 'bekor',
+          label: L('Бекор қилиш', 'Bekor qilish', 'Отменить'),
+        },
+        {
+          value: 'ozgartirish',
+          label: L("Ўзгартириш", "O‘zgartirish", 'Изменить'),
+        },
+      ],
+    ),
+    F.num(
+      'attached_docs_count',
+      L(
+        '📎 Илова ҳужжатлар сони',
+        "📎 Ilova hujjatlar soni",
+        '📎 Количество прилагаемых документов',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14d. JINOYAT — МЖтК 316 (restore missed 10-day appeal deadline)
+ * ============================================================ */
+const T_JIN_316: TemplateDef = {
+  code: 'iltimosnoma-jinoyat-316',
+  category: 'iltimosnoma',
+  courtTypeCode: 'jinoyat',
+  title: L(
+    '⏰ МЖтК 316: муддат тиклаш',
+    "⏰ MJtK 316: muddat tiklash",
+    '⏰ МЖтК 316: восстановить срок',
+  ),
+  subtitle: L(
+    '10 кунлик шикоят муддатини тиклаш',
+    "10 kunlik shikoyat muddatini tiklash",
+    'восстановление 10-дневного срока обжалования',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `⏰ <b>МЖтК 316: 10 кунлик шикоят муддатини тиклаш</b>\n\n📋 <b>Қачон бериш:</b>\nМаъмурий жарима қарори чиққанини кеч билдингиз ёки узрли сабаб (касаллик, командировка ва ҳ.к.) туфайли 10 кунлик муддатни ўтказиб юбордингиз.\n\n🏛 <b>Қаерга:</b>\nЖиноят ишлари бўйича туман/шаҳар судининг тергов судьясига.\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → қарор чиқарган орган → қарор санаси → МЖтК моддаси → қачон ва қандай билдингиз → муддат ўтказиш сабаби.`,
+    `⏰ <b>MJtK 316: 10 kunlik shikoyat muddatini tiklash</b>\n\n📋 <b>Qachon berish:</b>\nMa'muriy jarima qarori chiqqanini kech bildingiz yoki uzrli sabab tufayli 10 kunlik muddatni o‘tkazib yubordingiz.\n\n🏛 <b>Qayerga:</b>\nJinoyat ishlari bo‘yicha tuman/shahar sudining tergov sudyasiga.\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → qaror chiqargan organ → qaror sanasi → MJtK moddasi → qachon va qanday bildingiz → muddat o‘tkazish sababi.`,
+    `⏰ <b>МЖтК 316: восстановление 10-дневного срока обжалования</b>\n\n📋 <b>Когда подавать:</b>\nЕсли узнали о вынесении постановления о штрафе с опозданием или по уважительной причине (болезнь, командировка и т.п.) пропустили 10-дневный срок.\n\n🏛 <b>Куда:</b>\nСледственному судье уголовного суда района/города.\n\n📝 <b>Бот спросит:</b>\nваши данные → орган, вынесший постановление → дата постановления → статья МЖтК → когда и как узнали → причина пропуска срока.`,
+  ),
+  fileNameBase: 'iltimosnoma-jinoyat-316',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.text(
+      'penalty_org',
+      L(
+        '🏛 Қарор чиқарган орган',
+        '🏛 Qaror chiqargan organ',
+        '🏛 Орган, вынесший постановление',
+      ),
+      L(
+        'Масалан: Давлат солиқ инспекцияси, ИИБ ЙХХБ',
+        "Masalan: Davlat soliq inspeksiyasi, IIB YXXB",
+        'Например: Государственная налоговая инспекция, ОВД БДД',
+      ),
+    ),
+    F.splitDate(
+      'order_date',
+      L(
+        '📅 Қарор санаси',
+        '📅 Qaror sanasi',
+        '📅 Дата постановления',
+      ),
+      { yearKey: 'order_year', monthKey: 'order_month', dayKey: 'order_day' },
+    ),
+    F.text(
+      'mjtk_article',
+      L('📑 МЖтК моддаси', '📑 MJtK moddasi', '📑 Статья МЖтК'),
+      L('Масалан: 128, 184', 'Masalan: 128, 184', 'Например: 128, 184'),
+    ),
+    F.splitDate(
+      'learned_date',
+      L(
+        '📅 Қачон билдингиз',
+        "📅 Qachon bildingiz",
+        '📅 Когда узнали',
+      ),
+      { yearKey: 'learned_year', monthKey: 'learned_month', dayKey: 'learned_day' },
+    ),
+    F.text(
+      'learned_how',
+      L(
+        '📨 Қандай билдингиз',
+        '📨 Qanday bildingiz',
+        '📨 Как узнали',
+      ),
+      L(
+        'Масалан: почта орқали хат олдим',
+        "Masalan: pochta orqali xat oldim",
+        'Например: получил письмо по почте',
+      ),
+    ),
+    NARRATIVE(
+      'missing_reason',
+      L(
+        '📝 Муддат ўтказиш сабаби',
+        "📝 Muddat o‘tkazish sababi",
+        '📝 Причина пропуска срока',
+      ),
+      L(
+        'Узрли сабабни кўрсатинг: касаллик, командировка ва бошқалар.',
+        "Uzrli sababni ko‘rsating: kasallik, komandirovka va boshqalar.",
+        'Укажите уважительную причину: болезнь, командировка и т.п.',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14e. JINOYAT — танишув (review case materials)
+ * ============================================================ */
+const T_JIN_TANISH: TemplateDef = {
+  code: 'ariza-jinoyat-tanishuv',
+  category: 'ariza',
+  courtTypeCode: 'jinoyat',
+  title: L(
+    '🔍 Иш ҳужжатлари билан танишув',
+    "🔍 Ish hujjatlari bilan tanishuv",
+    '🔍 Ознакомление с материалами дела',
+  ),
+  subtitle: L(
+    'жиноят/маъмурий иш бўйича',
+    "jinoyat/ma'muriy ish bo‘yicha",
+    'по уголовному/административному делу',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `🔍 <b>Иш ҳужжатлари билан танишув</b>\n\n📋 <b>Қачон бериш:</b>\nСиз кўрилаётган ёки кўрилган жиноят/маъмурий иш бўйича иштирокчисиз (шахсан ёки жабрланувчи орқали) ва иш материаллари билан танишиш керак.\n\n🏛 <b>Қаерга:</b>\nЖиноят ишлари бўйича туман/шаҳар суди раисига.\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → суд раиси Ф.И.Ш. → ўзингиз/жабрланувчи танлови → жабрланувчи Ф.И.Ш. (агар жабрланувчи бўлсангиз) → иш санаси → иш ҳолати (кўрилган/кўрилаётган) → иш тури.`,
+    `🔍 <b>Ish hujjatlari bilan tanishuv</b>\n\n📋 <b>Qachon berish:</b>\nSiz ko‘rilayotgan yoki ko‘rilgan jinoyat/ma'muriy ish bo‘yicha ishtirokchisiz va ish materiallari bilan tanishish kerak.\n\n🏛 <b>Qayerga:</b>\nJinoyat ishlari bo‘yicha tuman/shahar sudi raisiga.\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → sud raisi F.I.SH. → o‘zingiz/jabrlanuvchi tanlovi → jabrlanuvchi F.I.SH. → ish sanasi → ish holati → ish turi.`,
+    `🔍 <b>Ознакомление с материалами дела</b>\n\n📋 <b>Когда подавать:</b>\nВы участник рассматриваемого/рассмотренного уголовного/административного дела (лично или как потерпевший) и хотите ознакомиться с материалами дела.\n\n🏛 <b>Куда:</b>\nПредседателю уголовного суда района/города.\n\n📝 <b>Бот спросит:</b>\nваши данные → ФИО председателя → за себя/как потерпевший → ФИО потерпевшего (если потерпевший) → дата дела → статус дела → тип дела.`,
+  ),
+  fileNameBase: 'ariza-jinoyat-tanishuv',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.text(
+      'chairman_name',
+      L(
+        '👨‍⚖️ Суд раиси Ф.И.Ш.',
+        '👨‍⚖️ Sud raisi F.I.SH.',
+        '👨‍⚖️ Ф.И.О. председателя суда',
+      ),
+      L(
+        'Масалан: С.Расулов',
+        'Masalan: S.Rasulov',
+        'Например: С.Расулов',
+      ),
+    ),
+    F.choice(
+      'party_role',
+      L(
+        '👥 Сиз ишда кимсиз',
+        '👥 Siz ishda kimsiz',
+        '👥 Ваша роль в деле',
+      ),
+      [
+        {
+          value: 'self',
+          label: L('Ўзим', 'O‘zim', 'Я сам(а)'),
+        },
+        {
+          value: 'victim',
+          label: L('Жабрланувчи орқали', "Jabrlanuvchi orqali", 'Через потерпевшего'),
+        },
+      ],
+    ),
+    {
+      ...F.fio(
+        'victim_fio',
+        L(
+          '👤 Жабрланувчи Ф.И.Ш.',
+          "👤 Jabrlanuvchi F.I.SH.",
+          '👤 Ф.И.О. потерпевшего',
+        ),
+      ),
+      skipIf: (v) => v.party_role !== 'victim',
+      skipValue: '—',
+    },
+    F.splitDate(
+      'case_date',
+      L(
+        '📅 Иш санаси',
+        "📅 Ish sanasi",
+        '📅 Дата дела',
+      ),
+      { yearKey: 'case_year', monthKey: 'case_month', dayKey: 'case_day' },
+    ),
+    F.choice(
+      'case_status',
+      L(
+        '📋 Иш ҳолати',
+        "📋 Ish holati",
+        '📋 Статус дела',
+      ),
+      [
+        {
+          value: 'considered',
+          label: L('Кўрилган', "Ko‘rilgan", 'Рассмотрено'),
+        },
+        {
+          value: 'in-progress',
+          label: L('Кўрилаётган', "Ko‘rilayotgan", 'Рассматривается'),
+        },
+      ],
+    ),
+    F.choice(
+      'case_type',
+      L(
+        '⚖️ Иш тури',
+        '⚖️ Ish turi',
+        '⚖️ Тип дела',
+      ),
+      [
+        {
+          value: 'jinoyat',
+          label: L('Жиноят иши', 'Jinoyat ishi', 'Уголовное дело'),
+        },
+        {
+          value: 'mamuriy',
+          label: L(
+            'Маъмурий ҳуқуқбузарлик',
+            "Ma'muriy huquqbuzarlik",
+            'Административное правонарушение',
+          ),
+        },
+      ],
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14f. JINOYAT — appellate / cassation complaint (admin penalty)
+ * ============================================================ */
+const T_JIN_APPEAL: TemplateDef = {
+  code: 'shikoyat-jinoyat-apellyatsiya',
+  category: 'shikoyat',
+  courtTypeCode: 'jinoyat',
+  title: L(
+    '📣 Апелляция/Кассация шикояти',
+    "📣 Apellyatsiya/Kassatsiya shikoyati",
+    '📣 Апелляционная/Кассационная жалоба',
+  ),
+  subtitle: L(
+    'маъмурий жазо қарорига нисбатан',
+    "ma'muriy jazo qaroriga nisbatan",
+    'на решение об административном наказании',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `📣 <b>Апелляция / Кассация шикояти</b>\n\n📋 <b>Қачон бериш:</b>\nТуман/шаҳар суди томонидан Сизга нисбатан маъмурий жазо қўлланди ва Сиз қарор адолатсиз деб ҳисоблайсиз — апелляция (10 кун ичида) ёки кассация инстанциясига шикоят беришингиз мумкин.\n\n🏛 <b>Қаерга:</b>\nВилоят судининг жиноят ишлари бўйича судлов ҳайъатига. <b>Битта суд танлаб қўйинг — областной</b>, чунки шикоят ҳудудий судга юборилади.\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → инстанция (апелляция/кассация) → қарор санаси → МЖтК моддаси → норозилик сабаблари → бошқа далиллар/гувоҳлар.`,
+    `📣 <b>Apellyatsiya / Kassatsiya shikoyati</b>\n\n📋 <b>Qachon berish:</b>\nTuman/shahar sudi tomonidan Sizga nisbatan ma'muriy jazo qo‘llanildi va Siz qaror adolatsiz deb hisoblaysiz — apellyatsiya (10 kun ichida) yoki kassatsiya instansiyasiga shikoyat berishingiz mumkin.\n\n🏛 <b>Qayerga:</b>\nViloyat sudining jinoyat ishlari bo‘yicha sudlov hay'atiga. <b>Sud tanlovida viloyat sudini tanlang.</b>\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → instansiya tanlovi → qaror sanasi → MJtK moddasi → norozilik sabablari → boshqa dalillar/guvohlar.`,
+    `📣 <b>Апелляционная / Кассационная жалоба</b>\n\n📋 <b>Когда подавать:</b>\nЕсли городской/районный уголовный суд назначил Вам административное наказание, а Вы считаете решение несправедливым — можете подать апелляционную (в течение 10 дней) или кассационную жалобу.\n\n🏛 <b>Куда:</b>\nВ судебную коллегию по уголовным делам областного суда. <b>В выборе суда укажите областной суд.</b>\n\n📝 <b>Бот спросит:</b>\nваши данные → выбор инстанции → дата решения → статья МЖтК → причины несогласия → дополнительные доказательства/свидетели.`,
+  ),
+  fileNameBase: 'shikoyat-jinoyat-apellyatsiya',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.choice(
+      'instance_type',
+      L(
+        '⚖️ Инстанция',
+        '⚖️ Instansiya',
+        '⚖️ Инстанция',
+      ),
+      [
+        {
+          value: 'apellyatsiya',
+          label: L('Апелляция', 'Apellyatsiya', 'Апелляционная'),
+        },
+        {
+          value: 'kassatsiya',
+          label: L('Кассация', 'Kassatsiya', 'Кассационная'),
+        },
+      ],
+    ),
+    F.text(
+      'lower_court_name',
+      L(
+        '🏛 Қарор чиқарган суд',
+        '🏛 Qaror chiqargan sud',
+        '🏛 Суд, вынесший решение',
+      ),
+      L(
+        'Масалан: Жиноят ишлари бўйича Жиззах шаҳар суди',
+        "Masalan: Jinoyat ishlari bo‘yicha Jizzax shahar sudi",
+        'Например: Уголовный суд города Джизак',
+      ),
+    ),
+    F.splitDate(
+      'order_date',
+      L(
+        '📅 Қарор санаси',
+        '📅 Qaror sanasi',
+        '📅 Дата решения',
+      ),
+      { yearKey: 'order_year', monthKey: 'order_month', dayKey: 'order_day' },
+    ),
+    F.text(
+      'mjtk_article',
+      L('📑 МЖтК моддаси', '📑 MJtK moddasi', '📑 Статья МЖтК'),
+      L('Масалан: 128, 184', 'Masalan: 128, 184', 'Например: 128, 184'),
+    ),
+    NARRATIVE(
+      'disagreement_reasons',
+      L(
+        '📝 Норозилик сабаблари',
+        "📝 Norozilik sabablari",
+        '📝 Причины несогласия',
+      ),
+      L(
+        'Нима учун суд қарори адолатсиз — асосларни кўрсатинг.',
+        "Nima uchun sud qarori adolatsiz — asoslarni ko‘rsating.",
+        'Почему решение суда несправедливо — приведите основания.',
+      ),
+    ),
+    NARRATIVE(
+      'additional_evidence',
+      L(
+        '🔎 Бошқа далиллар/гувоҳлар',
+        "🔎 Boshqa dalillar/guvohlar",
+        '🔎 Дополнительные доказательства/свидетели',
+      ),
+      L(
+        'Бўлса кўрсатинг, бўлмаса “йўқ” деб ёзинг.',
+        "Bo‘lsa ko‘rsating, bo‘lmasa “yo‘q” deb yozing.",
+        'Если есть — укажите, если нет — напишите «нет».',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14g. JINOYAT — МЖтК 324³ (restore appellate deadline)
+ * ============================================================ */
+const T_JIN_3243: TemplateDef = {
+  code: 'iltimosnoma-jinoyat-3243',
+  category: 'iltimosnoma',
+  courtTypeCode: 'jinoyat',
+  title: L(
+    '⏰ МЖтК 324³: апелляция муддатини тиклаш',
+    "⏰ MJtK 324³: apellyatsiya muddatini tiklash",
+    '⏰ МЖтК 324³: восстановить срок апелляции',
+  ),
+  subtitle: L(
+    '10 суткалик апелляция шикоят муддати',
+    "10 sutkalik apellyatsiya shikoyat muddati",
+    '10-суточный срок апелляционного обжалования',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `⏰ <b>МЖтК 324³: апелляция шикоят муддатини тиклаш</b>\n\n📋 <b>Қачон бериш:</b>\nТуман/шаҳар суди томонидан Сизга нисбатан маъмурий жазо қўлланди, лекин 10 суткалик апелляция шикоят муддатини узрли сабаб (касаллик, командировка ва ҳ.к.) туфайли ўтказиб юбордингиз.\n\n🏛 <b>Қаерга:</b>\nҚарор чиқарган туман/шаҳар судининг тергов судьясига.\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → қарор санаси → МЖтК моддаси → қачон ва қандай билдингиз → муддат ўтказиш сабаби.`,
+    `⏰ <b>MJtK 324³: apellyatsiya shikoyat muddatini tiklash</b>\n\n📋 <b>Qachon berish:</b>\nTuman/shahar sudi tomonidan Sizga nisbatan ma'muriy jazo qo‘llanildi, lekin 10 sutkalik apellyatsiya shikoyat muddatini uzrli sabab tufayli o‘tkazib yubordingiz.\n\n🏛 <b>Qayerga:</b>\nQaror chiqargan tuman/shahar sudining tergov sudyasiga.\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → qaror sanasi → MJtK moddasi → qachon va qanday bildingiz → muddat o‘tkazish sababi.`,
+    `⏰ <b>МЖтК 324³: восстановление срока апелляционного обжалования</b>\n\n📋 <b>Когда подавать:</b>\nГородским/районным судом Вам назначено административное наказание, но Вы пропустили 10-суточный срок апелляции по уважительной причине (болезнь, командировка и т.п.).\n\n🏛 <b>Куда:</b>\nСледственному судье уголовного суда, вынесшего решение.\n\n📝 <b>Бот спросит:</b>\nваши данные → дата решения → статья МЖтК → когда и как узнали → причина пропуска срока.`,
+  ),
+  fileNameBase: 'iltimosnoma-jinoyat-3243',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.splitDate(
+      'order_date',
+      L(
+        '📅 Қарор санаси',
+        '📅 Qaror sanasi',
+        '📅 Дата решения',
+      ),
+      { yearKey: 'order_year', monthKey: 'order_month', dayKey: 'order_day' },
+    ),
+    F.text(
+      'mjtk_article',
+      L('📑 МЖтК моддаси', '📑 MJtK moddasi', '📑 Статья МЖтК'),
+      L('Масалан: 128, 184', 'Masalan: 128, 184', 'Например: 128, 184'),
+    ),
+    F.splitDate(
+      'learned_date',
+      L(
+        '📅 Қачон билдингиз',
+        "📅 Qachon bildingiz",
+        '📅 Когда узнали',
+      ),
+      { yearKey: 'learned_year', monthKey: 'learned_month', dayKey: 'learned_day' },
+    ),
+    F.text(
+      'learned_how',
+      L(
+        '📨 Қандай билдингиз',
+        '📨 Qanday bildingiz',
+        '📨 Как узнали',
+      ),
+      L(
+        'Масалан: почта орқали хат олдим',
+        "Masalan: pochta orqali xat oldim",
+        'Например: получил письмо по почте',
+      ),
+    ),
+    NARRATIVE(
+      'missing_reason',
+      L(
+        '📝 Муддат ўтказиш сабаби',
+        "📝 Muddat o‘tkazish sababi",
+        '📝 Причина пропуска срока',
+      ),
+      L(
+        'Узрли сабабни кўрсатинг: касаллик, командировка ва бошқалар.',
+        "Uzrli sababni ko‘rsating: kasallik, komandirovka va boshqalar.",
+        'Укажите уважительную причину: болезнь, командировка и т.п.',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
  * 15. Янги очилган ҳолат бўйича бекор қилиш (annul - new circumstances)
  * ============================================================ */
 const T_YANGI_HOLAT: TemplateDef = {
@@ -1446,6 +1948,11 @@ export const TEMPLATES: TemplateDef[] = [
   T_PUL,
   T_NUSHA,
   T_JIN_NUSHA,
+  T_JIN_315,
+  T_JIN_316,
+  T_JIN_TANISH,
+  T_JIN_APPEAL,
+  T_JIN_3243,
   T_YANGI_HOLAT,
   T_KECHIKTIRISH,
   T_APELLATSIYA,
