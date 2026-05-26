@@ -2445,6 +2445,677 @@ const T_MAM_PRISTAV: TemplateDef = {
 };
 
 /* ============================================================
+ * 14o. IQTISODIY — суд буйруғи бериш (writ-of-payment application)
+ * ============================================================ */
+const T_IQT_SUD_BUYRUG: TemplateDef = {
+  code: 'ariza-iqtisodiy-sud-buyrug',
+  category: 'ariza',
+  courtTypeCode: 'iqtisodiy',
+  title: L(
+    '⚖️ Суд буйруғи бериш',
+    "⚖️ Sud buyrug‘i berish",
+    '⚖️ Выдача судебного приказа',
+  ),
+  subtitle: L(
+    'қарзни ундириш бўйича',
+    "qarzni undirish bo‘yicha",
+    'о взыскании задолженности',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `⚖️ <b>Суд буйруғи бериш тўғрисидаги ариза</b>\n\n📋 <b>Қачон бериш:</b>\nЎзаро шартномавий муносабатларда қарзнинг борлиги ва миқдори тарафлар томонидан тан олинган, лекин қарздор тўлашдан бош тортса. Кредитор тезкор процедурада қарзни ундиришни сўрайди.\n\n📜 <b>Қонуний асос:</b>\nИқтисодий процессуал кодексининг 135-138-моддалари.\n\n🏛 <b>Қаерга:</b>\nҚарздорнинг жойлашган ери бўйича туманлараро иқтисодий судига.\n\n📎 <b>Илова қилинадиган ҳужжатлар:</b>\n• Талабни тасдиқловчи асосий ҳужжатлар (шартнома, ҳисоб-фактура, далолатнома)\n• Тўлов амалга оширилмаганлигини тасдиқловчи маълумотномалар\n• Давлат божи тўлов квитанцияси\n• Почта харажатлари квитанцияси\n\n📝 <b>Бот сўрайди:</b>\nКредитор маълумотлари (МЧЖ/ЯТТ, манзил, СТИР) → қарздор маълумотлари → қонуний асос → ҳолатлар → далиллар → сумма ҳисоб-китоби → қарздорлик даври → талаб.`,
+    `⚖️ <b>Sud buyrug‘i berish to‘g‘risidagi ariza</b>\n\n📋 <b>Qachon berish:</b>\nO‘zaro shartnomaviy munosabatlarda qarzning borligi va miqdori taraflar tomonidan tan olingan, lekin qarzdor to‘lashdan bosh tortsa.\n\n📜 <b>Qonuniy asos:</b>\nIqtisodiy protsessual kodeksining 135-138-moddalari.\n\n🏛 <b>Qayerga:</b>\nQarzdorning joylashgan eri bo‘yicha tumanlararo iqtisodiy sudiga.\n\n📝 <b>Bot so‘raydi:</b>\nKreditor ma'lumotlari (MChJ/YaTT, manzil, STIR) → qarzdor ma'lumotlari → qonuniy asos → holatlar → dalillar → summa hisob-kitobi → qarzdorlik davri → talab.`,
+    `⚖️ <b>Заявление о выдаче судебного приказа</b>\n\n📋 <b>Когда подавать:</b>\nЕсли наличие и размер задолженности признаются сторонами по договорным отношениям, но должник отказывается платить. Кредитор использует ускоренную процедуру взыскания.\n\n📜 <b>Правовое основание:</b>\nст. 135-138 Экономического процессуального кодекса.\n\n🏛 <b>Куда:</b>\nВ межрайонный экономический суд по месту нахождения должника.\n\n📎 <b>Документы:</b>\n• Подтверждающие требование (договор, счёт-фактура, акт)\n• Справки о неоплате\n• Квитанция о госпошлине\n• Квитанция о почтовых расходах\n\n📝 <b>Бот спросит:</b>\nданные кредитора (юр.лицо/ИП, адрес, СТИР) → данные должника → правовое основание → обстоятельства → доказательства → расчёт суммы → период задолженности → требование.`,
+  ),
+  fileNameBase: 'ariza-iqtisodiy-sud-buyrug',
+  fields: [
+    F.text(
+      'plaintiff_name',
+      L(
+        '🏢 Кредитор номи',
+        "🏢 Kreditor nomi",
+        '🏢 Наименование кредитора',
+      ),
+      L(
+        'Масалан: "ALFA-TRADE" МЧЖ',
+        "Masalan: \"ALFA-TRADE\" MChJ",
+        'Например: ООО «АЛЬФА-ТРЕЙД»',
+      ),
+    ),
+    F.address(
+      'plaintiff_address',
+      L(
+        '🏠 Кредитор манзили',
+        "🏠 Kreditor manzili",
+        '🏠 Адрес кредитора',
+      ),
+    ),
+    F.stir(
+      'plaintiff_stir',
+      L(
+        '🔢 Кредитор СТИРи',
+        "🔢 Kreditor STIRi",
+        '🔢 СТИР кредитора',
+      ),
+    ),
+    F.text(
+      'defendant_name',
+      L(
+        '🏢 Қарздор номи',
+        "🏢 Qarzdor nomi",
+        '🏢 Наименование должника',
+      ),
+      L(
+        'Масалан: "BETA-LOGISTIC" МЧЖ',
+        "Masalan: \"BETA-LOGISTIC\" MChJ",
+        'Например: ООО «БЕТА-ЛОГИСТИК»',
+      ),
+    ),
+    F.address(
+      'defendant_address',
+      L(
+        '🏠 Қарздор манзили',
+        "🏠 Qarzdor manzili",
+        '🏠 Адрес должника',
+      ),
+    ),
+    F.stir(
+      'defendant_stir',
+      L(
+        '🔢 Қарздор СТИРи',
+        "🔢 Qarzdor STIRi",
+        '🔢 СТИР должника',
+      ),
+    ),
+    F.text(
+      'legal_basis',
+      L(
+        '📜 Қонуний асос (талаб)',
+        "📜 Qonuniy asos (talab)",
+        '📜 Правовое основание требования',
+      ),
+      L(
+        'Масалан: 2023-йил 12-март N123 шартнома',
+        "Masalan: 2023-yil 12-mart N123 shartnoma",
+        'Например: договор от 12.03.2023 № 123',
+      ),
+    ),
+    NARRATIVE(
+      'factual_basis',
+      L(
+        '📝 Талабга асос бўлган ҳолатлар',
+        "📝 Talabga asos bo‘lgan holatlar",
+        '📝 Обстоятельства, лежащие в основе требования',
+      ),
+      L(
+        'Қачон, нима учун қарз пайдо бўлди.',
+        "Qachon, nima uchun qarz paydo bo‘ldi.",
+        'Когда и почему возникла задолженность.',
+      ),
+    ),
+    NARRATIVE(
+      'evidence',
+      L(
+        '📑 Далиллар',
+        "📑 Dalillar",
+        '📑 Доказательства',
+      ),
+      L(
+        'Қандай ҳужжатлар талабни тасдиқлайди (шартнома, ҳисоб-фактура, далолатнома).',
+        "Qanday hujjatlar talabni tasdiqlaydi.",
+        'Какие документы подтверждают требование (договор, счёт-фактура, акт).',
+      ),
+    ),
+    NARRATIVE(
+      'calculation',
+      L(
+        '🧮 Сумма ҳисоб-китоби',
+        "🧮 Summa hisob-kitobi",
+        '🧮 Расчёт суммы',
+      ),
+      L(
+        'Асосий қарз, пенялар, фоиз — ҳар бирини алоҳида.',
+        "Asosiy qarz, penyalar, foiz — har birini alohida.",
+        'Основной долг, пени, проценты — каждое отдельно.',
+      ),
+    ),
+    F.text(
+      'debt_period',
+      L(
+        '📅 Қарздорлик даври',
+        "📅 Qarzdorlik davri",
+        '📅 Период задолженности',
+      ),
+      L(
+        'Масалан: 2023 йил январ–март',
+        "Masalan: 2023 yil yanvar–mart",
+        'Например: январь–март 2023',
+      ),
+    ),
+    F.money(
+      'requested_amount',
+      L(
+        '💰 Ундирилаётган сумма (сўм)',
+        "💰 Undirilayotgan summa (so‘m)",
+        '💰 Запрашиваемая сумма (сум)',
+      ),
+    ),
+    F.text(
+      'director_fio',
+      L(
+        '👤 Раҳбар Ф.И.Ш.',
+        '👤 Rahbar F.I.SH.',
+        '👤 Ф.И.О. руководителя',
+      ),
+      L('Масалан: А.А.Каримов', 'Masalan: A.A.Karimov', 'Например: А.А.Каримов'),
+    ),
+    F.text(
+      'attachments_list',
+      L(
+        '📎 Иловалар рўйхати',
+        "📎 Ilovalar ro‘yxati",
+        '📎 Перечень приложений',
+      ),
+      L(
+        'Қисқа рўйхат: 1) ... 2) ... 3) ...',
+        "Qisqa ro‘yxat: 1) ... 2) ... 3) ...",
+        'Краткий перечень: 1) ... 2) ... 3) ...',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14p. IQTISODIY — ижро варақасини тиклаш + дубликат (ИПК 340-341)
+ * ============================================================ */
+const T_IQT_IJRO_TIKLA: TemplateDef = {
+  code: 'ariza-iqtisodiy-ijro-tiklash',
+  category: 'ariza',
+  courtTypeCode: 'iqtisodiy',
+  title: L(
+    '📜 Ижро варақаси муддатини тиклаш',
+    "📜 Ijro varaqasi muddatini tiklash",
+    '📜 Восстановление срока исполлиста',
+  ),
+  subtitle: L(
+    '+ дубликат бериш',
+    "+ dublikat berish",
+    '+ выдача дубликата',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `📜 <b>Ижро варақасини ижрога тақдим этиш муддатини тиклаш ва дубликатини бериш</b>\n\n📋 <b>Қачон бериш:</b>\nИқтисодий суд аввал ҳал қилув қарорини чиқарган ва ижро варақаси берилган, лекин Сиз уни ижрога тақдим этиш муддатини узрли сабабларга кўра ўтказиб юбордингиз ёки ижро варақаси йўқолди.\n\n📜 <b>Қонуний асос:</b>\nИқтисодий процессуал кодексининг 340-341-моддалари.\n\n🏛 <b>Қаерга:</b>\nИжро варақасини чиқарган иқтисодий судига.\n\n📝 <b>Бот сўрайди:</b>\nДаъвогар маълумотлари → жавобгар → суд номи → иш рақами → ижро варақаси санаси → муддат ўтказиш сабаби.`,
+    `📜 <b>Ijro varaqasi ijroga taqdim etish muddatini tiklash va dublikat berish</b>\n\n📋 <b>Qachon berish:</b>\nIqtisodiy sud avval hal qilish qarorini chiqargan va ijro varaqasi berilgan, lekin Siz uni ijroga taqdim etish muddatini uzrli sabablarga ko‘ra o‘tkazib yubordingiz yoki ijro varaqasi yo‘qoldi.\n\n📜 <b>Qonuniy asos:</b>\nIqtisodiy protsessual kodeksining 340-341-moddalari.\n\n🏛 <b>Qayerga:</b>\nIjro varaqasini chiqargan iqtisodiy sudiga.\n\n📝 <b>Bot so‘raydi:</b>\nDa'vogar ma'lumotlari → javobgar → sud nomi → ish raqami → ijro varaqasi sanasi → muddat o‘tkazish sababi.`,
+    `📜 <b>Восстановление срока предъявления исполлиста + выдача дубликата</b>\n\n📋 <b>Когда подавать:</b>\nЭкономический суд ранее вынес решение и выдал исполнительный лист, но Вы пропустили срок его предъявления к исполнению по уважительной причине либо исполлист утерян.\n\n📜 <b>Правовое основание:</b>\nст. 340-341 Экономического процессуального кодекса.\n\n🏛 <b>Куда:</b>\nВ тот же экономический суд, который вынес решение.\n\n📝 <b>Бот спросит:</b>\nданные взыскателя → должник → название суда → номер дела → дата исполлиста → причина пропуска срока.`,
+  ),
+  fileNameBase: 'ariza-iqtisodiy-ijro-tiklash',
+  fields: [
+    F.text(
+      'plaintiff_name',
+      L(
+        '🏢 Даъвогар номи',
+        "🏢 Da'vogar nomi",
+        '🏢 Наименование взыскателя',
+      ),
+      L(
+        'Масалан: "ALFA-TRADE" МЧЖ',
+        "Masalan: \"ALFA-TRADE\" MChJ",
+        'Например: ООО «АЛЬФА-ТРЕЙД»',
+      ),
+    ),
+    F.address(
+      'plaintiff_address',
+      L(
+        '🏠 Даъвогар манзили',
+        "🏠 Da'vogar manzili",
+        '🏠 Адрес взыскателя',
+      ),
+    ),
+    F.text(
+      'defendant_name',
+      L(
+        '🏢 Жавобгар номи',
+        "🏢 Javobgar nomi",
+        '🏢 Наименование должника',
+      ),
+    ),
+    F.address(
+      'defendant_address',
+      L(
+        '🏠 Жавобгар манзили',
+        "🏠 Javobgar manzili",
+        '🏠 Адрес должника',
+      ),
+    ),
+    F.text(
+      'issuing_court_name',
+      L(
+        '🏛 Иш қаралган суд номи',
+        "🏛 Ish qaralgan sud nomi",
+        '🏛 Название суда, вынесшего решение',
+      ),
+      L(
+        'Масалан: Жиззах туманлараро иқтисодий суди',
+        "Masalan: Jizzax tumanlararo iqtisodiy sudi",
+        'Например: Джизакский межрайонный экономический суд',
+      ),
+    ),
+    F.text(
+      'case_number',
+      L(
+        '🔢 Иш рақами',
+        '🔢 Ish raqami',
+        '🔢 Номер дела',
+      ),
+      L(
+        'Масалан: 1304-2301/1234',
+        "Masalan: 1304-2301/1234",
+        'Например: 1304-2301/1234',
+      ),
+    ),
+    F.splitDate(
+      'writ_date',
+      L(
+        '📅 Ижро варақаси санаси',
+        "📅 Ijro varaqasi sanasi",
+        '📅 Дата исполлиста',
+      ),
+      { yearKey: 'writ_year', monthKey: 'writ_month', dayKey: 'writ_day' },
+    ),
+    NARRATIVE(
+      'missing_reason',
+      L(
+        '📝 Муддат ўтказиш сабаби',
+        "📝 Muddat o‘tkazish sababi",
+        '📝 Причина пропуска срока',
+      ),
+      L(
+        'Узрли сабабни тавсифланг.',
+        "Uzrli sababni tavsiflang.",
+        'Опишите уважительную причину.',
+      ),
+    ),
+    F.text(
+      'director_fio',
+      L(
+        '👤 Раҳбар Ф.И.Ш.',
+        '👤 Rahbar F.I.SH.',
+        '👤 Ф.И.О. руководителя',
+      ),
+    ),
+    F.text(
+      'attachments_list',
+      L(
+        '📎 Иловалар рўйхати',
+        "📎 Ilovalar ro‘yxati",
+        '📎 Перечень приложений',
+      ),
+      L(
+        'Қисқа рўйхат: 1) ... 2) ... 3) ...',
+        "Qisqa ro‘yxat: 1) ... 2) ... 3) ...",
+        'Краткий перечень: 1) ... 2) ... 3) ...',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14q. IQTISODIY — апелляция шикояти (ИПК 259-265)
+ * ============================================================ */
+const T_IQT_APELL: TemplateDef = {
+  code: 'shikoyat-iqtisodiy-apellyatsiya',
+  category: 'shikoyat',
+  courtTypeCode: 'iqtisodiy',
+  title: L(
+    '⚖️ Апелляция шикояти',
+    "⚖️ Apellyatsiya shikoyati",
+    '⚖️ Апелляционная жалоба',
+  ),
+  subtitle: L(
+    'иқтисодий иш бўйича',
+    "iqtisodiy ish bo‘yicha",
+    'по экономическому делу',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `⚖️ <b>Апелляция шикояти — иқтисодий иш бўйича</b>\n\n📋 <b>Қачон бериш:</b>\nТуманлараро иқтисодий суди томонидан чиқарилган ҳал қилув қароридан рози бўлмасангиз — апелляция инстанциясига шикоят берасиз. Муддат — ҳал қилув қарори чиққан кундан 1 ой.\n\n📜 <b>Қонуний асос:</b>\nИқтисодий процессуал кодексининг 259-265-моддалари.\n\n🏛 <b>Қаерга:</b>\nҲал қилув қарорини чиқарган суднинг устидаги вилоят суди апелляция инстанциясига. <b>Суд танлашда вилоят судини танланг.</b>\n\n📝 <b>Бот сўрайди:</b>\nШикоят берувчи маълумотлари → жавобгар → ҳал қилув қарорини қабул қилган суд → иш рақами ва ҳал қилув санаси → низо предмети → норозилик асослари → шикоят талаблари → иловалар.`,
+    `⚖️ <b>Apellyatsiya shikoyati — iqtisodiy ish bo‘yicha</b>\n\n📋 <b>Qachon berish:</b>\nTumanlararo iqtisodiy sudi tomonidan chiqarilgan hal qilish qaroridan rozi bo‘lmasangiz — apellyatsiya instansiyasiga shikoyat berasiz.\n\n📜 <b>Qonuniy asos:</b>\nIqtisodiy protsessual kodeksining 259-265-moddalari.\n\n🏛 <b>Qayerga:</b>\nHal qilish qarorini chiqargan sudning ustidagi viloyat sudi apellyatsiya instansiyasiga.\n\n📝 <b>Bot so‘raydi:</b>\nShikoyat beruvchi ma'lumotlari → javobgar → hal qilish qarorini qabul qilgan sud → ish raqami va sana → nizo predmeti → norozilik asoslari → shikoyat talablari → ilovalar.`,
+    `⚖️ <b>Апелляционная жалоба — по экономическому делу</b>\n\n📋 <b>Когда подавать:</b>\nЕсли Вы не согласны с решением межрайонного экономического суда — подаёте жалобу в апелляционную инстанцию. Срок — 1 месяц со дня вынесения решения.\n\n📜 <b>Правовое основание:</b>\nст. 259-265 Экономического процессуального кодекса.\n\n🏛 <b>Куда:</b>\nВ апелляционную инстанцию областного суда. <b>В выборе суда укажите областной суд.</b>\n\n📝 <b>Бот спросит:</b>\nданные подателя жалобы → ответчик → суд, вынесший решение → номер дела и дата решения → предмет спора → основания несогласия → требования жалобы → приложения.`,
+  ),
+  fileNameBase: 'shikoyat-iqtisodiy-apellyatsiya',
+  fields: [
+    F.text(
+      'plaintiff_name',
+      L(
+        '🏢 Шикоят берувчи (юр./ЯТТ/жис.шахс) номи',
+        "🏢 Shikoyat beruvchi nomi",
+        '🏢 Наименование подателя жалобы',
+      ),
+      L(
+        'Масалан: "ALFA-TRADE" МЧЖ ёки Иванов И.И.',
+        "Masalan: \"ALFA-TRADE\" MChJ yoki Ivanov I.I.",
+        'Например: ООО «АЛЬФА-ТРЕЙД» или Иванов И.И.',
+      ),
+    ),
+    F.address(
+      'plaintiff_address',
+      L(
+        '🏠 Шикоят берувчи манзили',
+        "🏠 Shikoyat beruvchi manzili",
+        '🏠 Адрес подателя жалобы',
+      ),
+    ),
+    F.text(
+      'defendant_name',
+      L(
+        '🏢 Жавобгар номи',
+        "🏢 Javobgar nomi",
+        '🏢 Наименование ответчика',
+      ),
+    ),
+    F.address(
+      'defendant_address',
+      L(
+        '🏠 Жавобгар манзили',
+        "🏠 Javobgar manzili",
+        '🏠 Адрес ответчика',
+      ),
+    ),
+    F.text(
+      'lower_court_name',
+      L(
+        '🏛 Қарор чиқарган суд',
+        '🏛 Qaror chiqargan sud',
+        '🏛 Суд, вынесший решение',
+      ),
+      L(
+        'Масалан: Дўстлик туманлараро иқтисодий суди',
+        "Masalan: Doʻstlik tumanlararo iqtisodiy sudi",
+        'Например: Дустликский межрайонный экономический суд',
+      ),
+    ),
+    F.text(
+      'case_number',
+      L(
+        '🔢 Иш рақами',
+        '🔢 Ish raqami',
+        '🔢 Номер дела',
+      ),
+      L('Масалан: 1304-2301/1234', "Masalan: 1304-2301/1234", 'Например: 1304-2301/1234'),
+    ),
+    F.splitDate(
+      'ruling_date',
+      L(
+        '📅 Ҳал қилув қарори санаси',
+        "📅 Hal qilish qarori sanasi",
+        '📅 Дата решения',
+      ),
+      { yearKey: 'ruling_year', monthKey: 'ruling_month', dayKey: 'ruling_day' },
+    ),
+    F.text(
+      'dispute_subject',
+      L(
+        '⚖️ Низо предмети',
+        "⚖️ Nizo predmeti",
+        '⚖️ Предмет спора',
+      ),
+      L(
+        'Масалан: қарзни ундириш',
+        "Masalan: qarzni undirish",
+        'Например: взыскание задолженности',
+      ),
+    ),
+    NARRATIVE(
+      'appeal_grounds',
+      L(
+        '📝 Норозилик асослари',
+        "📝 Norozilik asoslari",
+        '📝 Основания несогласия',
+      ),
+      L(
+        'Қандай қонун ва норматив-ҳуқуқий ҳужжатларга ҳавола қилган ҳолда қарор нотўғри.',
+        "Qanday qonun va normativ-huquqiy hujjatlarga havola qilgan holda qaror noto‘g‘ri.",
+        'С ссылкой на нормы права — почему решение неверно.',
+      ),
+    ),
+    NARRATIVE(
+      'appeal_requests',
+      L(
+        '✅ Шикоят талаблари',
+        "✅ Shikoyat talablari",
+        '✅ Требования жалобы',
+      ),
+      L(
+        'Масалан: 1) қарорни бекор қилиш; 2) янги қарор чиқариш.',
+        "Masalan: 1) qarorni bekor qilish; 2) yangi qaror chiqarish.",
+        'Например: 1) отменить решение; 2) принять новое.',
+      ),
+    ),
+    F.text(
+      'director_fio',
+      L(
+        '👤 Раҳбар Ф.И.Ш.',
+        '👤 Rahbar F.I.SH.',
+        '👤 Ф.И.О. руководителя',
+      ),
+    ),
+    F.text(
+      'attachments_list',
+      L(
+        '📎 Иловалар рўйхати',
+        "📎 Ilovalar ro‘yxati",
+        '📎 Перечень приложений',
+      ),
+      L(
+        'Қисқа рўйхат: 1) ... 2) ... 3) ...',
+        "Qisqa ro‘yxat: 1) ... 2) ... 3) ...",
+        'Краткий перечень: 1) ... 2) ... 3) ...',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14r. IQTISODIY — кассация шикояти (cassation complaint)
+ * ============================================================ */
+const T_IQT_KASS: TemplateDef = {
+  code: 'shikoyat-iqtisodiy-kassatsiya',
+  category: 'shikoyat',
+  courtTypeCode: 'iqtisodiy',
+  title: L(
+    '⚖️ Кассация шикояти',
+    "⚖️ Kassatsiya shikoyati",
+    '⚖️ Кассационная жалоба',
+  ),
+  subtitle: L(
+    'иқтисодий иш бўйича',
+    "iqtisodiy ish bo‘yicha",
+    'по экономическому делу',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `⚖️ <b>Кассация шикояти — иқтисодий иш бўйича</b>\n\n📋 <b>Қачон бериш:</b>\nАпелляция инстанцияси чиқарган ҳал қилув қароридан рози бўлмасангиз, кассация шикоят берасиз. Шикоятга банк реквизитлари (х/р, МФО, СТИР) кўрсатилади.\n\n🏛 <b>Қаерга:</b>\nВилоят суди кассация инстанциясига. <b>Суд танлашда вилоят судини танланг.</b>\n\n📝 <b>Бот сўрайди:</b>\nДаъвогар (МЧЖ/ЯТТ) маълумотлари + банк реквизитлари → жавобгар + банк реквизитлари → қуйи суд номи → иш рақами ва ҳал қилув санаси → иш мазмуни (қисқача) → норозилик асослари → давлат божи ва почта харажати → раҳбар Ф.И.Ш.`,
+    `⚖️ <b>Kassatsiya shikoyati — iqtisodiy ish bo‘yicha</b>\n\n📋 <b>Qachon berish:</b>\nApellyatsiya instansiyasi chiqargan hal qilish qaroridan rozi bo‘lmasangiz, kassatsiya shikoyat berasiz.\n\n🏛 <b>Qayerga:</b>\nViloyat sudi kassatsiya instansiyasiga.\n\n📝 <b>Bot so‘raydi:</b>\nDa'vogar ma'lumotlari + bank rekvizitlari → javobgar → quyi sud nomi → ish raqami va sana → ish mazmuni → norozilik asoslari → davlat boji va pochta xarajati → rahbar F.I.SH.`,
+    `⚖️ <b>Кассационная жалоба — по экономическому делу</b>\n\n📋 <b>Когда подавать:</b>\nЕсли Вы не согласны с решением апелляционной инстанции — подаёте кассационную жалобу. В жалобе указываются банковские реквизиты сторон (р/с, МФО, СТИР).\n\n🏛 <b>Куда:</b>\nВ кассационную инстанцию областного суда.\n\n📝 <b>Бот спросит:</b>\nданные истца (юр.лицо/ИП) + банк → данные ответчика + банк → нижестоящий суд → номер дела и дата решения → краткое содержание дела → основания несогласия → госпошлина и почтовые расходы → ФИО руководителя.`,
+  ),
+  fileNameBase: 'shikoyat-iqtisodiy-kassatsiya',
+  fields: [
+    F.text(
+      'plaintiff_name',
+      L(
+        '🏢 Даъвогар номи (МЧЖ/ЯТТ)',
+        "🏢 Da'vogar nomi (MChJ/YaTT)",
+        '🏢 Наименование истца',
+      ),
+      L(
+        'Масалан: "ALFA-TRADE" МЧЖ',
+        "Masalan: \"ALFA-TRADE\" MChJ",
+        'Например: ООО «АЛЬФА-ТРЕЙД»',
+      ),
+    ),
+    F.address(
+      'plaintiff_address',
+      L(
+        '🏠 Даъвогар манзили',
+        "🏠 Da'vogar manzili",
+        '🏠 Адрес истца',
+      ),
+    ),
+    F.text(
+      'plaintiff_bank_account',
+      L(
+        '🏦 Даъвогар х/р',
+        "🏦 Da'vogar x/r",
+        '🏦 Р/с истца',
+      ),
+      L(
+        'Хисоб рақами (банкда)',
+        "Hisob raqami (bankda)",
+        'Расчётный счёт в банке',
+      ),
+    ),
+    F.text(
+      'plaintiff_mfo',
+      L(
+        '🏦 Даъвогар банки МФО',
+        "🏦 Da'vogar banki MFO",
+        '🏦 МФО банка истца',
+      ),
+      L('Масалан: 00440', "Masalan: 00440", 'Например: 00440'),
+    ),
+    F.stir(
+      'plaintiff_stir',
+      L(
+        '🔢 Даъвогар СТИРи',
+        "🔢 Da'vogar STIRi",
+        '🔢 СТИР истца',
+      ),
+    ),
+    F.text(
+      'defendant_name',
+      L(
+        '🏢 Жавобгар номи',
+        "🏢 Javobgar nomi",
+        '🏢 Наименование ответчика',
+      ),
+    ),
+    F.address(
+      'defendant_address',
+      L(
+        '🏠 Жавобгар манзили',
+        "🏠 Javobgar manzili",
+        '🏠 Адрес ответчика',
+      ),
+    ),
+    F.text(
+      'defendant_bank_account',
+      L(
+        '🏦 Жавобгар х/р',
+        "🏦 Javobgar x/r",
+        '🏦 Р/с ответчика',
+      ),
+    ),
+    F.text(
+      'defendant_mfo',
+      L(
+        '🏦 Жавобгар банки МФО',
+        "🏦 Javobgar banki MFO",
+        '🏦 МФО банка ответчика',
+      ),
+    ),
+    F.stir(
+      'defendant_stir',
+      L(
+        '🔢 Жавобгар СТИРи',
+        "🔢 Javobgar STIRi",
+        '🔢 СТИР ответчика',
+      ),
+    ),
+    F.text(
+      'lower_court_name',
+      L(
+        '🏛 Қарор чиқарган суд',
+        '🏛 Qaror chiqargan sud',
+        '🏛 Суд, вынесший решение',
+      ),
+      L(
+        'Масалан: Дўстлик туманлараро иқтисодий суди',
+        "Masalan: Doʻstlik tumanlararo iqtisodiy sudi",
+        'Например: Дустликский межрайонный экономический суд',
+      ),
+    ),
+    F.text(
+      'case_number',
+      L(
+        '🔢 Иш рақами',
+        '🔢 Ish raqami',
+        '🔢 Номер дела',
+      ),
+      L('Масалан: 1304-2301/1234', "Masalan: 1304-2301/1234", 'Например: 1304-2301/1234'),
+    ),
+    F.splitDate(
+      'ruling_date',
+      L(
+        '📅 Ҳал қилув қарори санаси',
+        "📅 Hal qilish qarori sanasi",
+        '📅 Дата решения',
+      ),
+      { yearKey: 'ruling_year', monthKey: 'ruling_month', dayKey: 'ruling_day' },
+    ),
+    NARRATIVE(
+      'case_brief',
+      L(
+        '📋 Иш мазмуни (қисқача)',
+        "📋 Ish mazmuni (qisqacha)",
+        '📋 Краткое содержание дела',
+      ),
+      L(
+        'Қандай низо ва қандай қарор чиқарилди.',
+        "Qanday nizo va qanday qaror chiqarildi.",
+        'Какой спор и какое решение вынесено.',
+      ),
+    ),
+    NARRATIVE(
+      'disagreement_grounds',
+      L(
+        '📝 Норозилик асослари',
+        "📝 Norozilik asoslari",
+        '📝 Основания несогласия',
+      ),
+      L(
+        'Нима учун қарор асоссиз — қонуний асос билан тушунтиринг.',
+        "Nima uchun qaror asossiz — qonuniy asos bilan tushuntiring.",
+        'Почему решение необоснованно — со ссылками на нормы права.',
+      ),
+    ),
+    F.money(
+      'duty_amount',
+      L(
+        '💰 Олдиндан давлат божи (сўм)',
+        "💰 Oldindan davlat boji (so‘m)",
+        '💰 Государственная пошлина (сум)',
+      ),
+    ),
+    F.money(
+      'postage_amount',
+      L(
+        '✉️ Почта харажати (сўм)',
+        "✉️ Pochta xarajati (so‘m)",
+        '✉️ Почтовые расходы (сум)',
+      ),
+    ),
+    F.text(
+      'director_fio',
+      L(
+        '👤 Раҳбар Ф.И.Ш.',
+        '👤 Rahbar F.I.SH.',
+        '👤 Ф.И.О. руководителя',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
  * 15. Янги очилган ҳолат бўйича бекор қилиш (annul - new circumstances)
  * ============================================================ */
 const T_YANGI_HOLAT: TemplateDef = {
@@ -2698,6 +3369,10 @@ export const TEMPLATES: TemplateDef[] = [
   T_MAM_NPA,
   T_MAM_TOXTAT,
   T_MAM_PRISTAV,
+  T_IQT_SUD_BUYRUG,
+  T_IQT_IJRO_TIKLA,
+  T_IQT_APELL,
+  T_IQT_KASS,
   T_YANGI_HOLAT,
   T_KECHIKTIRISH,
   T_APELLATSIYA,

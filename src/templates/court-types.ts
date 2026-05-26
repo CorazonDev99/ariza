@@ -52,7 +52,7 @@ export const COURT_TYPES: CourtTypeDef[] = [
       '💼 Iqtisodiy ishlar boʻyicha',
       '💼 По экономическим делам',
     ),
-    active: false,
+    active: true,
   },
   {
     code: 'oliy',

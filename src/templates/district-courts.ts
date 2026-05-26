@@ -72,6 +72,22 @@ function Dm(
   };
 }
 
+/** Same shape as D(), but for economic-court entries. */
+function Di(
+  code: string,
+  regionCode: string,
+  cy: string,
+  la: string,
+  ru: string,
+): DistrictCourtDef {
+  return {
+    code,
+    regionCode,
+    courtTypeCode: 'iqtisodiy',
+    name: L(cy, la, ru),
+  };
+}
+
 export const DISTRICT_COURTS: DistrictCourtDef[] = [
   // ===== Андижон вилояти =====
   D('fuq-andijan-vsudi', 'andijan',
@@ -467,6 +483,24 @@ export const DISTRICT_COURTS: DistrictCourtDef[] = [
     'Жиззах туманлараро маъмурий суди',
     'Jizzax tumanlararo ma’muriy sudi',
     'Джизакский межрайонный административный суд'),
+
+  // ===== Жиззах вилояти — Iqtisodiy (economic) =====
+  // District-level economic courts hear claims at first instance. The
+  // regional court ("Жиззах вилоят суди") is the appellate / cassation
+  // panel — the user picks it when filing an appellate or cassation
+  // complaint.
+  Di('iqt-jizzakh-tlmis', 'jizzakh',
+    'Жиззах туманлараро иқтисодий суди',
+    'Jizzax tumanlararo iqtisodiy sudi',
+    'Джизакский межрайонный экономический суд'),
+  Di('iqt-dustlik-tlmis', 'jizzakh',
+    'Дўстлик туманлараро иқтисодий суди',
+    'Doʻstlik tumanlararo iqtisodiy sudi',
+    'Дустликский межрайонный экономический суд'),
+  Di('iqt-jizzakh-vsudi', 'jizzakh',
+    'Жиззах вилоят суди',
+    'Jizzax viloyat sudi',
+    'Джизакский областной суд'),
 ];
 
 export function getDistrictCourtByCode(code: string): DistrictCourtDef | undefined {

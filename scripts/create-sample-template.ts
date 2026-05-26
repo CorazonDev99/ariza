@@ -1992,6 +1992,292 @@ const T_MAM_QAROR_BEKOR_RU: BlockSpec[] = [
 ];
 
 /* ============================================================
+ * IQTISODIY (economic court) helpers.
+ * Three header flavors:
+ *   - iqtSudHeader      → district court (first-instance filings)
+ *   - iqtAppellateHeader→ regional court, appellate panel
+ *   - iqtCassationHeader→ regional court, cassation panel
+ *
+ * Party block flavor depends on the template — corporate w/ bank
+ * details for kassatsiya, simpler name+address for the rest.
+ *
+ * Signature is signed by "Раҳбари: <FIO>" since the applicant in
+ * economic-court matters is typically a legal entity.
+ * ============================================================ */
+
+const iqtSudHeaderCY = (): BlockSpec[] => [
+  { text: [{ text: '{{district_court_name}}га', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const iqtSudHeaderRU = (): BlockSpec[] => [
+  { text: [{ text: 'В {{district_court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const iqtAppellateHeaderCY = (): BlockSpec[] => [
+  { text: [{ text: '{{district_court_name}} иқтисодий ишлар бўйича', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'апелляция инстанциясига', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const iqtAppellateHeaderRU = (): BlockSpec[] => [
+  { text: [{ text: 'В апелляционную инстанцию по экономическим', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'делам {{district_court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const iqtCassationHeaderCY = (): BlockSpec[] => [
+  { text: [{ text: '{{district_court_name}}га', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+const iqtCassationHeaderRU = (): BlockSpec[] => [
+  { text: [{ text: 'В {{district_court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: '' },
+];
+
+/** Simple two-row party block: <label>: <name> + address. Used by
+ *  sud-buyrug, ijro-tikla, apellyatsiya (no bank rekvizit shown). */
+function iqtPartyBlockCY(
+  label1: string,
+  side1: 'plaintiff' | 'defendant',
+  label2: string,
+  side2: 'plaintiff' | 'defendant',
+): BlockSpec[] {
+  const row = (label: string, side: 'plaintiff' | 'defendant'): BlockSpec[] => [
+    {
+      text: [
+        { text: `${label}:`, bold: true, tab: true },
+        { text: `{{${side}_name}}`, tab: true, italics: true, bold: true },
+      ],
+      rightTabStop: PARTY_LABEL_RIGHT,
+      tabStop: PARTY_INDENT,
+      leftIndent: PARTY_INDENT,
+      hanging: PARTY_INDENT,
+      spaceAfter: TIGHT,
+    },
+    { text: [{ text: `{{${side}_address_line1}}`, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+    { text: [{ text: `{{${side}_address_line2}}`, italics: true }], leftIndent: PARTY_INDENT },
+    { text: '' },
+  ];
+  return [...row(label1, side1), ...row(label2, side2)];
+}
+
+function iqtPartyBlockRU(
+  label1: string,
+  side1: 'plaintiff' | 'defendant',
+  label2: string,
+  side2: 'plaintiff' | 'defendant',
+): BlockSpec[] {
+  return iqtPartyBlockCY(label1, side1, label2, side2);
+}
+
+/** Corporate party block with bank reqs (МЧЖ name, address, x/р, МФО,
+ *  СТИР). Used by kassatsiya. */
+function iqtCorpPartyBlockCY(): BlockSpec[] {
+  const corpRow = (label: string, side: 'plaintiff' | 'defendant'): BlockSpec[] => [
+    {
+      text: [
+        { text: `${label}:`, bold: true, tab: true },
+        { text: `{{${side}_name}}`, tab: true, italics: true, bold: true },
+      ],
+      rightTabStop: PARTY_LABEL_RIGHT,
+      tabStop: PARTY_INDENT,
+      leftIndent: PARTY_INDENT,
+      hanging: PARTY_INDENT,
+      spaceAfter: TIGHT,
+    },
+    { text: [{ text: `Манзил: {{${side}_address_line1}}, {{${side}_address_line2}}`, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+    { text: [{ text: `х/р: {{${side}_bank_account}}    МФО: {{${side}_mfo}}    СТИР: {{${side}_stir}}`, italics: true }], leftIndent: PARTY_INDENT },
+    { text: '' },
+  ];
+  return [...corpRow('Даъвогар', 'plaintiff'), ...corpRow('Жавобгар', 'defendant')];
+}
+
+function iqtCorpPartyBlockRU(): BlockSpec[] {
+  const corpRow = (label: string, side: 'plaintiff' | 'defendant'): BlockSpec[] => [
+    {
+      text: [
+        { text: `${label}:`, bold: true, tab: true },
+        { text: `{{${side}_name}}`, tab: true, italics: true, bold: true },
+      ],
+      rightTabStop: PARTY_LABEL_RIGHT,
+      tabStop: PARTY_INDENT,
+      leftIndent: PARTY_INDENT,
+      hanging: PARTY_INDENT,
+      spaceAfter: TIGHT,
+    },
+    { text: [{ text: `Адрес: {{${side}_address_line1}}, {{${side}_address_line2}}`, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+    { text: [{ text: `р/с: {{${side}_bank_account}}    МФО: {{${side}_mfo}}    СТИР: {{${side}_stir}}`, italics: true }], leftIndent: PARTY_INDENT },
+    { text: '' },
+  ];
+  return [...corpRow('Истец', 'plaintiff'), ...corpRow('Ответчик', 'defendant')];
+}
+
+const iqtSignatureBlockCY = (): BlockSpec[] => [
+  { text: '' },
+  { text: '' },
+  { text: [{ text: '"{{plaintiff_name}}"', bold: true }] },
+  { text: [{ text: 'Раҳбари:', bold: true }, { text: `${BLOCK_GAP}{{director_fio}}`, bold: true }] },
+];
+
+const iqtSignatureBlockRU = (): BlockSpec[] => [
+  { text: '' },
+  { text: '' },
+  { text: [{ text: '«{{plaintiff_name}}»', bold: true }] },
+  { text: [{ text: 'Руководитель:', bold: true }, { text: `${BLOCK_GAP}{{director_fio}}`, bold: true }] },
+];
+
+/* ============================================================
+ * Template — Иктисодий: суд буйруғи бериш (ИПК 135-138)
+ *   ariza-iqtisodiy-sud-buyrug (T_IQT_SUD_BUYRUG)
+ * ============================================================ */
+const T_IQT_SUD_BUYRUG_CY: BlockSpec[] = [
+  ...iqtSudHeaderCY(),
+  ...iqtPartyBlockCY('Кредитор', 'plaintiff', 'Қарздор', 'defendant'),
+  ...titleBlock(
+    'А Р И З А',
+    'қарзни ундириш ҳақида суд буйруғи бериш тўғрисида',
+  ),
+  body('Кредиторнинг қонун ҳужжатларига асосланган талаби: {{legal_basis}}.'),
+  body('Талабга асос бўлган ҳолатлар: {{factual_basis}}'),
+  body('Талабнинг асосларини тасдиқловчи далиллар: {{evidence}}'),
+  body('Ундириладиган сумманинг ҳисоб-китоби: {{calculation}}'),
+  body('Ундирилаётган қарздорлик вужудга келган давр: {{debt_period}}.'),
+  body('Юқоридагиларни инобатга олиб, суддан Ўзбекистон Республикаси Иқтисодий процессуал кодексининг 135-138-моддаларига асосан {{defendant_name}}дан менинг фойдамга {{requested_amount}} сўм миқдорида қарзни ундириб бериш тўғрисида суд буйруғи чиқариб беришингизни сўрайман.'),
+  { text: '' },
+  { text: [{ text: 'Илова: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...iqtSignatureBlockCY(),
+];
+
+const T_IQT_SUD_BUYRUG_RU: BlockSpec[] = [
+  ...iqtSudHeaderRU(),
+  ...iqtPartyBlockRU('Кредитор', 'plaintiff', 'Должник', 'defendant'),
+  ...titleBlock(
+    'З А Я В Л Е Н И Е',
+    'о выдаче судебного приказа о взыскании задолженности',
+  ),
+  body('Правовое основание требования кредитора: {{legal_basis}}.'),
+  body('Обстоятельства, лежащие в основе требования: {{factual_basis}}'),
+  body('Доказательства, подтверждающие основания требования: {{evidence}}'),
+  body('Расчёт взыскиваемой суммы: {{calculation}}'),
+  body('Период образования задолженности: {{debt_period}}.'),
+  body('На основании изложенного и руководствуясь ст. 135-138 Экономического процессуального кодекса Республики Узбекистан, прошу выдать судебный приказ о взыскании с {{defendant_name}} в пользу заявителя задолженности в размере {{requested_amount}} сум.'),
+  { text: '' },
+  { text: [{ text: 'Приложение: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...iqtSignatureBlockRU(),
+];
+
+/* ============================================================
+ * Template — Иктисодий: ижро варақаси тиклаш + дубликат (ИПК 340-341)
+ *   ariza-iqtisodiy-ijro-tiklash (T_IQT_IJRO_TIKLA)
+ * ============================================================ */
+const T_IQT_IJRO_TIKLA_CY: BlockSpec[] = [
+  ...iqtSudHeaderCY(),
+  ...iqtPartyBlockCY('Даъвогар', 'plaintiff', 'Жавобгар', 'defendant'),
+  ...titleBlock(
+    'А Р И З А',
+    'ижро варақасини ижрога тақдим этишнинг ўтказиб юборилган муддатини тиклаш ва дубликатини бериш ҳақида',
+  ),
+  body('{{issuing_court_name}} томонидан {{case_number}}-сонли иш бўйича {{writ_day}}.{{writ_month}}.{{writ_year}} йилда ижро варақаси чиқарилган.'),
+  body('Мазкур ижро варақасини ижрога тақдим этиш муддати қуйидаги узрли сабабларга кўра ўтказиб юборилди: {{missing_reason}}'),
+  body('Юқоридагиларни инобатга олиб, суддан Ўзбекистон Республикаси Иқтисодий процессуал кодексининг 340-341-моддаларига асосан {{case_number}}-сонли иш бўйича {{issuing_court_name}} томонидан чиқарилган ижро варақасини ижрога тақдим этишнинг ўтказиб юборилган муддатини тиклашингизни ва унинг дубликатини беришингизни сўрайман.'),
+  { text: '' },
+  { text: [{ text: 'Илова: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...iqtSignatureBlockCY(),
+];
+
+const T_IQT_IJRO_TIKLA_RU: BlockSpec[] = [
+  ...iqtSudHeaderRU(),
+  ...iqtPartyBlockRU('Взыскатель', 'plaintiff', 'Должник', 'defendant'),
+  ...titleBlock(
+    'З А Я В Л Е Н И Е',
+    'о восстановлении пропущенного срока предъявления исполнительного листа и выдаче дубликата',
+  ),
+  body('{{issuing_court_name}} {{writ_day}}.{{writ_month}}.{{writ_year}} по делу № {{case_number}} был выдан исполнительный лист.'),
+  body('Срок предъявления указанного исполнительного листа к исполнению был пропущен по следующим уважительным причинам: {{missing_reason}}'),
+  body('На основании изложенного и руководствуясь ст. 340-341 Экономического процессуального кодекса Республики Узбекистан, прошу восстановить пропущенный срок предъявления к исполнению исполнительного листа, выданного {{issuing_court_name}} по делу № {{case_number}}, и выдать его дубликат.'),
+  { text: '' },
+  { text: [{ text: 'Приложение: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...iqtSignatureBlockRU(),
+];
+
+/* ============================================================
+ * Template — Иктисодий: апелляция шикояти (ИПК 259-265)
+ *   shikoyat-iqtisodiy-apellyatsiya (T_IQT_APELL)
+ * ============================================================ */
+const T_IQT_APELL_CY: BlockSpec[] = [
+  ...iqtAppellateHeaderCY(),
+  ...iqtPartyBlockCY('Шикоят берувчи', 'plaintiff', 'Жавобгар', 'defendant'),
+  body('Устидан шикоят берилаётган ҳал қилув қарорини қабул қилган иқтисодий суд: {{lower_court_name}}. Иш рақами: {{case_number}}. Ҳал қилув қарори санаси: {{ruling_day}}.{{ruling_month}}.{{ruling_year}}. Низо предмети: {{dispute_subject}}.'),
+  ...titleBlock('А П Е Л Л Я Ц И Я   Ш И К О Я Т И', 'ҳал қилув қарорига нисбатан'),
+  body('Шикоят берувчи иш ҳолатлари ва далилларга, қонунлар ва бошқа норматив-ҳуқуқий ҳужжатларга ҳавола қилган ҳолда ҳал қилув қарорини нотўғри деб ҳисоблаш учун келтирган асослари: {{appeal_grounds}}'),
+  body('Юқоридагиларни инобатга олиб, суддан Ўзбекистон Республикаси Иқтисодий процессуал кодексининг 259-265-моддаларига асосан қуйидагиларни СЎРАЙМАН: {{appeal_requests}}'),
+  { text: '' },
+  { text: [{ text: 'Илова: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...iqtSignatureBlockCY(),
+];
+
+const T_IQT_APELL_RU: BlockSpec[] = [
+  ...iqtAppellateHeaderRU(),
+  ...iqtPartyBlockRU('Податель жалобы', 'plaintiff', 'Ответчик', 'defendant'),
+  body('Суд, вынесший обжалуемое решение: {{lower_court_name}}. Номер дела: {{case_number}}. Дата решения: {{ruling_day}}.{{ruling_month}}.{{ruling_year}}. Предмет спора: {{dispute_subject}}.'),
+  ...titleBlock('А П Е Л Л Я Ц И О Н Н А Я   Ж А Л О Б А', 'на решение суда'),
+  body('Основания подателя жалобы для признания решения суда неправильным со ссылками на обстоятельства, доказательства, нормы права: {{appeal_grounds}}'),
+  body('На основании изложенного и руководствуясь ст. 259-265 Экономического процессуального кодекса Республики Узбекистан, ПРОШУ: {{appeal_requests}}'),
+  { text: '' },
+  { text: [{ text: 'Приложение: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...iqtSignatureBlockRU(),
+];
+
+/* ============================================================
+ * Template — Иктисодий: кассация шикояти
+ *   shikoyat-iqtisodiy-kassatsiya (T_IQT_KASS)
+ * ============================================================ */
+const T_IQT_KASS_CY: BlockSpec[] = [
+  ...iqtCassationHeaderCY(),
+  ...iqtCorpPartyBlockCY(),
+  ...titleBlock(
+    'К А С С А Ц И Я   Ш И К О Я Т И',
+    '{{lower_court_name}}нинг {{ruling_day}}.{{ruling_month}}.{{ruling_year}} йилдаги {{case_number}}-сонли ҳал қилув қарори устидан',
+  ),
+  body('"{{plaintiff_name}}" томонидан жавобгар "{{defendant_name}}" ўртасида {{lower_court_name}} томонидан {{ruling_day}}.{{ruling_month}}.{{ruling_year}} йилда суд бўлиб ўтди. Иш мазмуни: {{case_brief}}'),
+  body('Мазкур ҳал қилув қарорини қуйидагиларга кўра асоссиз деб ҳисоблаймиз: {{disagreement_grounds}}'),
+  body('Юқоридагиларни инобатга олиб, СЎРАЙМИЗ:'),
+  body('1. Кассация шикоятини иш юритувингизга қабул қилишингизни ҳамда суд куни ва жойи ҳақида маълум қилишингизни.'),
+  body('2. {{lower_court_name}} томонидан {{ruling_day}}.{{ruling_month}}.{{ruling_year}} йилда чиқарилган {{case_number}}-сонли ҳал қилув қарорини бекор қилишингизни.'),
+  body('3. Олдиндан {{duty_amount}} сўм давлат божи ва {{postage_amount}} сўм почта харажатларини ундириб беришингизни.'),
+  { text: '' },
+  { text: [{ text: 'Илова:', bold: true }] },
+  { text: [{ text: '- Аризанинг жавобгарга жўнатилганлиги тўғрисида почта квитансияси;', italics: true }], spaceAfter: TIGHT },
+  { text: [{ text: '- Почта харажати тўланганлиги тўғрисидаги банк маълумотномаси;', italics: true }], spaceAfter: TIGHT },
+  { text: [{ text: '- Давлат божи тўланганлиги тўғрисидаги банк маълумотномаси.', italics: true }] },
+  ...iqtSignatureBlockCY(),
+];
+
+const T_IQT_KASS_RU: BlockSpec[] = [
+  ...iqtCassationHeaderRU(),
+  ...iqtCorpPartyBlockRU(),
+  ...titleBlock(
+    'К А С С А Ц И О Н Н А Я   Ж А Л О Б А',
+    'на решение {{lower_court_name}} от {{ruling_day}}.{{ruling_month}}.{{ruling_year}} по делу № {{case_number}}',
+  ),
+  body('Между истцом «{{plaintiff_name}}» и ответчиком «{{defendant_name}}» {{lower_court_name}} {{ruling_day}}.{{ruling_month}}.{{ruling_year}} было рассмотрено дело. Краткое содержание: {{case_brief}}'),
+  body('Считаем данное решение необоснованным по следующим основаниям: {{disagreement_grounds}}'),
+  body('На основании изложенного, ПРОСИМ:'),
+  body('1. Принять кассационную жалобу к производству и сообщить о дне и месте судебного заседания.'),
+  body('2. Отменить решение {{lower_court_name}} от {{ruling_day}}.{{ruling_month}}.{{ruling_year}} по делу № {{case_number}}.'),
+  body('3. Взыскать государственную пошлину в размере {{duty_amount}} сум и почтовые расходы в размере {{postage_amount}} сум.'),
+  { text: '' },
+  { text: [{ text: 'Приложение:', bold: true }] },
+  { text: [{ text: '- Почтовая квитанция о направлении заявления ответчику;', italics: true }], spaceAfter: TIGHT },
+  { text: [{ text: '- Банковская справка об оплате почтовых расходов;', italics: true }], spaceAfter: TIGHT },
+  { text: [{ text: '- Банковская справка об оплате госпошлины.', italics: true }] },
+  ...iqtSignatureBlockRU(),
+];
+
+/* ============================================================
  * Template — Маъмурий: давлат божидан озод қилиш (Art 10)
  *   iltimosnoma-mamuriy-goshlina (T_MAM_GOSHLINA)
  * ============================================================ */
@@ -2452,6 +2738,26 @@ const BUILDERS: Record<string, Record<Locale, BlockSpec[]>> = {
     uz_cyrillic: T_MAM_PRISTAV_CY,
     uz_latin: deriveLatin(T_MAM_PRISTAV_CY),
     ru: T_MAM_PRISTAV_RU,
+  },
+  'ariza-iqtisodiy-sud-buyrug': {
+    uz_cyrillic: T_IQT_SUD_BUYRUG_CY,
+    uz_latin: deriveLatin(T_IQT_SUD_BUYRUG_CY),
+    ru: T_IQT_SUD_BUYRUG_RU,
+  },
+  'ariza-iqtisodiy-ijro-tiklash': {
+    uz_cyrillic: T_IQT_IJRO_TIKLA_CY,
+    uz_latin: deriveLatin(T_IQT_IJRO_TIKLA_CY),
+    ru: T_IQT_IJRO_TIKLA_RU,
+  },
+  'shikoyat-iqtisodiy-apellyatsiya': {
+    uz_cyrillic: T_IQT_APELL_CY,
+    uz_latin: deriveLatin(T_IQT_APELL_CY),
+    ru: T_IQT_APELL_RU,
+  },
+  'shikoyat-iqtisodiy-kassatsiya': {
+    uz_cyrillic: T_IQT_KASS_CY,
+    uz_latin: deriveLatin(T_IQT_KASS_CY),
+    ru: T_IQT_KASS_RU,
   },
   'ariza-hujjatdan-nuskha': {
     uz_cyrillic: T15_CY,
