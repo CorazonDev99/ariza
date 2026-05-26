@@ -1992,6 +1992,176 @@ const T_MAM_QAROR_BEKOR_RU: BlockSpec[] = [
 ];
 
 /* ============================================================
+ * Template — Маъмурий: давлат божидан озод қилиш (Art 10)
+ *   iltimosnoma-mamuriy-goshlina (T_MAM_GOSHLINA)
+ * ============================================================ */
+const T_MAM_GOSHLINA_CY: BlockSpec[] = [
+  ...mamHeaderCY(),
+  ...mamPartyBlockCY(),
+  ...titleBlock(
+    'И Л Т И М О С Н О М А',
+    'давлат божини тўлашдан озод қилиш ҳақида',
+  ),
+  body('Ҳозирда {{district_court_name}}да менинг {{defendant_org_name}}га нисбатан {{main_claim_subject}} тўғрисидаги аризам кўрилмоқда. Даъво қиймати — {{claim_amount}} сўм, мазкур иш бўйича белгиланган давлат божи миқдори — {{duty_amount}} сўм.'),
+  body('Ўзбекистон Республикасининг "Давлат божи тўғрисида"ги қонунининг 10-моддасига кўра, мен қуйидаги асос билан давлат божини тўлашдан озод қилинаман: {{exemption_grounds}}.'),
+  body('Шу сабабли Сиздан мазкур иш бўйича давлат божини тўлашдан мени озод қилишингизни сўрайман.'),
+  { text: '' },
+  ...mamSignatureBlockCY(),
+];
+
+const T_MAM_GOSHLINA_RU: BlockSpec[] = [
+  ...mamHeaderRU(),
+  ...mamPartyBlockRU(),
+  ...titleBlock(
+    'Х О Д А Т А Й С Т В О',
+    'об освобождении от уплаты государственной пошлины',
+  ),
+  body('В производстве {{district_court_name}} находится мое заявление к {{defendant_org_name}} по предмету: {{main_claim_subject}}. Цена иска — {{claim_amount}} сум, размер государственной пошлины — {{duty_amount}} сум.'),
+  body('Согласно ст. 10 Закона Республики Узбекистан «О государственной пошлине», я освобождён(а) от уплаты государственной пошлины по следующему основанию: {{exemption_grounds}}.'),
+  body('На основании изложенного прошу освободить меня от уплаты государственной пошлины по указанному делу.'),
+  { text: '' },
+  ...mamSignatureBlockRU(),
+];
+
+/* ============================================================
+ * Template — Маъмурий: давлат органи зарарини ундириш
+ *   ariza-mamuriy-zarar (T_MAM_ZARAR)
+ * ============================================================ */
+const T_MAM_ZARAR_CY: BlockSpec[] = [
+  ...mamHeaderCY(),
+  ...mamPartyBlockCY(),
+  ...titleBlock(
+    'А Р И З А',
+    'давлат органи ҳаракатлари оқибатида етказилган зарарни ундириш ҳақида',
+  ),
+  body('Менга {{illegal_action}}'),
+  body('Мазкур ноқонуний ҳаракатлар натижасида менга жами {{harm_amount}} сўм миқдорида зарар етказилди.'),
+  body('Ҳолатлар ва қонуний асос: {{complaint_facts}}'),
+  body('Шу сабабли Ўзбекистон Республикаси Фуқаролик кодексининг 990-моддаси ва маъмурий суд ишларини юритиш тўғрисидаги кодексининг 27-моддасига асосан жавобгар {{defendant_org_name}}дан менинг фойдамга {{harm_amount}} сўм миқдорида зарарни ундиришингизни сўрайман.'),
+  { text: '' },
+  { text: [{ text: 'Илова: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...mamSignatureBlockCY(),
+];
+
+const T_MAM_ZARAR_RU: BlockSpec[] = [
+  ...mamHeaderRU(),
+  ...mamPartyBlockRU(),
+  ...titleBlock(
+    'З А Я В Л Е Н И Е',
+    'о взыскании вреда, причинённого действиями госоргана',
+  ),
+  body('Мне {{illegal_action}}'),
+  body('В результате указанных незаконных действий мне причинён вред на общую сумму {{harm_amount}} сум.'),
+  body('Обстоятельства и правовое обоснование: {{complaint_facts}}'),
+  body('На основании ст. 990 Гражданского кодекса Республики Узбекистан и ст. 27 Кодекса об административном судопроизводстве прошу взыскать с ответчика {{defendant_org_name}} в мою пользу сумму ущерба в размере {{harm_amount}} сум.'),
+  { text: '' },
+  { text: [{ text: 'Приложение: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...mamSignatureBlockRU(),
+];
+
+/* ============================================================
+ * Template — Маъмурий: норматив ҳужжатни бекор қилиш
+ *   ariza-mamuriy-npa-bekor (T_MAM_NPA)
+ * ============================================================ */
+const T_MAM_NPA_CY: BlockSpec[] = [
+  ...mamHeaderCY(),
+  ...mamPartyBlockCY(),
+  ...titleBlock(
+    'А Р И З А',
+    'норматив-ҳуқуқий ҳужжатни ҳақиқий эмас деб топиш ҳақида',
+  ),
+  body('{{defendant_org_name}} томонидан {{npa_year}}-йил {{npa_month}}-ойнинг {{npa_day}}-кунида {{npa_number}}-сонли {{npa_name}} қабул қилинган. Мазкур ҳужжатнинг {{npa_disputed_part}} қисми менинг қонуний ҳуқуқ ва манфаатларимни бузмоқда.'),
+  body('Ҳолатлар, далиллар ва қонуний асос: {{complaint_facts}}'),
+  body('Шу сабабли Ўзбекистон Республикаси маъмурий суд ишларини юритиш тўғрисидаги кодексининг 27-моддасига асосан жавобгар {{defendant_org_name}}нинг {{npa_name}} ҳужжатини ({{npa_disputed_part}} қисмида) ҳақиқий эмас деб топишингизни сўрайман.'),
+  { text: '' },
+  { text: [{ text: 'Илова: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...mamSignatureBlockCY(),
+];
+
+const T_MAM_NPA_RU: BlockSpec[] = [
+  ...mamHeaderRU(),
+  ...mamPartyBlockRU(),
+  ...titleBlock(
+    'З А Я В Л Е Н И Е',
+    'о признании нормативно-правового акта недействительным',
+  ),
+  body('{{defendant_org_name}} {{npa_day}}.{{npa_month}}.{{npa_year}} был принят {{npa_name}} № {{npa_number}}. Указанный акт ({{npa_disputed_part}}) нарушает мои законные права и интересы.'),
+  body('Обстоятельства, доказательства и правовое обоснование: {{complaint_facts}}'),
+  body('На основании ст. 27 Кодекса об административном судопроизводстве Республики Узбекистан прошу признать {{npa_name}} ответчика {{defendant_org_name}} (в части {{npa_disputed_part}}) недействительным.'),
+  { text: '' },
+  { text: [{ text: 'Приложение: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...mamSignatureBlockRU(),
+];
+
+/* ============================================================
+ * Template — Маъмурий: ҳужжат ижросини тўхтатиш (interim measure)
+ *   iltimosnoma-mamuriy-toxtatish (T_MAM_TOXTAT)
+ * ============================================================ */
+const T_MAM_TOXTAT_CY: BlockSpec[] = [
+  ...mamHeaderCY(),
+  ...mamPartyBlockCY(),
+  ...titleBlock(
+    'И Л Т И М О С Н О М А',
+    'оспариласи ҳужжат ижросини тўхтатиб туриш ҳақида',
+  ),
+  body('Ҳозирда {{district_court_name}}да менинг {{defendant_org_name}}га нисбатан {{case_number}}-сонли иш кўрилмоқда.'),
+  body('Мазкур иш доирасида оспарилган {{acted_act}}нинг дарҳол ижроси менга жиддий ва қайтариб бўлмас зарар келтириши мумкин: {{suspension_grounds}}'),
+  body('Шу сабабли Ўзбекистон Республикаси маъмурий суд ишларини юритиш тўғрисидаги кодексининг таъминлаш чоралари тўғрисидаги моддаларига асосан, Сиздан {{acted_act}} ижросини иш моҳиятан кўриб чиқилгунча тўхтатиб туришингизни сўрайман.'),
+  { text: '' },
+  { text: [{ text: 'Илова: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...mamSignatureBlockCY(),
+];
+
+const T_MAM_TOXTAT_RU: BlockSpec[] = [
+  ...mamHeaderRU(),
+  ...mamPartyBlockRU(),
+  ...titleBlock(
+    'Х О Д А Т А Й С Т В О',
+    'о приостановлении исполнения оспариваемого акта',
+  ),
+  body('В производстве {{district_court_name}} находится дело № {{case_number}} по моему заявлению к {{defendant_org_name}}.'),
+  body('Немедленное исполнение оспариваемого в рамках данного дела {{acted_act}} может причинить мне существенный и невосполнимый ущерб: {{suspension_grounds}}'),
+  body('На основании положений Кодекса об административном судопроизводстве Республики Узбекистан об обеспечительных мерах прошу приостановить исполнение {{acted_act}} до рассмотрения дела по существу.'),
+  { text: '' },
+  { text: [{ text: 'Приложение: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...mamSignatureBlockRU(),
+];
+
+/* ============================================================
+ * Template — Маъмурий: БИБ ижрочисига шикоят
+ *   shikoyat-mamuriy-pristav (T_MAM_PRISTAV)
+ * ============================================================ */
+const T_MAM_PRISTAV_CY: BlockSpec[] = [
+  ...mamHeaderCY(),
+  ...mamPartyBlockCY(),
+  ...titleBlock(
+    'Ш И К О Я Т',
+    'Мажбурий ижро бюроси ижрочисининг ҳаракатига нисбатан',
+  ),
+  body('{{defendant_org_name}} ижрочиси {{pristav_fio}} томонидан {{execution_case_number}}-сонли ижро иши бўйича қуйидаги ноқонуний ҳаракат содир этилган: {{illegal_action}}'),
+  body('Мазкур ҳаракат менинг қонуний ҳуқуқ ва манфаатларимни бузади.'),
+  body('Шу сабабли Ўзбекистон Республикаси маъмурий суд ишларини юритиш тўғрисидаги кодексининг 27-моддасига асосан жавобгар {{defendant_org_name}} ижрочиси {{pristav_fio}}нинг ҳаракатларини қонунга хилоф деб топиб, {{requested_action}}ингизни сўрайман.'),
+  { text: '' },
+  { text: [{ text: 'Илова: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...mamSignatureBlockCY(),
+];
+
+const T_MAM_PRISTAV_RU: BlockSpec[] = [
+  ...mamHeaderRU(),
+  ...mamPartyBlockRU(),
+  ...titleBlock(
+    'Ж А Л О Б А',
+    'на действия пристава-исполнителя Бюро принудительного исполнения',
+  ),
+  body('Приставом-исполнителем {{defendant_org_name}} {{pristav_fio}} по исполнительному производству № {{execution_case_number}} совершено следующее незаконное действие: {{illegal_action}}'),
+  body('Указанное действие нарушает мои законные права и интересы.'),
+  body('На основании ст. 27 Кодекса об административном судопроизводстве Республики Узбекистан прошу признать действия пристава-исполнителя {{pristav_fio}} ({{defendant_org_name}}) незаконными и {{requested_action}}.'),
+  { text: '' },
+  { text: [{ text: 'Приложение: ', bold: true }, { text: '{{attachments_list}}' }] },
+  ...mamSignatureBlockRU(),
+];
+
+/* ============================================================
  * Template — Жиноят: МЖтК 315 (objection to admin penalty)
  *   ariza-jinoyat-315 (T_JIN_315)
  * ============================================================ */
@@ -2257,6 +2427,31 @@ const BUILDERS: Record<string, Record<Locale, BlockSpec[]>> = {
     uz_cyrillic: T_MAM_QAROR_BEKOR_CY,
     uz_latin: deriveLatin(T_MAM_QAROR_BEKOR_CY),
     ru: T_MAM_QAROR_BEKOR_RU,
+  },
+  'iltimosnoma-mamuriy-goshlina': {
+    uz_cyrillic: T_MAM_GOSHLINA_CY,
+    uz_latin: deriveLatin(T_MAM_GOSHLINA_CY),
+    ru: T_MAM_GOSHLINA_RU,
+  },
+  'ariza-mamuriy-zarar': {
+    uz_cyrillic: T_MAM_ZARAR_CY,
+    uz_latin: deriveLatin(T_MAM_ZARAR_CY),
+    ru: T_MAM_ZARAR_RU,
+  },
+  'ariza-mamuriy-npa-bekor': {
+    uz_cyrillic: T_MAM_NPA_CY,
+    uz_latin: deriveLatin(T_MAM_NPA_CY),
+    ru: T_MAM_NPA_RU,
+  },
+  'iltimosnoma-mamuriy-toxtatish': {
+    uz_cyrillic: T_MAM_TOXTAT_CY,
+    uz_latin: deriveLatin(T_MAM_TOXTAT_CY),
+    ru: T_MAM_TOXTAT_RU,
+  },
+  'shikoyat-mamuriy-pristav': {
+    uz_cyrillic: T_MAM_PRISTAV_CY,
+    uz_latin: deriveLatin(T_MAM_PRISTAV_CY),
+    ru: T_MAM_PRISTAV_RU,
   },
   'ariza-hujjatdan-nuskha': {
     uz_cyrillic: T15_CY,

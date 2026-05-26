@@ -1909,6 +1909,542 @@ const T_MAM_QAROR_BEKOR: TemplateDef = {
 };
 
 /* ============================================================
+ * 14j. MAMURIY — освобождение от уплаты госпошлины (ст. 10)
+ * ============================================================ */
+const T_MAM_GOSHLINA: TemplateDef = {
+  code: 'iltimosnoma-mamuriy-goshlina',
+  category: 'iltimosnoma',
+  courtTypeCode: 'mamuriy',
+  title: L(
+    '💸 Давлат божидан озод қилиш',
+    "💸 Davlat bojidan ozod qilish",
+    '💸 Освобождение от госпошлины',
+  ),
+  subtitle: L(
+    'Давлат божи қонунининг 10-моддаси асосида',
+    "Davlat boji qonunining 10-moddasi asosida",
+    'по ст. 10 Закона о госпошлине',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `💸 <b>Маъмурий судда давлат божини тўлашдан озод қилиш</b>\n\n📋 <b>Қачон бериш:</b>\nАгар Сиз Давлат божи тўғрисидаги қонуннинг 10-моддасида кўрсатилган тоифага кирсангиз (масалан, ўз ҳуқуқларини ҳимоя қилаётган жисмоний шахс, ногиронлиги бўлган шахс, фермер ёки бошқа имтиёзли тоифа).\n\n🏛 <b>Қаерга:</b>\nИшингиз қаралаётган маъмурий суди раисига — асосий ариза билан бирга.\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → жавобгар → асосий иш предмети → 10-моддадаги қайси банди асосида сўрайсиз → даъво қиймати ва давлат божи миқдори.`,
+    `💸 <b>Ma'muriy sudda davlat bojini to‘lashdan ozod qilish</b>\n\n📋 <b>Qachon berish:</b>\nAgar Siz Davlat boji to‘g‘risidagi qonunning 10-moddasida ko‘rsatilgan toifaga kirsangiz.\n\n🏛 <b>Qayerga:</b>\nIshingiz qaralayotgan ma'muriy sudi raisiga — asosiy ariza bilan birga.\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → javobgar → asosiy ish predmeti → 10-moddadagi qaysi bandi asosida so‘raysiz → da'vo qiymati va davlat boji miqdori.`,
+    `💸 <b>Освобождение от государственной пошлины в адм. суде</b>\n\n📋 <b>Когда подавать:</b>\nЕсли вы попадаете под одну из категорий ст. 10 Закона о госпошлине (физлицо, защищающее свои права; лицо с инвалидностью; фермер; иная льготная категория).\n\n🏛 <b>Куда:</b>\nПредседателю административного суда, где рассматривается дело — вместе с основным заявлением.\n\n📝 <b>Бот спросит:</b>\nваши данные → ответчик → суть основного иска → пункт ст. 10, по которому просите освободить → цена иска и сумма госпошлины.`,
+  ),
+  fileNameBase: 'iltimosnoma-mamuriy-goshlina',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.text(
+      'defendant_org_name',
+      L(
+        '🏛 Жавобгар (ташкилот) номи',
+        '🏛 Javobgar (tashkilot) nomi',
+        '🏛 Название организации-ответчика',
+      ),
+      L(
+        'Масалан: Жиззах вилояти Кадастр агентлиги',
+        "Masalan: Jizzax viloyati Kadastr agentligi",
+        'Например: Кадастровое агентство Джизакской области',
+      ),
+    ),
+    F.text(
+      'main_claim_subject',
+      L(
+        '⚖️ Асосий иш предмети',
+        "⚖️ Asosiy ish predmeti",
+        '⚖️ Предмет основного иска',
+      ),
+      L(
+        'Масалан: рад қарорини бекор қилиш',
+        "Masalan: rad qarorini bekor qilish",
+        'Например: отмена решения об отказе',
+      ),
+    ),
+    F.text(
+      'exemption_grounds',
+      L(
+        '📜 10-моддадаги асос (банди)',
+        "📜 10-moddadagi asos (band)",
+        '📜 Основание (пункт ст. 10)',
+      ),
+      L(
+        'Масалан: 1¹-банд — ўз ҳуқуқларини ҳимоя қилаётган жисмоний шахс',
+        "Masalan: 1¹-band — o‘z huquqlarini himoya qilayotgan jismoniy shaxs",
+        'Например: п. 1¹ — физлицо, защищающее свои права',
+      ),
+    ),
+    F.money(
+      'claim_amount',
+      L(
+        '💰 Даъво қиймати (сўм)',
+        "💰 Da'vo qiymati (so‘m)",
+        '💰 Цена иска (сум)',
+      ),
+    ),
+    F.money(
+      'duty_amount',
+      L(
+        '💰 Давлат божи миқдори (сўм)',
+        "💰 Davlat boji miqdori (so‘m)",
+        '💰 Сумма госпошлины (сум)',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14k. MAMURIY — возмещение вреда от госоргана
+ * ============================================================ */
+const T_MAM_ZARAR: TemplateDef = {
+  code: 'ariza-mamuriy-zarar',
+  category: 'ariza',
+  courtTypeCode: 'mamuriy',
+  title: L(
+    '💵 Давлат органи зарарини ундириш',
+    "💵 Davlat organi zararini undirish",
+    '💵 Возмещение вреда от госоргана',
+  ),
+  subtitle: L(
+    'етказилган моддий/маънавий зарар',
+    "yetkazilgan moddiy/ma'naviy zarar",
+    'материального/морального вреда',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `💵 <b>Давлат органи ҳаракатлари оқибатида етказилган зарарни ундириш</b>\n\n📋 <b>Қачон бериш:</b>\nДавлат органи ёки мансабдор шахс ноқонуний ҳаракати (ҳаракатсизлиги) натижасида Сизга моддий ёки маънавий зарар етказилган бўлса.\n\n📜 <b>Қонуний асос:</b>\nФҚнинг 990-моддаси ва МСИЮКнинг 27-моддаси.\n\n🏛 <b>Қаерга:</b>\nТуманлараро маъмурий суди раисига.\n\n📎 <b>Илова қилинадиган ҳужжатлар:</b>\n• ноқонуний ҳаракатни тасдиқловчи ҳужжатлар (агар буни тасдиқловчи суд қарори бўлса — мажбурий)\n• зарар миқдорини тасдиқловчи ҳужжатлар (квитанциялар, экспертиза)\n• паспорт нусхаси\n• давлат божи квитанцияси (ёки озод қилиш ариза билан)\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → жавобгар (давлат органи) → ноқонуний ҳаракат тавсифи → етказилган зарар тури ва миқдори → ҳолатлар → илова рўйхати.`,
+    `💵 <b>Davlat organi harakatlari oqibatida yetkazilgan zararni undirish</b>\n\n📋 <b>Qachon berish:</b>\nDavlat organi yoki mansabdor shaxs noqonuniy harakati natijasida Sizga moddiy yoki ma'naviy zarar yetkazilgan bo‘lsa.\n\n📜 <b>Qonuniy asos:</b>\nFKning 990-moddasi va MSIYUKning 27-moddasi.\n\n🏛 <b>Qayerga:</b>\nTumanlararo ma'muriy sudi raisiga.\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → javobgar (davlat organi) → noqonuniy harakat tavsifi → zarar turi va miqdori → holatlar → ilova ro‘yxati.`,
+    `💵 <b>Возмещение вреда, причинённого действиями госоргана</b>\n\n📋 <b>Когда подавать:</b>\nЕсли в результате незаконных действий (бездействия) госоргана или должностного лица Вам причинён имущественный или моральный вред.\n\n📜 <b>Правовое основание:</b>\nст. 990 ГК РУз и ст. 27 МСИЮК.\n\n🏛 <b>Куда:</b>\nПредседателю межрайонного административного суда.\n\n📎 <b>Документы:</b>\n• подтверждение незаконности действий (если есть судебный акт — обязательно)\n• документы о сумме вреда (квитанции, экспертиза)\n• копия паспорта\n• квитанция госпошлины (или заявление об освобождении)\n\n📝 <b>Бот спросит:</b>\nваши данные → ответчик (госорган) → описание незаконных действий → характер и сумма вреда → обстоятельства → приложения.`,
+  ),
+  fileNameBase: 'ariza-mamuriy-zarar',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.text(
+      'defendant_org_name',
+      L(
+        '🏛 Жавобгар (давлат органи) номи',
+        '🏛 Javobgar (davlat organi) nomi',
+        '🏛 Название госоргана-ответчика',
+      ),
+      L(
+        'Масалан: Жиззах вилояти ИИБ',
+        "Masalan: Jizzax viloyati IIB",
+        'Например: ОВД Джизакской области',
+      ),
+    ),
+    F.address(
+      'defendant_address',
+      L(
+        '🏠 Жавобгар почта манзили',
+        "🏠 Javobgar pochta manzili",
+        '🏠 Почтовый адрес ответчика',
+      ),
+    ),
+    NARRATIVE(
+      'illegal_action',
+      L(
+        '⚠️ Ноқонуний ҳаракат тавсифи',
+        "⚠️ Noqonuniy harakat tavsifi",
+        '⚠️ Описание незаконных действий',
+      ),
+      L(
+        'Қачон, ким, нима қилди ёки қилмади.',
+        "Qachon, kim, nima qildi yoki qilmadi.",
+        'Когда, кто, что сделал или не сделал.',
+      ),
+    ),
+    F.choice(
+      'harm_type',
+      L(
+        '💔 Зарар тури',
+        '💔 Zarar turi',
+        '💔 Тип вреда',
+      ),
+      [
+        {
+          value: 'moddiy',
+          label: L('Моддий', 'Moddiy', 'Материальный'),
+        },
+        {
+          value: 'manaviy',
+          label: L("Маънавий", "Ma'naviy", 'Моральный'),
+        },
+        {
+          value: 'aralash',
+          label: L('Иккаласи', "Ikkalasi", 'Оба'),
+        },
+      ],
+    ),
+    F.money(
+      'harm_amount',
+      L(
+        '💰 Зарар миқдори (сўм)',
+        "💰 Zarar miqdori (so‘m)",
+        '💰 Сумма вреда (сум)',
+      ),
+    ),
+    NARRATIVE(
+      'complaint_facts',
+      L(
+        '📝 Ҳолатлар ва қонуний асос',
+        "📝 Holatlar va qonuniy asos",
+        '📝 Обстоятельства и правовое обоснование',
+      ),
+      L(
+        'Қандай ҳолатлар, қайси нормалар бузилди.',
+        "Qanday holatlar, qaysi normalar buzildi.",
+        'Какие обстоятельства, какие нормы нарушены.',
+      ),
+    ),
+    F.text(
+      'attachments_list',
+      L(
+        '📎 Иловалар рўйхати',
+        "📎 Ilovalar ro‘yxati",
+        '📎 Перечень приложений',
+      ),
+      L(
+        'Қисқа рўйхат: 1) ... 2) ... 3) ...',
+        "Qisqa ro‘yxat: 1) ... 2) ... 3) ...",
+        'Краткий перечень: 1) ... 2) ... 3) ...',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14l. MAMURIY — оспаривание нормативного акта (постановление хокима и т.п.)
+ * ============================================================ */
+const T_MAM_NPA: TemplateDef = {
+  code: 'ariza-mamuriy-npa-bekor',
+  category: 'ariza',
+  courtTypeCode: 'mamuriy',
+  title: L(
+    '📜 Норматив-ҳуқуқий ҳужжатни бекор қилиш',
+    "📜 Normativ-huquqiy hujjatni bekor qilish",
+    '📜 Оспаривание нормативного акта',
+  ),
+  subtitle: L(
+    'қарор, фармойиш ва бошқа НҲҲ',
+    "qaror, farmoyish va boshqa NHH",
+    'постановление, распоряжение, иной НПА',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `📜 <b>Норматив-ҳуқуқий ҳужжатни ҳақиқий эмас деб топиш</b>\n\n📋 <b>Қачон бериш:</b>\nДавлат идораси, ҳокимият органи ёки бошқа бошқарув ҳужжати (хоким қарори, ваколатли орган фармойиши, бошқарма низоми ва ҳ.к.) Сизнинг ҳуқуқларингизни бузаётган бўлса.\n\n📜 <b>Қонуний асос:</b>\nМСИЮКнинг 27-моддаси.\n\n🏛 <b>Қаерга:</b>\nТуманлараро маъмурий суди раисига.\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → жавобгар (ҳужжатни қабул қилган орган) → ҳужжат тури/номи → ҳужжат санаси ва рақами → қайси қисми оспариласи → ҳолатлар → илова рўйхати.`,
+    `📜 <b>Normativ-huquqiy hujjatni haqiqiy emas deb topish</b>\n\n📋 <b>Qachon berish:</b>\nDavlat idorasi, hokimiyat organi yoki boshqa boshqaruv hujjati Sizning huquqlaringizni buzayotgan bo‘lsa.\n\n📜 <b>Qonuniy asos:</b>\nMSIYUKning 27-moddasi.\n\n🏛 <b>Qayerga:</b>\nTumanlararo ma'muriy sudi raisiga.\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → javobgar (hujjatni qabul qilgan organ) → hujjat turi/nomi → sanasi va raqami → qaysi qismi oshpariladi → holatlar → ilova ro‘yxati.`,
+    `📜 <b>Признание нормативного акта недействительным</b>\n\n📋 <b>Когда подавать:</b>\nГосорган, хокимият или иной орган управления принял акт (постановление хокима, распоряжение, регламент управления и т. п.), нарушающий Ваши права.\n\n📜 <b>Правовое основание:</b>\nст. 27 МСИЮК.\n\n🏛 <b>Куда:</b>\nПредседателю межрайонного административного суда.\n\n📝 <b>Бот спросит:</b>\nваши данные → ответчик (принявший акт орган) → тип/название акта → дата и номер → какая часть оспаривается → обстоятельства → приложения.`,
+  ),
+  fileNameBase: 'ariza-mamuriy-npa-bekor',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.text(
+      'defendant_org_name',
+      L(
+        '🏛 Жавобгар (ҳужжат қабул қилган орган)',
+        "🏛 Javobgar (hujjat qabul qilgan organ)",
+        '🏛 Орган, принявший акт',
+      ),
+      L(
+        'Масалан: Жиззах шаҳар ҳокимлиги',
+        "Masalan: Jizzax shahar hokimligi",
+        'Например: Хокимият г. Джизак',
+      ),
+    ),
+    F.address(
+      'defendant_address',
+      L(
+        '🏠 Жавобгар почта манзили',
+        "🏠 Javobgar pochta manzili",
+        '🏠 Почтовый адрес ответчика',
+      ),
+    ),
+    F.text(
+      'npa_name',
+      L(
+        '📑 Ҳужжат тури ва номи',
+        "📑 Hujjat turi va nomi",
+        '📑 Тип и название акта',
+      ),
+      L(
+        'Масалан: Жиззах шаҳар ҳокими қарори',
+        "Masalan: Jizzax shahar hokimi qarori",
+        'Например: постановление хокима г. Джизак',
+      ),
+    ),
+    F.splitDate(
+      'npa_date',
+      L(
+        '📅 Ҳужжат санаси',
+        '📅 Hujjat sanasi',
+        '📅 Дата акта',
+      ),
+      { yearKey: 'npa_year', monthKey: 'npa_month', dayKey: 'npa_day' },
+    ),
+    F.text(
+      'npa_number',
+      L(
+        '🔢 Ҳужжат рақами',
+        '🔢 Hujjat raqami',
+        '🔢 Номер акта',
+      ),
+      L('Масалан: 123-сонли', "Masalan: 123-sonli", 'Например: № 123'),
+    ),
+    F.text(
+      'npa_disputed_part',
+      L(
+        '⚖️ Оспариласи қисм',
+        "⚖️ Oshpariladi qism",
+        '⚖️ Оспариваемая часть',
+      ),
+      L(
+        'Тўлиқ ёки қайси банди — масалан, 3-банди',
+        "To‘liq yoki qaysi bandi — masalan, 3-bandi",
+        'Полностью или какой пункт — например, п. 3',
+      ),
+    ),
+    NARRATIVE(
+      'complaint_facts',
+      L(
+        '📝 Ҳолатлар, далиллар ва қонуний асос',
+        "📝 Holatlar, dalillar va qonuniy asos",
+        '📝 Обстоятельства, доказательства, правовое основание',
+      ),
+      L(
+        'Қандай ҳуқуқларингиз бузилди, қайси норма билан зид.',
+        "Qanday huquqlaringiz buzildi, qaysi norma bilan zid.",
+        'Какие права нарушены, какой норме противоречит.',
+      ),
+    ),
+    F.text(
+      'attachments_list',
+      L(
+        '📎 Иловалар рўйхати',
+        "📎 Ilovalar ro‘yxati",
+        '📎 Перечень приложений',
+      ),
+      L(
+        'Қисқа рўйхат: 1) ... 2) ... 3) ...',
+        "Qisqa ro‘yxat: 1) ... 2) ... 3) ...",
+        'Краткий перечень: 1) ... 2) ... 3) ...',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14m. MAMURIY — приостановление исполнения оспариваемого акта
+ *      (interim measure within an existing admin case)
+ * ============================================================ */
+const T_MAM_TOXTAT: TemplateDef = {
+  code: 'iltimosnoma-mamuriy-toxtatish',
+  category: 'iltimosnoma',
+  courtTypeCode: 'mamuriy',
+  title: L(
+    '⏸ Ҳужжат ижросини тўхтатиш',
+    "⏸ Hujjat ijrosini to‘xtatish",
+    '⏸ Приостановить исполнение акта',
+  ),
+  subtitle: L(
+    'таъминлаш чораси',
+    "ta'minlash chorasi",
+    'обеспечительная мера',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `⏸ <b>Оспариласи ҳужжат ижросини тўхтатиб туриш</b>\n\n📋 <b>Қачон бериш:</b>\nМаъмурий судда асосий иш кўрилаётганда, оспариласи ҳужжатнинг (қарор, постановление, рад этиш) дарҳол ижроси Сизга жиддий зарар келтириши мумкин бўлса.\n\n📜 <b>Қонуний асос:</b>\nМСИЮКнинг таъминлаш чоралари тўғрисидаги моддалари.\n\n🏛 <b>Қаерга:</b>\nИш кўрилаётган маъмурий суди раисига.\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → жавобгар → иш рақами → қайси ҳужжат ижросини тўхтатишни сўрайсиз → нима учун шошилинч (зарар хавфи).`,
+    `⏸ <b>Oshpariladi hujjat ijrosini to‘xtatib turish</b>\n\n📋 <b>Qachon berish:</b>\nMa'muriy sudda asosiy ish ko‘rilayotganda, oshpariladi hujjatning darhol ijrosi Sizga jiddiy zarar keltirishi mumkin bo‘lsa.\n\n🏛 <b>Qayerga:</b>\nIsh ko‘rilayotgan ma'muriy sudi raisiga.\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → javobgar → ish raqami → qaysi hujjat ijrosini to‘xtatishni so‘raysiz → nima uchun shoshilinch.`,
+    `⏸ <b>Приостановить исполнение оспариваемого акта</b>\n\n📋 <b>Когда подавать:</b>\nКогда основной иск уже принят к рассмотрению адм. судом, и немедленное исполнение оспариваемого акта (отказ, постановление, удержание) может причинить вам существенный ущерб.\n\n📜 <b>Правовое основание:</b>\nположения МСИЮК об обеспечительных мерах.\n\n🏛 <b>Куда:</b>\nПредседателю адм. суда, где рассматривается основной иск.\n\n📝 <b>Бот спросит:</b>\nваши данные → ответчик → номер дела → исполнение какого акта приостановить → почему срочно (риск ущерба).`,
+  ),
+  fileNameBase: 'iltimosnoma-mamuriy-toxtatish',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.text(
+      'defendant_org_name',
+      L(
+        '🏛 Жавобгар (давлат органи) номи',
+        '🏛 Javobgar (davlat organi) nomi',
+        '🏛 Название госоргана-ответчика',
+      ),
+      L(
+        'Масалан: Жиззах шаҳар ҳокимлиги',
+        "Masalan: Jizzax shahar hokimligi",
+        'Например: Хокимият г. Джизак',
+      ),
+    ),
+    F.address(
+      'defendant_address',
+      L(
+        '🏠 Жавобгар почта манзили',
+        "🏠 Javobgar pochta manzili",
+        '🏠 Почтовый адрес ответчика',
+      ),
+    ),
+    F.text(
+      'case_number',
+      L(
+        '🔢 Иш рақами',
+        '🔢 Ish raqami',
+        '🔢 Номер дела',
+      ),
+      L(
+        'Сиз томонидан берилган асосий ишнинг рақами',
+        "Siz tomondan berilgan asosiy ishning raqami",
+        'Номер вашего основного дела в суде',
+      ),
+    ),
+    F.text(
+      'acted_act',
+      L(
+        '📑 Ижроси тўхтатиласи ҳужжат',
+        "📑 Ijrosi to‘xtatiladi hujjat",
+        '📑 Акт, исполнение которого приостанавливается',
+      ),
+      L(
+        'Масалан: 123-сонли қарор',
+        "Masalan: 123-sonli qaror",
+        'Например: постановление № 123',
+      ),
+    ),
+    NARRATIVE(
+      'suspension_grounds',
+      L(
+        '⚠️ Шошилинч асоси (нима учун зарур)',
+        "⚠️ Shoshilinch asosi",
+        '⚠️ Основания срочности (почему нужно)',
+      ),
+      L(
+        'Қандай зарар келиб чиқиши мумкин агар ижро дарҳол амалга оширилса.',
+        "Qanday zarar kelib chiqishi mumkin agar ijro darhol amalga oshirilsa.",
+        'Какой ущерб может наступить при немедленном исполнении.',
+      ),
+    ),
+    F.text(
+      'attachments_list',
+      L(
+        '📎 Иловалар рўйхати',
+        "📎 Ilovalar ro‘yxati",
+        '📎 Перечень приложений',
+      ),
+      L(
+        'Қисқа рўйхат: 1) ... 2) ... 3) ...',
+        "Qisqa ro‘yxat: 1) ... 2) ... 3) ...",
+        'Краткий перечень: 1) ... 2) ... 3) ...',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
+ * 14n. MAMURIY — жалоба на действия пристава-исполнителя (БПИ)
+ * ============================================================ */
+const T_MAM_PRISTAV: TemplateDef = {
+  code: 'shikoyat-mamuriy-pristav',
+  category: 'shikoyat',
+  courtTypeCode: 'mamuriy',
+  title: L(
+    '🚔 Ижрочи ҳаракатига шикоят',
+    "🚔 Ijrochi harakatiga shikoyat",
+    '🚔 Жалоба на пристава-исполнителя',
+  ),
+  subtitle: L(
+    'Бюро ижро ҳаракатлари',
+    "Byuro ijro harakatlari",
+    'действия БПИ',
+  ),
+  description: L('—', '—', '—'),
+  instructions: L(
+    `🚔 <b>Мажбурий ижро бюроси ижрочисининг ҳаракатига шикоят</b>\n\n📋 <b>Қачон бериш:</b>\nЎзбекистон Республикаси Мажбурий ижро бюросининг (БИБ) ижрочиси ноқонуний ҳаракат қилди ёки бажариши керак бўлган ҳаракатни бажармади (мол-мулкни ноқонуний хатлаб қўйди, муддатларни бузди, ҳужжатларни юбормади ва ҳ.к.).\n\n📜 <b>Қонуний асос:</b>\nМСИЮКнинг 27-моддаси.\n\n🏛 <b>Қаерга:</b>\nТуманлараро маъмурий суди раисига.\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → БИБ бўлими → ижрочи Ф.И.Ш. → ижро иши рақами → ҳаракат тури → ҳолатлар → суддан нима сўрайсиз.`,
+    `🚔 <b>Majburiy ijro byurosi ijrochisining harakatiga shikoyat</b>\n\n📋 <b>Qachon berish:</b>\nO‘zbekiston Respublikasi Majburiy ijro byurosining ijrochisi noqonuniy harakat qildi yoki bajarishi kerak bo‘lgan harakatni bajarmadi.\n\n📜 <b>Qonuniy asos:</b>\nMSIYUKning 27-moddasi.\n\n🏛 <b>Qayerga:</b>\nTumanlararo ma'muriy sudi raisiga.\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → BIB bo‘limi → ijrochi F.I.SH. → ijro ishi raqami → harakat turi → holatlar → suddan nima so‘raysiz.`,
+    `🚔 <b>Жалоба на действия пристава Бюро принудительного исполнения</b>\n\n📋 <b>Когда подавать:</b>\nЕсли пристав-исполнитель БПИ совершил незаконные действия или не совершил действия, которые должен был (незаконно наложил арест, нарушил сроки, не направил документы и т. п.).\n\n📜 <b>Правовое основание:</b>\nст. 27 МСИЮК.\n\n🏛 <b>Куда:</b>\nПредседателю межрайонного административного суда.\n\n📝 <b>Бот спросит:</b>\nваши данные → отдел БПИ → ФИО пристава → номер исполнительного производства → характер действия → обстоятельства → что просите.`,
+  ),
+  fileNameBase: 'shikoyat-mamuriy-pristav',
+  fields: [
+    ...APPLICANT_BLOCK,
+    F.text(
+      'defendant_org_name',
+      L(
+        '🏛 БИБ бўлими номи',
+        "🏛 BIB bo‘limi nomi",
+        '🏛 Отдел БПИ',
+      ),
+      L(
+        'Масалан: Жиззах шаҳар БИБ бўлими',
+        "Masalan: Jizzax shahar BIB bo‘limi",
+        'Например: Отдел БПИ г. Джизак',
+      ),
+    ),
+    F.address(
+      'defendant_address',
+      L(
+        '🏠 БИБ бўлими манзили',
+        "🏠 BIB bo‘limi manzili",
+        '🏠 Адрес отдела БПИ',
+      ),
+    ),
+    F.fio(
+      'pristav_fio',
+      L(
+        '👤 Ижрочи Ф.И.Ш.',
+        '👤 Ijrochi F.I.SH.',
+        '👤 Ф.И.О. пристава-исполнителя',
+      ),
+    ),
+    F.text(
+      'execution_case_number',
+      L(
+        '🔢 Ижро иши рақами',
+        "🔢 Ijro ishi raqami",
+        '🔢 Номер исполнительного производства',
+      ),
+      L(
+        'Масалан: 2024/123/45',
+        "Masalan: 2024/123/45",
+        'Например: 2024/123/45',
+      ),
+    ),
+    NARRATIVE(
+      'illegal_action',
+      L(
+        '⚠️ Қандай ҳаракат/ҳаракатсизлик ноқонуний',
+        "⚠️ Qanday harakat/harakatsizlik noqonuniy",
+        '⚠️ Какое действие/бездействие незаконно',
+      ),
+      L(
+        'Қачон, нима қилди ёки қилмади.',
+        "Qachon, nima qildi yoki qilmadi.",
+        'Когда, что сделал или не сделал.',
+      ),
+    ),
+    F.text(
+      'requested_action',
+      L(
+        '✅ Суддан нима сўрайсиз',
+        "✅ Suddan nima so‘raysiz",
+        '✅ Что просите у суда',
+      ),
+      L(
+        'Масалан: ҳаракатини қонунга хилоф деб топиш, постановлениесини бекор қилиш',
+        "Masalan: harakatini qonunga xilof deb topish, postanovleniyesini bekor qilish",
+        'Например: признать действия незаконными, отменить постановление',
+      ),
+    ),
+    F.text(
+      'attachments_list',
+      L(
+        '📎 Иловалар рўйхати',
+        "📎 Ilovalar ro‘yxati",
+        '📎 Перечень приложений',
+      ),
+      L(
+        'Қисқа рўйхат: 1) ... 2) ... 3) ...',
+        "Qisqa ro‘yxat: 1) ... 2) ... 3) ...",
+        'Краткий перечень: 1) ... 2) ... 3) ...',
+      ),
+    ),
+  ],
+};
+
+/* ============================================================
  * 15. Янги очилган ҳолат бўйича бекор қилиш (annul - new circumstances)
  * ============================================================ */
 const T_YANGI_HOLAT: TemplateDef = {
@@ -2157,6 +2693,11 @@ export const TEMPLATES: TemplateDef[] = [
   T_JIN_3243,
   T_MAM_MANSABDOR,
   T_MAM_QAROR_BEKOR,
+  T_MAM_GOSHLINA,
+  T_MAM_ZARAR,
+  T_MAM_NPA,
+  T_MAM_TOXTAT,
+  T_MAM_PRISTAV,
   T_YANGI_HOLAT,
   T_KECHIKTIRISH,
   T_APELLATSIYA,
