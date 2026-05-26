@@ -1992,6 +1992,63 @@ const T_MAM_QAROR_BEKOR_RU: BlockSpec[] = [
 ];
 
 /* ============================================================
+ * Template — Фуқаролик: маънавий зарар ундириш ҳақида даъво ариза
+ *   davo-ariza-manaviy-zarar (T_DAVO_MANAVIY_ZARAR)
+ * The defendant here is a state organ (ИИБ ЙХХБ, etc.) with no full
+ * postal address, so the defendant block is a single line — just the
+ * organization's short name — matching the user's reference paper form.
+ * ============================================================ */
+const T_DAVO_MANAVIY_ZARAR_CY: BlockSpec[] = [
+  ...stdHeaderCY(),
+  ...partyBlockCY('Даъвогар', 'plaintiff'),
+  {
+    text: [
+      { text: 'Жавобгар:', bold: true, tab: true },
+      { text: '{{defendant_org_name}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+  },
+  { text: '' },
+  ...titleBlock('Д А Ъ В О   А Р И З А', 'маънавий зарар ундириш ҳақида'),
+  body('{{case_facts}}'),
+  body('{{moral_damage_description}}'),
+  { text: '' },
+  { text: [{ text: 'Сўрайман:', bold: true }] },
+  body('{{defendant_org_name}}дан менинг фойдамга {{damage_amount}} сўм маънавий зарар ундириб беришингизни сўрайман.'),
+  ...signatureBlock('Даъвогар:'),
+  { text: '' },
+  { text: [{ text: 'Илова: ', bold: true }, { text: '{{attachments_list}}' }] },
+];
+
+const T_DAVO_MANAVIY_ZARAR_RU: BlockSpec[] = [
+  ...stdHeaderRU(),
+  ...partyBlockRU('Истец', 'plaintiff'),
+  {
+    text: [
+      { text: 'Ответчик:', bold: true, tab: true },
+      { text: '{{defendant_org_name}}', tab: true, italics: true, bold: true },
+    ],
+    rightTabStop: PARTY_LABEL_RIGHT,
+    tabStop: PARTY_INDENT,
+    leftIndent: PARTY_INDENT,
+    hanging: PARTY_INDENT,
+  },
+  { text: '' },
+  ...titleBlock('И С К О В О Е   З А Я В Л Е Н И Е', 'о взыскании морального вреда'),
+  body('{{case_facts}}'),
+  body('{{moral_damage_description}}'),
+  { text: '' },
+  { text: [{ text: 'Прошу:', bold: true }] },
+  body('Взыскать с {{defendant_org_name}} в мою пользу {{damage_amount}} сум в счёт компенсации морального вреда.'),
+  ...signatureBlockRU('Истец:'),
+  { text: '' },
+  { text: [{ text: 'Приложение: ', bold: true }, { text: '{{attachments_list}}' }] },
+];
+
+/* ============================================================
  * IQTISODIY (economic court) helpers.
  * Three header flavors:
  *   - iqtSudHeader      → district court (first-instance filings)
@@ -2758,6 +2815,11 @@ const BUILDERS: Record<string, Record<Locale, BlockSpec[]>> = {
     uz_cyrillic: T_IQT_KASS_CY,
     uz_latin: deriveLatin(T_IQT_KASS_CY),
     ru: T_IQT_KASS_RU,
+  },
+  'davo-ariza-manaviy-zarar': {
+    uz_cyrillic: T_DAVO_MANAVIY_ZARAR_CY,
+    uz_latin: deriveLatin(T_DAVO_MANAVIY_ZARAR_CY),
+    ru: T_DAVO_MANAVIY_ZARAR_RU,
   },
   'ariza-hujjatdan-nuskha': {
     uz_cyrillic: T15_CY,
