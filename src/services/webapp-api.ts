@@ -4,6 +4,7 @@ import path from 'node:path';
 import { COURT_TYPES } from '../templates/court-types';
 import { REGIONS, getRegionByCode } from '../templates/regions';
 import {
+  getArizaCourtsFor,
   getDistrictCourtsFor,
   getDistrictCourtByCode,
 } from '../templates/district-courts';
@@ -71,7 +72,16 @@ export async function handleApi(ctx: ApiContext): Promise<boolean> {
   }
   const courtsMatch = p.match(/^\/courts\/([^/]+)\/([^/]+)$/);
   if (m === 'GET' && courtsMatch) {
-    sendJson(ctx.res, 200, getDistrictCourtsFor(courtsMatch[1]!, courtsMatch[2]!));
+    // `?for=ariza` returns the simplified list used by the document
+    // wizard (jinoyat collapses to viloyat + tumanlararo, matching
+    // mamuriy's structure). Anything else falls back to the full
+    // schedule-flow list.
+    const forArg = ctx.url.searchParams.get('for');
+    const list =
+      forArg === 'ariza'
+        ? getArizaCourtsFor(courtsMatch[1]!, courtsMatch[2]!)
+        : getDistrictCourtsFor(courtsMatch[1]!, courtsMatch[2]!);
+    sendJson(ctx.res, 200, list);
     return true;
   }
   if (m === 'GET' && p === '/court-types/with-region') {

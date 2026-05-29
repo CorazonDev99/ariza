@@ -137,6 +137,12 @@ export const api = {
   regions: () => request<Region[]>('/regions'),
   courts: (type: string, region: string) =>
     request<DistrictCourt[]>(`/courts/${encodeURIComponent(type)}/${encodeURIComponent(region)}`),
+  /** Courts for the ariza wizard — same as `courts()` for most types
+   *  but collapsed to 2-per-region for jinoyat (matching mamuriy). */
+  arizaCourts: (type: string, region: string) =>
+    request<DistrictCourt[]>(
+      `/courts/${encodeURIComponent(type)}/${encodeURIComponent(region)}?for=ariza`,
+    ),
   templates: (type: string) =>
     request<TemplateSummary[]>(`/templates/${encodeURIComponent(type)}`),
   template: (code: string) =>

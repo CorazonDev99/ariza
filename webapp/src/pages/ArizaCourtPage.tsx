@@ -20,7 +20,7 @@ export function ArizaCourtPage(ctx: PageCtx) {
       nav('/ariza');
       return;
     }
-    api.courts(ctx.picker.courtType, ctx.picker.region)
+    api.arizaCourts(ctx.picker.courtType, ctx.picker.region)
       .then(setCourts)
       .catch((e) => setError(String(e.message ?? e)));
   }, [nav, ctx.picker.courtType, ctx.picker.region]);

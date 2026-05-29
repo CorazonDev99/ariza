@@ -18,7 +18,7 @@ import { REGIONS, getRegionByCode } from '../templates/regions';
 import { COURT_TYPES, getCourtTypeByCode } from '../templates/court-types';
 import {
   getDistrictCourtByCode,
-  getDistrictCourtsFor,
+  getArizaCourtsFor,
 } from '../templates/district-courts';
 import { t } from '../i18n';
 import type { FieldDef, WizardState } from '../types';
@@ -410,7 +410,7 @@ export function buildArizaWizardScene(
       { parse_mode: 'HTML' },
     );
 
-    const courts = getDistrictCourtsFor(picker.courtTypeCode, region.code);
+    const courts = getArizaCourtsFor(picker.courtTypeCode, region.code);
     await ctx.reply(
       t(ctx.locale, 'district.pick', { region: region.label[ctx.locale] }),
       {
@@ -570,7 +570,7 @@ export function buildArizaWizardScene(
     }
     picker.districtCourtCode = undefined;
     const region = getRegionByCode(picker.regionCode);
-    const courts = getDistrictCourtsFor(picker.courtTypeCode, picker.regionCode);
+    const courts = getArizaCourtsFor(picker.courtTypeCode, picker.regionCode);
     await ctx.editMessageText(
       t(ctx.locale, 'district.pick', {
         region: region ? region.label[ctx.locale] : picker.regionCode,

@@ -27,18 +27,75 @@ export interface DistrictCourtDef {
   address?: Record<Locale, string>;
 }
 
-export const DISTRICT_COURTS: DistrictCourtDef[] = JADVAL2_COURTS;
+/**
+ * Synthesised JINOYAT entries used by the ariza wizard ONLY. The jadval2
+ * scrape gives us 219 real jinoyat courts (each district has its own
+ * criminal court) — useful for schedule lookup but wrong for the ariza
+ * picker, where the user files at viloyat / tumanlararo level just like
+ * mamuriy (only 2 entries per region). We clone the mamuriy entries
+ * 1:1 — same display names, same regional structure — but flip the
+ * `courtTypeCode` to 'jinoyat' and re-prefix the codes so they're
+ * distinct from the schedule-flow ones.
+ *
+ * The schedule flow (`getDistrictCourtsFor`) keeps using the original
+ * 219 jinoyat courts so users can still drill down to their specific
+ * district court when looking up hearings on jadval2.sud.uz.
+ */
+const JINOYAT_ARIZA_COURTS: DistrictCourtDef[] = JADVAL2_COURTS
+  .filter((c) => c.courtTypeCode === 'mamuriy')
+  .map((c) => ({
+    ...c,
+    code: c.code.replace(/^mam-/, 'jin-ariza-'),
+    courtTypeCode: 'jinoyat',
+  }));
+
+/**
+ * All known court entries — real (from jadval2) + synthesised
+ * (jinoyat ariza). Used by `getDistrictCourtByCode` so that lookups
+ * by code work for both flow types.
+ */
+export const DISTRICT_COURTS: DistrictCourtDef[] = [
+  ...JADVAL2_COURTS,
+  ...JINOYAT_ARIZA_COURTS,
+];
 
 export function getDistrictCourtByCode(code: string): DistrictCourtDef | undefined {
   return DISTRICT_COURTS.find((d) => d.code === code);
 }
 
-/** All district courts for a (courtType, region) pair, in declared order. */
+/**
+ * District courts for the SCHEDULE flow (📋 «Проверить дело»).
+ *
+ * Returns the FULL jadval2 list — including all 219 jinoyat district
+ * courts — so users can find their specific local court when looking
+ * up hearings.
+ */
 export function getDistrictCourtsFor(
   courtTypeCode: string,
   regionCode: string,
 ): DistrictCourtDef[] {
-  return DISTRICT_COURTS.filter(
+  return JADVAL2_COURTS.filter(
+    (d) => d.courtTypeCode === courtTypeCode && d.regionCode === regionCode,
+  );
+}
+
+/**
+ * District courts for the ARIZA wizard (📄 «Подать заявление»).
+ *
+ * Same as the schedule list for fuqarolik / mamuriy / iqtisodiy, but
+ * for jinoyat we return ONLY the 2-per-region synthesised pair
+ * (viloyat sudi + tumanlararo sudi) — matching mamuriy's structure —
+ * because criminal arizas are filed at viloyat / tumanlararo level,
+ * not at each individual district court.
+ */
+export function getArizaCourtsFor(
+  courtTypeCode: string,
+  regionCode: string,
+): DistrictCourtDef[] {
+  if (courtTypeCode === 'jinoyat') {
+    return JINOYAT_ARIZA_COURTS.filter((d) => d.regionCode === regionCode);
+  }
+  return JADVAL2_COURTS.filter(
     (d) => d.courtTypeCode === courtTypeCode && d.regionCode === regionCode,
   );
 }

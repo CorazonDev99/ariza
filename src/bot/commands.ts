@@ -22,6 +22,7 @@ import { TEMPLATES, getTemplateByCode } from '../templates/registry';
 import { COURT_TYPES, getCourtTypeByCode } from '../templates/court-types';
 import { REGIONS, getRegionByCode } from '../templates/regions';
 import {
+  getArizaCourtsFor,
   getDistrictCourtByCode,
   getDistrictCourtsFor,
 } from '../templates/district-courts';
@@ -153,7 +154,10 @@ export function registerCommands(
     }
     picker.regionCode = region.code;
     picker.districtCourtCode = undefined;
-    const courts = getDistrictCourtsFor(picker.courtTypeCode, region.code);
+    // Guide flow leads into the ariza wizard, so use the ARIZA-specific
+    // court list (simplified to 2-per-region for jinoyat) so the courts
+    // shown here match the ones the wizard itself will offer.
+    const courts = getArizaCourtsFor(picker.courtTypeCode, region.code);
     await ctx.answerCbQuery();
     await ctx.editMessageText(
       t(ctx.locale, 'district.pick', { region: region.label[ctx.locale] }),
@@ -210,7 +214,10 @@ export function registerCommands(
       return;
     }
     picker.districtCourtCode = undefined;
-    const courts = getDistrictCourtsFor(picker.courtTypeCode, picker.regionCode);
+    // Guide-flow back navigation: same source as g-region: handler — use
+    // ariza-flow courts so the list stays consistent with what the wizard
+    // will offer when the user proceeds.
+    const courts = getArizaCourtsFor(picker.courtTypeCode, picker.regionCode);
     const region = getRegionByCode(picker.regionCode);
     await ctx.editMessageText(
       t(ctx.locale, 'district.pick', { region: region?.label[ctx.locale] ?? '' }),
