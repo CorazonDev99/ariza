@@ -88,6 +88,12 @@ export function ArizaPreviewPage(ctx: PageCtx) {
         >
           {t(ctx.locale, 'btn.edit')}
         </button>
+        <button
+          onClick={() => nav('/')}
+          className="bg-tg-section-bg rounded-2xl p-3 text-[14px] text-tg-hint"
+        >
+          🏠 {t(ctx.locale, 'wiz.done.home')}
+        </button>
       </div>
     </Page>
   );

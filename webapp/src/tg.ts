@@ -90,6 +90,35 @@ export function getTg(): TgWebApp {
   return SHIM;
 }
 
+/**
+ * Capture initData ONCE at module load. Some Telegram clients (notably
+ * Android with certain build channels) clear the URL fragment after
+ * `WebApp.ready()` so a later read of `getTg().initData` returns "".
+ * That breaks every authenticated API call.
+ *
+ * We snapshot the value here while it's still populated, and also
+ * persist it to sessionStorage as a belt-and-braces fallback for cases
+ * where the Mini App's container reloads the iframe mid-session.
+ */
+const SNAPSHOT_KEY = 'tg:initData';
+function snapshotInitData(): string {
+  const live = window.Telegram?.WebApp?.initData ?? '';
+  if (live) {
+    try { sessionStorage.setItem(SNAPSHOT_KEY, live); } catch { /* private mode */ }
+    return live;
+  }
+  try { return sessionStorage.getItem(SNAPSHOT_KEY) ?? ''; } catch { return ''; }
+}
+const INIT_DATA_AT_BOOT = snapshotInitData();
+
+/** Stable initData for the lifetime of this WebApp session. Prefer the
+ *  fresh value if the client kept it around; otherwise replay the
+ *  snapshot captured on first load. */
+export function getInitData(): string {
+  const live = window.Telegram?.WebApp?.initData ?? '';
+  return live || INIT_DATA_AT_BOOT;
+}
+
 const noop = () => {};
 const SHIM: TgWebApp = {
   initData: '',

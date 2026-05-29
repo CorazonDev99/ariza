@@ -1,4 +1,4 @@
-import { getTg } from './tg';
+import { getInitData } from './tg';
 
 const API_BASE = '/api';
 
@@ -119,7 +119,7 @@ async function request<T>(
   init?: RequestInit,
 ): Promise<T> {
   const headers = new Headers(init?.headers);
-  headers.set('X-Telegram-Init-Data', getTg().initData);
+  headers.set('X-Telegram-Init-Data', getInitData());
   const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as {
@@ -191,7 +191,7 @@ export const api = {
     const qs = new URLSearchParams({ locale });
     if (prompt) qs.set('prompt', prompt);
     const headers = new Headers({
-      'X-Telegram-Init-Data': getTg().initData,
+      'X-Telegram-Init-Data': getInitData(),
       'Content-Type': audio.type || 'audio/webm',
     });
     const res = await fetch(`${API_BASE}/transcribe?${qs.toString()}`, {
