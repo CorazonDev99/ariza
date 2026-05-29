@@ -83,7 +83,7 @@ const DICT = {
     'wiz.done.title': 'Ҳужжат тайёр!',
     'wiz.done.download': '📥 Юклаб олиш',
     'wiz.done.new': '➕ Янги ариза',
-    'wiz.done.home': '🏠 Бошга',
+    'wiz.done.home': '🏠 Бош менюга қайтиш',
     'wiz.cancel-q': 'Жараённи бекор қилишни истайсизми? Маълумотлар йўқолади.',
 
     // guide
@@ -196,7 +196,7 @@ const DICT = {
     'wiz.done.title': 'Hujjat tayyor!',
     'wiz.done.download': '📥 Yuklab olish',
     'wiz.done.new': '➕ Yangi ariza',
-    'wiz.done.home': '🏠 Boshga',
+    'wiz.done.home': '🏠 Bosh menyuga qaytish',
     'wiz.cancel-q': "Jarayonni bekor qilishni istaysizmi? Ma’lumotlar yo‘qoladi.",
 
     'guide.title': "Yo‘riqnoma",
@@ -306,7 +306,7 @@ const DICT = {
     'wiz.done.title': 'Документ готов!',
     'wiz.done.download': '📥 Скачать',
     'wiz.done.new': '➕ Новое заявление',
-    'wiz.done.home': '🏠 На главную',
+    'wiz.done.home': '🏠 Вернуться в главное меню',
     'wiz.cancel-q': 'Отменить процесс? Введённые данные будут потеряны.',
 
     'guide.title': 'Инструкция',

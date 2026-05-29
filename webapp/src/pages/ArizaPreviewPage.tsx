@@ -83,7 +83,15 @@ export function ArizaPreviewPage(ctx: PageCtx) {
           {generating ? t(ctx.locale, 'wiz.generate.processing') : t(ctx.locale, 'btn.generate')}
         </button>
         <button
-          onClick={() => nav('/ariza/wizard')}
+          onClick={() => {
+            // Reset the wizard's field pointer so the user lands on the
+            // FIRST field, not auto-bounced back to preview (which is
+            // what happened when idx was past the end after Generate).
+            // Values stay in sessionStorage so each field shows their
+            // existing answer pre-filled.
+            sessionStorage.setItem('ariza:fieldIndex', '0');
+            nav('/ariza/wizard');
+          }}
           className="bg-tg-section-bg text-tg-link rounded-2xl p-3 text-[14px]"
         >
           {t(ctx.locale, 'btn.edit')}
@@ -92,7 +100,7 @@ export function ArizaPreviewPage(ctx: PageCtx) {
           onClick={() => nav('/')}
           className="bg-tg-section-bg rounded-2xl p-3 text-[14px] text-tg-hint"
         >
-          🏠 {t(ctx.locale, 'wiz.done.home')}
+          {t(ctx.locale, 'wiz.done.home')}
         </button>
       </div>
     </Page>
