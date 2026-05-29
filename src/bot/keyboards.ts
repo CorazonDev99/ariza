@@ -20,8 +20,7 @@ export function mainMenu(locale: Locale) {
     : null;
 
   const rows: Array<Array<string | ReturnType<typeof Markup.button.webApp>>> = [
-    [t(locale, 'menu.new')],
-    [t(locale, 'menu.jadval')],
+    [t(locale, 'menu.new'), t(locale, 'menu.jadval')],
   ];
   if (webAppButton) rows.push([webAppButton]);
   rows.push([t(locale, 'menu.instructions'), t(locale, 'menu.about')]);
