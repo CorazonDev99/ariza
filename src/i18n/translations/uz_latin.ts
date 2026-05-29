@@ -16,6 +16,7 @@ export const uz_latin: Dict = {
   'menu.new': '📄 Ariza topshirish',
   'menu.instructions': "📖 Yo‘riqnoma",
   'menu.jadval': '📋 Ishimni tekshirish',
+  'menu.webapp': '🌐 Mini App da ochish',
   'menu.about': 'ℹ️ Bot haqida',
   'menu.lang': '🌐 Til',
 

@@ -1,5 +1,6 @@
 import { Markup } from 'telegraf';
 import { LOCALE_META, LOCALES, t, type Locale } from '../i18n';
+import { config } from '../config';
 import type { TemplateDef } from '../types';
 import type { RegionDef } from '../templates/regions';
 import type { CourtTypeDef } from '../templates/court-types';
@@ -10,12 +11,22 @@ import type { DistrictCourtDef } from '../templates/district-courts';
 // see more of the conversation history. The keyboard re-appears on the
 // next bot message.
 export function mainMenu(locale: Locale) {
-  return Markup.keyboard([
+  // When WEBAPP_URL is set we show a Telegram Mini App launcher button
+  // in the persistent reply keyboard. Tapping it opens the SPA inside
+  // Telegram. Without WEBAPP_URL the row is dropped silently so the
+  // menu still works on installs that haven't deployed the webapp yet.
+  const webAppButton = config.webappUrl
+    ? Markup.button.webApp(t(locale, 'menu.webapp'), config.webappUrl)
+    : null;
+
+  const rows: Array<Array<string | ReturnType<typeof Markup.button.webApp>>> = [
     [t(locale, 'menu.new')],
     [t(locale, 'menu.jadval')],
-    [t(locale, 'menu.instructions'), t(locale, 'menu.about')],
-    [t(locale, 'menu.lang')],
-  ]).resize();
+  ];
+  if (webAppButton) rows.push([webAppButton]);
+  rows.push([t(locale, 'menu.instructions'), t(locale, 'menu.about')]);
+  rows.push([t(locale, 'menu.lang')]);
+  return Markup.keyboard(rows as never).resize();
 }
 
 /**

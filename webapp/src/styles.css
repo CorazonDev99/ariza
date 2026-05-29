@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* =====================================================================
+ * Telegram theme variables → Tailwind utility-friendly CSS vars.
+ *
+ * Telegram injects --tg-theme-*-color on <html> based on the user's
+ * client theme (iOS dark, Android light, etc.). We alias them under
+ * shorter names + provide light fallbacks for previewing outside
+ * Telegram (`npm run dev` in a normal browser).
+ * ===================================================================== */
+
+:root {
+  --tg-bg: var(--tg-theme-bg-color, #ffffff);
+  --tg-text: var(--tg-theme-text-color, #0f1419);
+  --tg-hint: var(--tg-theme-hint-color, #707579);
+  --tg-link: var(--tg-theme-link-color, #2481cc);
+  --tg-button: var(--tg-theme-button-color, #2481cc);
+  --tg-button-text: var(--tg-theme-button-text-color, #ffffff);
+  --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
+  --tg-section-bg: var(--tg-theme-section-bg-color, #ffffff);
+  --tg-section-header: var(--tg-theme-section-header-text-color, #707579);
+  --tg-destructive: var(--tg-theme-destructive-text-color, #ff3b30);
+  --tg-accent: var(--tg-theme-accent-text-color, var(--tg-link));
+  --tg-subtitle: var(--tg-theme-subtitle-text-color, var(--tg-hint));
+  --tg-header-bg: var(--tg-theme-header-bg-color, var(--tg-bg));
+}
+
+/* Wire the vars into Tailwind v4's @theme so utilities like `bg-tg-bg`
+ * `text-tg-text` etc. just work in JSX. */
+@theme {
+  --color-tg-bg: var(--tg-bg);
+  --color-tg-text: var(--tg-text);
+  --color-tg-hint: var(--tg-hint);
+  --color-tg-link: var(--tg-link);
+  --color-tg-button: var(--tg-button);
+  --color-tg-button-text: var(--tg-button-text);
+  --color-tg-secondary-bg: var(--tg-secondary-bg);
+  --color-tg-section-bg: var(--tg-section-bg);
+  --color-tg-section-header: var(--tg-section-header);
+  --color-tg-destructive: var(--tg-destructive);
+  --color-tg-accent: var(--tg-accent);
+  --color-tg-subtitle: var(--tg-subtitle);
+  --color-tg-header-bg: var(--tg-header-bg);
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--tg-secondary-bg);
+  color: var(--tg-text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "Roboto", "Segoe UI", system-ui, sans-serif;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* Native-feeling list rows: tap → brief darker bg flash */
+.row-tap {
+  transition: background-color 80ms ease-out;
+}
+.row-tap:active {
+  background-color: color-mix(in srgb, var(--tg-text) 8%, transparent);
+}
+
+/* Hide the page until JS hydrates to avoid an unstyled flash */
+#root:empty::before {
+  content: "";
+  display: block;
+  height: 100vh;
+  background: var(--tg-bg);
+}
+
+/* iOS safe-area-respecting page padding helpers */
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+.safe-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+
+/* Spinner used by Loader.tsx */
+@keyframes tg-spin {
+  to { transform: rotate(360deg); }
+}
+.tg-spinner {
+  animation: tg-spin 0.9s linear infinite;
+}

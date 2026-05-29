@@ -16,6 +16,7 @@ export const ru: Dict = {
   'menu.new': '📄 Подать заявление',
   'menu.instructions': '📖 Инструкция',
   'menu.jadval': '📋 Проверить дело',
+  'menu.webapp': '🌐 Открыть в Mini App',
   'menu.about': 'ℹ️ О боте',
   'menu.lang': '🌐 Язык',
 

@@ -38,7 +38,7 @@ git pull --ff-only
 echo "==> chown to ${APP_USER}"
 chown -R "${APP_USER}:${APP_USER}" "${APP_DIR}"
 
-echo "==> npm ci + prisma generate + build + db push (as ${APP_USER})"
+echo "==> npm ci + prisma generate + build (bot + webapp) + db push (as ${APP_USER})"
 sudo -u "${APP_USER}" -H bash -c "
     cd '${APP_DIR}' &&
     npm ci &&

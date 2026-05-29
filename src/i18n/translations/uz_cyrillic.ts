@@ -19,6 +19,7 @@ export const uz_cyrillic: Dict = {
   'menu.new': '📄 Ариза топшириш',
   'menu.instructions': '📖 Қўлланма',
   'menu.jadval': '📋 Ишимни текшириш',
+  'menu.webapp': '🌐 Mini App да очиш',
   'menu.about': 'ℹ️ Бот ҳақида',
   'menu.lang': '🌐 Тил',
 

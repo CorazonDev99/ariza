@@ -1,5 +1,7 @@
 node_modules
 dist
+webapp/dist
+webapp/node_modules
 .env
 .env.local
 *.log

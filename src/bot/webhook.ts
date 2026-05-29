@@ -7,6 +7,25 @@ import type { PaymentService } from '../services/payment.service';
 import type { DocumentRepository } from '../repositories/document.repository';
 import { fileExists } from '../utils/fs';
 import { logger } from '../utils/logger';
+import { handleApi } from '../services/webapp-api';
+
+const WEBAPP_DIST = path.resolve(process.cwd(), 'webapp', 'dist');
+const STATIC_EXTS: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.mjs': 'application/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.txt': 'text/plain; charset=utf-8',
+};
 
 export type PaymentNotifier = (
   userId: number,
@@ -40,6 +59,38 @@ export function startHttpServer(
 ): http.Server {
   const server = http.createServer(async (req, res) => {
     try {
+      const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'local'}`);
+
+      // CORS pre-flight (Mini App can be on a different origin)
+      if (req.method === 'OPTIONS') {
+        res.statusCode = 204;
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader(
+          'Access-Control-Allow-Headers',
+          'Content-Type, X-Telegram-Init-Data',
+        );
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.end();
+        return;
+      }
+
+      // ---- /api/* — Mini App REST endpoints ----
+      if (url.pathname.startsWith('/api/')) {
+        const handled = await handleApi({ url, req, res });
+        if (!handled) {
+          res.statusCode = 404;
+          res.setHeader('Content-Type', 'application/json');
+          res.end('{"error":"not_found"}');
+        }
+        return;
+      }
+
+      // ---- /webapp/* — Mini App static frontend (Vite build output) ----
+      if (url.pathname.startsWith('/webapp')) {
+        await serveWebApp(url, res);
+        return;
+      }
+
       // ---- GET /download/<token> ----
       if (req.method === 'GET' && req.url?.startsWith('/download/')) {
         const token = decodeURIComponent(req.url.replace('/download/', '').split('?')[0] ?? '');
@@ -84,6 +135,72 @@ export function startHttpServer(
   });
 
   return server;
+}
+
+/**
+ * Serve the built Vite SPA from `webapp/dist`. Any path under `/webapp`
+ * that doesn't map to a file falls back to `index.html` so the React
+ * router can handle deep-links.
+ *
+ * Path mapping:
+ *   /webapp           → webapp/dist/index.html
+ *   /webapp/          → webapp/dist/index.html
+ *   /webapp/foo       → webapp/dist/index.html (SPA fallback)
+ *   /webapp/assets/X  → webapp/dist/assets/X    (build output, hashed)
+ */
+async function serveWebApp(url: URL, res: http.ServerResponse): Promise<void> {
+  const rel = url.pathname.replace(/^\/webapp\/?/, '') || 'index.html';
+
+  // Prevent directory traversal by resolving and checking the prefix.
+  const resolved = path.resolve(WEBAPP_DIST, rel);
+  if (!resolved.startsWith(WEBAPP_DIST)) {
+    res.statusCode = 400;
+    res.end();
+    return;
+  }
+
+  let target = resolved;
+  let stat = await safeStat(target);
+  if (!stat || stat.isDirectory()) {
+    target = path.join(WEBAPP_DIST, 'index.html');
+    stat = await safeStat(target);
+  }
+  if (!stat) {
+    // SPA fallback — return index.html for unknown routes.
+    target = path.join(WEBAPP_DIST, 'index.html');
+    stat = await safeStat(target);
+  }
+  if (!stat) {
+    res.statusCode = 503;
+    res.setHeader('Content-Type', 'text/plain');
+    res.end(
+      'Mini App not built. Run `npm run build:webapp` on the server.',
+    );
+    return;
+  }
+
+  const ext = path.extname(target).toLowerCase();
+  const contentType = STATIC_EXTS[ext] ?? 'application/octet-stream';
+  res.statusCode = 200;
+  res.setHeader('Content-Type', contentType);
+  // Hashed asset names from Vite ⇒ aggressive caching is safe.
+  // index.html should not be cached so updates propagate immediately.
+  if (target.endsWith('index.html')) {
+    res.setHeader('Cache-Control', 'no-store');
+  } else if (target.includes(path.sep + 'assets' + path.sep)) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  } else {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+  }
+  fs.createReadStream(target).pipe(res);
+}
+
+async function safeStat(p: string): Promise<fs.Stats | null> {
+  try {
+    return await fs.promises.stat(p);
+  } catch {
+    return null;
+  }
 }
 
 async function handleDownload(

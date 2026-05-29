@@ -32,6 +32,10 @@ export interface AppConfig {
   };
   publicBaseUrl: string;
   botUsername: string;
+  /** Public HTTPS URL where the Telegram Mini App is hosted (Cloudflare
+   *  Tunnel hostname or your own domain + `/webapp`). Empty disables
+   *  the Mini App button in the main menu. */
+  webappUrl: string;
   /** Display name pushed via setMyName at startup. */
   botDisplayName: string;
   /** Telegram username for the support button (no leading "@"), or "". */
@@ -79,6 +83,7 @@ export const config: AppConfig = {
   },
   publicBaseUrl: env.PUBLIC_BASE_URL.replace(/\/+$/, ''),
   botUsername: env.BOT_USERNAME,
+  webappUrl: env.WEBAPP_URL.replace(/\/+$/, ''),
   botDisplayName: env.BOT_DISPLAY_NAME,
   supportContact: env.SUPPORT_CONTACT.trim().replace(/^@/, ''),
   adminChatIds: env.ADMIN_CHAT_IDS.split(',')

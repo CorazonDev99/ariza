@@ -4,9 +4,11 @@
   "description": "Telegram bot for generating Uzbek 'Ariza' legal application documents (DOCX/PDF)",
   "main": "dist/main.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && npm run build:webapp",
+    "build:webapp": "cd webapp && npm install --no-audit --no-fund && npm run build",
     "start": "node dist/main.js",
     "dev": "tsx watch src/main.ts",
+    "dev:webapp": "cd webapp && npm run dev",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",

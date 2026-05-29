@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/api.ts","./src/i18n.ts","./src/main.tsx","./src/tg.ts","./src/components/calendar.tsx","./src/components/list.tsx","./src/components/loader.tsx","./src/components/page.tsx","./src/pages/courtpage.tsx","./src/pages/datepage.tsx","./src/pages/regionpage.tsx","./src/pages/schedulepage.tsx","./src/pages/typepage.tsx"],"version":"5.9.3"}

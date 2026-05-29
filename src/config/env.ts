@@ -52,6 +52,13 @@ const envSchema = z.object({
   PUBLIC_BASE_URL: z.string().default(''),
   BOT_USERNAME: z.string().default(''),
 
+  // Public URL for the Telegram Mini App (must be HTTPS — Telegram
+  // requires it). Typically a Cloudflare Tunnel hostname like
+  //   https://abc-123.trycloudflare.com/webapp
+  // or your own domain. When empty, the "🌐 Mini App" button is hidden
+  // and users only see the bot menu.
+  WEBAPP_URL: z.string().default(''),
+
   // Display name shown next to the bot in Telegram clients. Pushed to
   // Telegram via setMyName on startup (idempotent — safe to restart).
   BOT_DISPLAY_NAME: z.string().default('ArizaPro'),
