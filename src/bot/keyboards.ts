@@ -1,6 +1,5 @@
 import { Markup } from 'telegraf';
 import { LOCALE_META, LOCALES, t, type Locale } from '../i18n';
-import { config } from '../config';
 import type { TemplateDef } from '../types';
 import type { RegionDef } from '../templates/regions';
 import type { CourtTypeDef } from '../templates/court-types';
@@ -11,21 +10,19 @@ import type { DistrictCourtDef } from '../templates/district-courts';
 // see more of the conversation history. The keyboard re-appears on the
 // next bot message.
 export function mainMenu(locale: Locale) {
-  // When WEBAPP_URL is set we show a Telegram Mini App launcher button
-  // in the persistent reply keyboard. Tapping it opens the SPA inside
-  // Telegram. Without WEBAPP_URL the row is dropped silently so the
-  // menu still works on installs that haven't deployed the webapp yet.
-  const webAppButton = config.webappUrl
-    ? Markup.button.webApp(t(locale, 'menu.webapp'), config.webappUrl)
-    : null;
-
-  const rows: Array<Array<string | ReturnType<typeof Markup.button.webApp>>> = [
+  // Note: we intentionally do NOT add a reply-keyboard web_app button
+  // for the Mini App here. Telegram Desktop silently drops initData
+  // when launching Mini Apps via reply-keyboard buttons that aren't
+  // registered as "trusted" Mini Apps (see Telegram Desktop ≤9.6
+  // behavior on non-BotFather-registered URLs). Users get a reliable
+  // launcher via the persistent menu button next to the chat input —
+  // set by registerChatMenuButton() in main.ts at startup, and equally
+  // via BotFather → Menu Button / Configure Mini App.
+  return Markup.keyboard([
     [t(locale, 'menu.new'), t(locale, 'menu.jadval')],
-  ];
-  if (webAppButton) rows.push([webAppButton]);
-  rows.push([t(locale, 'menu.instructions'), t(locale, 'menu.about')]);
-  rows.push([t(locale, 'menu.lang')]);
-  return Markup.keyboard(rows as never).resize();
+    [t(locale, 'menu.instructions'), t(locale, 'menu.about')],
+    [t(locale, 'menu.lang')],
+  ]).resize();
 }
 
 /**
