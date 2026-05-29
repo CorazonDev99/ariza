@@ -8,118 +8,112 @@ walks through the one-time setup needed to publish it.
 
 `update.sh` already calls `npm run build`, which now also runs
 `npm run build:webapp` (Vite). After `git pull`, the static files end
-up in `webapp/dist/` and are served by the bot's HTTP server at the
-URL prefix `/webapp/` (port 3000 by default).
+up in `webapp/dist/` and are served by the bot's HTTP server at
+the URL prefix `/webapp/` (port 3000 by default).
 
 So `dist/` is built for you — you only need to expose port 3000 over
 HTTPS to Telegram.
 
-## 1. Expose the bot over HTTPS via Cloudflare Tunnel (free, no domain)
+---
 
-Cloudflare Tunnel proxies your local port 3000 through Cloudflare's
-edge with a free `*.trycloudflare.com` HTTPS hostname — no domain, no
-DNS work, no Let's Encrypt cert rotation.
+## Pick your hosting path
 
-```bash
-# On the server (Ubuntu)
-sudo curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
-  | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+| Option                 | Persistent URL? | Needs domain? | When to use                  |
+|------------------------|-----------------|---------------|------------------------------|
+| **A — Named tunnel**   | ✅ yes          | ✅ yes        | Production, real users       |
+| **B — Quick tunnel**   | ❌ rotates      | ❌ no         | Just trying it out, dev/test |
 
-echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(. /etc/os-release && echo $VERSION_CODENAME) main" \
-  | sudo tee /etc/apt/sources.list.d/cloudflared.list
+Either way is fully free.
 
-sudo apt-get update && sudo apt-get install -y cloudflared
-```
+---
 
-### Quick start (single command, ad-hoc URL)
+## Option A — Named tunnel (recommended for production)
 
-```bash
-cloudflared tunnel --url http://localhost:3000
-```
+**Prerequisites:**
 
-Output looks like:
+1. You own a domain (any registrar).
+2. Its nameservers are pointed at Cloudflare.
+   Check with `dig NS yourdomain.com` — output must include
+   `*.ns.cloudflare.com`. If not, follow the [Cloudflare full setup
+   guide](https://developers.cloudflare.com/dns/zone-setups/full-setup/)
+   to move DNS to Cloudflare. The domain itself can stay at your
+   current registrar; only the NS records change. Takes ~10 minutes.
 
-```
-INF +--------------------------------------------------------------+
-INF |  https://abc-123-def-456.trycloudflare.com                   |
-INF +--------------------------------------------------------------+
-```
-
-That hostname is the public HTTPS URL. Mini App URL becomes
-`https://abc-123-def-456.trycloudflare.com/webapp` — copy it.
-
-> Ad-hoc URLs change every time cloudflared restarts. Fine for testing;
-> for production use a named tunnel (see below).
-
-### Persistent named tunnel (stable hostname)
+**One-shot installer:**
 
 ```bash
-sudo cloudflared tunnel login                # opens browser, signs in
-sudo cloudflared tunnel create ariza         # creates a tunnel
-sudo cloudflared tunnel route dns ariza ariza.yourdomain.com
+sudo bash /var/www/ariza/deploy/setup-cloudflared.sh ariza.yourdomain.com
 ```
 
-Create `/etc/cloudflared/config.yml`:
+What it does (idempotent — safe to re-run):
 
-```yaml
-tunnel: ariza
-credentials-file: /root/.cloudflared/<tunnel-uuid>.json
+1. Installs `cloudflared` if missing.
+2. Runs `cloudflared tunnel login` — prints a URL. Open it in your
+   **local** browser, sign in, pick the zone for your hostname,
+   approve. The script continues automatically once you're done.
+3. Creates a named tunnel called `ariza` (or reuses an existing one).
+4. Routes `ariza.yourdomain.com` → that tunnel via Cloudflare DNS.
+5. Writes `/etc/cloudflared/config.yml`.
+6. Installs `cloudflared.service` and enables it (auto-start on boot).
+7. Sets `WEBAPP_URL` in `/var/www/ariza/.env`.
+8. Restarts `ariza-bot.service` so it picks up the new env var.
 
-ingress:
-  - hostname: ariza.yourdomain.com
-    service: http://localhost:3000
-  - service: http_status:404
-```
-
-Run as a systemd service so it survives reboots:
+After it finishes:
 
 ```bash
-sudo cloudflared service install
-sudo systemctl enable --now cloudflared
+# Smoke test
+curl -I https://ariza.yourdomain.com/health
+curl https://ariza.yourdomain.com/api/court-types | head -c 200
+
+# Open in browser
+https://ariza.yourdomain.com/webapp
 ```
 
-Public URL: `https://ariza.yourdomain.com/webapp`.
+In Telegram the "🌐 Open in Mini App" reply-keyboard button now shows up.
 
-## 2. Configure the bot
-
-Add the URL to `/var/www/ariza/.env`:
-
-```
-WEBAPP_URL=https://abc-123-def-456.trycloudflare.com/webapp
-```
-
-Restart so the new env var is loaded:
+Logs / debugging:
 
 ```bash
-sudo systemctl restart ariza-bot
+journalctl -u cloudflared -f
+journalctl -u ariza-bot -f
+systemctl status cloudflared
 ```
 
-The "🌐 Open in Mini App" button now appears in the main reply
-keyboard. Without `WEBAPP_URL` it's hidden silently — useful for hosts
-that haven't deployed the tunnel yet.
+---
 
-## 3. (Optional) BotFather menu button
+## Option B — Quick tunnel (no domain)
+
+URL looks like `https://random-name.trycloudflare.com` and changes
+every time the cloudflared service restarts (including server reboot).
+Useful for testing — re-run the script when the URL changes and the
+bot picks up the new one automatically.
+
+```bash
+sudo bash /var/www/ariza/deploy/setup-quick-tunnel.sh
+```
+
+What it does:
+
+1. Installs `cloudflared` if missing.
+2. Installs `cloudflared-quick.service`, enables it, starts it.
+3. Tails the journal for ~30 s to find the assigned
+   `*.trycloudflare.com` URL.
+4. Writes that URL (with `/webapp` suffix) into `.env` as `WEBAPP_URL`.
+5. Restarts `ariza-bot`.
+
+To rotate the URL manually (e.g. after the random name expires or
+gets blacklisted somewhere) just re-run the same command.
+
+---
+
+## BotFather menu button (optional)
 
 `@BotFather` → `/mybots` → pick your bot → `Bot Settings` →
-`Menu Button` → set the URL to the same `WEBAPP_URL`. This makes the
-Mini App also openable via the persistent ⊕ menu button in the bot
-chat header, not just the reply keyboard button.
+`Menu Button` → URL = same `WEBAPP_URL`. This makes the Mini App
+also openable via the persistent ⊕ menu button in the bot's chat
+header, not only the reply-keyboard button.
 
-## 4. Smoke test
-
-```bash
-# Backend health
-curl https://abc-123.trycloudflare.com/health
-
-# API
-curl https://abc-123.trycloudflare.com/api/court-types | jq
-
-# Static SPA
-curl -sI https://abc-123.trycloudflare.com/webapp/ | head
-```
-
-If all three respond, open the bot in Telegram, tap the new
-"🌐 Open in Mini App" button — the React app should launch full-screen.
+---
 
 ## Local development
 
@@ -127,7 +121,7 @@ If all three respond, open the bot in Telegram, tap the new
 # Terminal 1: bot (HTTP server on :3000)
 npm run dev
 
-# Terminal 2: Vite dev server (HMR, proxies /api/* to :3000)
+# Terminal 2: Vite dev server with HMR (proxies /api/* to :3000)
 npm run dev:webapp
 # → http://localhost:5173/webapp
 ```

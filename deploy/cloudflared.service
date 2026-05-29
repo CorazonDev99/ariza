@@ -1,0 +1,25 @@
+[Unit]
+Description=Cloudflare Tunnel for ariza-bot Mini App
+Documentation=https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/
+After=network.target ariza-bot.service
+Wants=ariza-bot.service
+
+[Service]
+Type=simple
+# Run as the same service user as the bot so logs and creds stay
+# consistent with the rest of the deployment.
+User=root
+Group=root
+# Named tunnel: reads /etc/cloudflared/config.yml for the tunnel name,
+# credentials file path, and ingress rules. setup-cloudflared.sh writes
+# that config; this unit just keeps the daemon alive.
+ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel run
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+# Log straight to journalctl so `journalctl -u cloudflared -f` works.
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

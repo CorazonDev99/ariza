@@ -1,0 +1,22 @@
+[Unit]
+Description=Cloudflare Quick Tunnel (ephemeral URL) for ariza-bot Mini App
+Documentation=https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/do-more-with-tunnels/trycloudflare/
+After=network.target ariza-bot.service
+Wants=ariza-bot.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+# Quick mode: no login, no config file, ephemeral *.trycloudflare.com URL
+# that changes every restart. setup-quick-tunnel.sh installs a sibling
+# .timer / oneshot that captures the URL from journal and updates .env.
+ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel --url http://localhost:3000
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
