@@ -297,12 +297,18 @@ function shiftMonth(year: number, month: number, delta: number): { y: number; m:
 
 /** Month-view calendar. `month` is 1-indexed. `prefix` lets callers
  *  swap the callback namespace (e.g. 'cal' for the wizard scene,
- *  'jcal' for the jadval2 lookup flow). */
+ *  'jcal' for the jadval2 lookup flow).
+ *
+ *  `minDate` (optional): days strictly before this date emit a
+ *  `${prefix}:past` callback instead of the normal day-pick one, so
+ *  the handler can show "not available" alerts. Used by jadval2 since
+ *  the API rejects past dates. */
 export function calendarInline(
   locale: Locale,
   year: number,
   month: number,
   prefix: string = 'cal',
+  minDate?: Date,
 ) {
   const monthName = capitalize(t(locale, `month.${month}`));
   const header = `${monthName} ${year}`;
@@ -338,6 +344,9 @@ export function calendarInline(
   );
 
   // Day grid (6 weeks max)
+  const minTs = minDate
+    ? new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate()).getTime()
+    : null;
   let day = 1;
   for (let week = 0; week < 6; week++) {
     if (day > total) break;
@@ -347,8 +356,12 @@ export function calendarInline(
       if (slot < firstDow || day > total) {
         row.push(Markup.button.callback(' ', `${prefix}:noop`));
       } else {
+        const isPast = minTs !== null && new Date(year, month - 1, day).getTime() < minTs;
         row.push(
-          Markup.button.callback(String(day), `${prefix}:d:${year}:${month}:${day}`),
+          Markup.button.callback(
+            String(day),
+            isPast ? `${prefix}:past` : `${prefix}:d:${year}:${month}:${day}`,
+          ),
         );
         day += 1;
       }

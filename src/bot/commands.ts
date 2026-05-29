@@ -336,7 +336,13 @@ export function registerCommands(
       t(ctx.locale, 'jadval.date.pick', { court: court.name[ctx.locale] }),
       {
         parse_mode: 'HTML',
-        ...calendarInline(ctx.locale, now.getFullYear(), now.getMonth() + 1, 'jcal'),
+        ...calendarInline(
+          ctx.locale,
+          now.getFullYear(),
+          now.getMonth() + 1,
+          'jcal',
+          startOfToday(),
+        ),
       },
     );
   });
@@ -348,7 +354,7 @@ export function registerCommands(
     const y = Number(ctx.match[1]);
     const m = Number(ctx.match[2]);
     await ctx.editMessageReplyMarkup(
-      calendarInline(ctx.locale, y, m, 'jcal').reply_markup,
+      calendarInline(ctx.locale, y, m, 'jcal', startOfToday()).reply_markup,
     );
   });
 
@@ -374,7 +380,7 @@ export function registerCommands(
     const y = Number(ctx.match[1]);
     const m = Number(ctx.match[2]);
     await ctx.editMessageReplyMarkup(
-      calendarInline(ctx.locale, y, m, 'jcal').reply_markup,
+      calendarInline(ctx.locale, y, m, 'jcal', startOfToday()).reply_markup,
     );
   });
 
@@ -389,7 +395,24 @@ export function registerCommands(
     }
     picker.date = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     await ctx.answerCbQuery();
+    // Loader BEFORE the (potentially 3-4s) fetch — replaces the calendar
+    // immediately so the user knows their tap registered. editMessageText
+    // both clears the keyboard and updates the text in one call.
+    try {
+      await ctx.editMessageText(t(ctx.locale, 'jadval.loading'), {
+        parse_mode: 'HTML',
+      });
+    } catch {
+      /* message gone — fall through to the final edit which will fail
+         gracefully if the message really is unrecoverable */
+    }
     await editScheduleResults(ctx);
+  });
+
+  bot.action('jcal:past', async (ctx) => {
+    await ctx.answerCbQuery(t(ctx.locale, 'jadval.past-not-available'), {
+      show_alert: true,
+    });
   });
 
   bot.action('jcal:back', async (ctx) => {
@@ -434,6 +457,13 @@ export function registerCommands(
     const picker = ctx.session.jadvalPicker;
     if (!picker) return;
     picker.searchPending = false;
+    try {
+      await ctx.editMessageText(t(ctx.locale, 'jadval.loading'), {
+        parse_mode: 'HTML',
+      });
+    } catch {
+      /* ignore */
+    }
     await editScheduleResults(ctx);
   });
 
@@ -442,6 +472,8 @@ export function registerCommands(
     const picker = ctx.session.jadvalPicker;
     if (!picker) return;
     picker.searchPending = false;
+    // No loader here — the entries are guaranteed to be cached (we just
+    // rendered them filtered), so fetch is instant.
     await editScheduleResults(ctx);
   });
 
@@ -457,7 +489,13 @@ export function registerCommands(
       t(ctx.locale, 'jadval.date.pick', { court: court.name[ctx.locale] }),
       {
         parse_mode: 'HTML',
-        ...calendarInline(ctx.locale, now.getFullYear(), now.getMonth() + 1, 'jcal'),
+        ...calendarInline(
+          ctx.locale,
+          now.getFullYear(),
+          now.getMonth() + 1,
+          'jcal',
+          startOfToday(),
+        ),
       },
     );
   });
@@ -507,6 +545,14 @@ export function registerCommands(
 }
 
 const TELEGRAM_MESSAGE_LIMIT = 4096;
+
+/** Midnight today (server local TZ). Used as the calendar floor for
+ *  jadval2 since the upstream API rejects past dates with HTTP 400. */
+function startOfToday(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
 
 /** Escape `<`, `>`, `&` for safe Telegram HTML parse mode. */
 function htmlEscape(s: string): string {

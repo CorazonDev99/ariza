@@ -39,6 +39,7 @@ export const ru: Dict = {
   'jadval.search.cancelled': '❌ Поиск отменён.',
   'jadval.search.header': '🔍 По запросу <b>«{query}»</b> найдено: <b>{matched}</b> из {total}\n📋 <b>{court}</b> · 📅 {date}',
   'jadval.search.empty': '🔍 По запросу <b>«{query}»</b> ничего не найдено.\n\n📋 <b>{court}</b> · 📅 {date}\nВсего в расписании: {total} дел',
+  'jadval.past-not-available': 'Дела за прошлые даты на jadval2.sud.uz не хранятся. Доступны только сегодняшняя и будущие даты.',
 
   'cmd.new.desc': 'Новое заявление',
   'cmd.guide.desc': 'Инструкция по заявлениям',

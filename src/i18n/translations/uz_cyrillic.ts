@@ -43,6 +43,7 @@ export const uz_cyrillic: Dict = {
   'jadval.search.cancelled': '❌ Қидириш бекор қилинди.',
   'jadval.search.header': '🔍 <b>«{query}»</b> бўйича топилди: <b>{matched}</b> / {total}\n📋 <b>{court}</b> · 📅 {date}',
   'jadval.search.empty': '🔍 <b>«{query}»</b> бўйича ҳеч нарса топилмади.\n\n📋 <b>{court}</b> · 📅 {date}\nЖами рўйхатда: {total} та иш',
+  'jadval.past-not-available': 'Ўтган санадаги ишлар jadval2.sud.uz да сақланмайди. Фақат бугунги ва кейинги саналарни танлаш мумкин.',
 
   // /-menu descriptions (Telegram client shows next to command name)
   'cmd.new.desc': 'Янги ариза тайёрлаш',

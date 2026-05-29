@@ -39,6 +39,7 @@ export const uz_latin: Dict = {
   'jadval.search.cancelled': '❌ Qidirish bekor qilindi.',
   'jadval.search.header': '🔍 <b>«{query}»</b> bo‘yicha topildi: <b>{matched}</b> / {total}\n📋 <b>{court}</b> · 📅 {date}',
   'jadval.search.empty': "🔍 <b>«{query}»</b> bo‘yicha hech narsa topilmadi.\n\n📋 <b>{court}</b> · 📅 {date}\nJami ro‘yxatda: {total} ta ish",
+  'jadval.past-not-available': "O‘tgan sanadagi ishlar jadval2.sud.uz da saqlanmaydi. Faqat bugungi va keyingi sanalarni tanlash mumkin.",
 
   'cmd.new.desc': "Yangi ariza tayyorlash",
   'cmd.guide.desc': "Arizalar bo‘yicha yo‘riqnoma",

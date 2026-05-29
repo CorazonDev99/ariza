@@ -164,13 +164,25 @@ function normalizeCriminal(raw: unknown): CaseEntry {
   };
 }
 
-async function fetchJsonArray(url: string): Promise<unknown[]> {
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'raport-bot (ariza)' },
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-  const data = (await res.json()) as unknown;
-  return Array.isArray(data) ? data : [];
+/** Per-request timeout — backups are best-effort, primary gets a longer
+ *  budget so users get real data when the main API is just slow. */
+const PRIMARY_TIMEOUT_MS = 10_000;
+const BACKUP_TIMEOUT_MS = 4_000;
+
+async function fetchJsonArray(url: string, timeoutMs: number): Promise<unknown[]> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'raport-bot (ariza)' },
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+    const data = (await res.json()) as unknown;
+    return Array.isArray(data) ? data : [];
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /**
@@ -203,15 +215,25 @@ export async function fetchSchedule(
   // back to backups for the primary error case — backups exist for
   // *additional* coverage (mainline sometimes drops courts), not as
   // a replacement when the main API is down.
-  const primaryData = await fetchJsonArray(urls[0]!);
+  const primaryPromise = fetchJsonArray(urls[0]!, PRIMARY_TIMEOUT_MS);
+
+  // Backups run IN PARALLEL with primary (not after) — was previously
+  // sequential which doubled wall-clock latency when both endpoints were
+  // slow. Each backup has its own 4s ceiling so a hanging api2/api3
+  // can't keep the user waiting past the primary's response.
+  const backupPromises =
+    urls.length > 1
+      ? urls.slice(1).map((u) =>
+          fetchJsonArray(u, BACKUP_TIMEOUT_MS).then((d) => d.map(normalize)),
+        )
+      : [];
+
+  const primaryData = await primaryPromise;
   const primaryEntries = primaryData.map(normalize);
 
-  // Backups run in parallel; any failure is treated as "no extra data".
   const backupEntries: CaseEntry[] = [];
-  if (urls.length > 1) {
-    const results = await Promise.allSettled(
-      urls.slice(1).map((u) => fetchJsonArray(u).then((d) => d.map(normalize))),
-    );
+  if (backupPromises.length > 0) {
+    const results = await Promise.allSettled(backupPromises);
     for (const r of results) {
       if (r.status === 'fulfilled') backupEntries.push(...r.value);
     }
