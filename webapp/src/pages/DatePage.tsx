@@ -14,15 +14,15 @@ interface Props {
 
 export function DatePage({ locale, state, setState }: Props) {
   const nav = useNavigate();
-  useBackTo('/court');
+  useBackTo('/jadval/court');
 
   useEffect(() => {
-    if (!state.type || !state.region || !state.court) nav('/');
+    if (!state.type || !state.region || !state.court) nav('/jadval');
   }, [nav, state.type, state.region, state.court]);
 
   function pick(dateISO: string) {
     setState({ ...state, date: dateISO });
-    nav('/schedule');
+    nav('/jadval/schedule');
   }
 
   return (

@@ -30,6 +30,17 @@ export interface BotBundle {
   bot: Telegraf<BotContext>;
   paymentService: PaymentService;
   userRepo: UserRepository;
+  /** Bundled here so the Mini App HTTP layer can reuse the same
+   *  long-lived service instances as the bot. */
+  webappServices: {
+    users: UserRepository;
+    drafts: DraftRepository;
+    documents: DocumentRepository;
+    templateRepo: TemplateRepository;
+    documentService: DocumentService;
+    aiAssist: AiAssistService;
+    transcription: TranscriptionService;
+  };
 }
 
 export function createBot(): BotBundle {
@@ -114,5 +125,18 @@ export function createBot(): BotBundle {
     logger.error({ err, update: ctx.update }, 'Telegraf top-level error');
   });
 
-  return { bot, paymentService, userRepo };
+  return {
+    bot,
+    paymentService,
+    userRepo,
+    webappServices: {
+      users: userRepo,
+      drafts: draftRepo,
+      documents: documentRepo,
+      templateRepo,
+      documentService,
+      aiAssist,
+      transcription,
+    },
+  };
 }

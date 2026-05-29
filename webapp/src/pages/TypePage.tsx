@@ -4,7 +4,7 @@ import type { Locale } from '../tg';
 import { getTg } from '../tg';
 import { t } from '../i18n';
 import { api, type CourtType } from '../api';
-import type { JadvalState } from '../App';
+import { useBackTo, type JadvalState } from '../App';
 import { Page } from '../components/Page';
 import { List, ListItem } from '../components/List';
 import { Loader, ErrorBox } from '../components/Loader';
@@ -16,13 +16,9 @@ interface Props {
 
 export function TypePage({ locale, setState }: Props) {
   const nav = useNavigate();
+  useBackTo('/');
   const [types, setTypes] = useState<CourtType[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Hide BackButton on root — there's nowhere to go back to from here.
-    getTg().BackButton.hide();
-  }, []);
 
   useEffect(() => {
     api.courtTypes().then(setTypes).catch((e) => setError(String(e.message ?? e)));
@@ -31,7 +27,7 @@ export function TypePage({ locale, setState }: Props) {
   function pick(typeCode: string) {
     getTg().HapticFeedback.impactOccurred('light');
     setState({ type: typeCode, region: null, court: null, date: null });
-    nav('/region');
+    nav('/jadval/region');
   }
 
   return (

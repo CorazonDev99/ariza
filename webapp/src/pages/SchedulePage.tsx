@@ -36,7 +36,7 @@ function renderBold(template: string): React.ReactNode[] {
 
 export function SchedulePage({ locale, state }: Props) {
   const nav = useNavigate();
-  useBackTo('/date');
+  useBackTo('/jadval/date');
 
   const [data, setData] = useState<ScheduleResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +44,7 @@ export function SchedulePage({ locale, state }: Props) {
 
   useEffect(() => {
     if (!state.type || !state.court || !state.date) {
-      nav('/');
+      nav('/jadval');
       return;
     }
     setError(null);
@@ -106,7 +106,7 @@ export function SchedulePage({ locale, state }: Props) {
               )}
             </div>
             <button
-              onClick={() => nav('/date')}
+              onClick={() => nav('/jadval/date')}
               className="bg-tg-section-bg rounded-xl px-3 py-2.5 text-[14px] text-tg-link"
             >
               📅

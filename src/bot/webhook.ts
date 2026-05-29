@@ -7,7 +7,7 @@ import type { PaymentService } from '../services/payment.service';
 import type { DocumentRepository } from '../repositories/document.repository';
 import { fileExists } from '../utils/fs';
 import { logger } from '../utils/logger';
-import { handleApi } from '../services/webapp-api';
+import { handleApi, handleDocumentDownload, type ApiServices } from '../services/webapp-api';
 
 const WEBAPP_DIST = path.resolve(process.cwd(), 'webapp', 'dist');
 const STATIC_EXTS: Record<string, string> = {
@@ -56,6 +56,7 @@ export function startHttpServer(
   payments: PaymentService,
   documents: DocumentRepository,
   notify: PaymentNotifier,
+  apiServices: ApiServices,
 ): http.Server {
   const server = http.createServer(async (req, res) => {
     try {
@@ -74,9 +75,19 @@ export function startHttpServer(
         return;
       }
 
+      // ---- /api/documents/<token>/file — public download via signed token ----
+      const apiDl = url.pathname.match(/^\/api\/documents\/([^/]+)\/file$/);
+      if (req.method === 'GET' && apiDl) {
+        await handleDocumentDownload(
+          { url, req, res, services: apiServices },
+          decodeURIComponent(apiDl[1]!),
+        );
+        return;
+      }
+
       // ---- /api/* — Mini App REST endpoints ----
       if (url.pathname.startsWith('/api/')) {
-        const handled = await handleApi({ url, req, res });
+        const handled = await handleApi({ url, req, res, services: apiServices });
         if (!handled) {
           res.statusCode = 404;
           res.setHeader('Content-Type', 'application/json');

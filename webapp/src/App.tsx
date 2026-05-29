@@ -1,79 +1,171 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { detectLocale, getTg, type Locale } from './tg';
+import { api, type MeResponse } from './api';
+import { HomePage } from './pages/HomePage';
 import { TypePage } from './pages/TypePage';
 import { RegionPage } from './pages/RegionPage';
 import { CourtPage } from './pages/CourtPage';
 import { DatePage } from './pages/DatePage';
 import { SchedulePage } from './pages/SchedulePage';
+import { ArizaTypePage } from './pages/ArizaTypePage';
+import { ArizaRegionPage } from './pages/ArizaRegionPage';
+import { ArizaCourtPage } from './pages/ArizaCourtPage';
+import { ArizaTemplatePage } from './pages/ArizaTemplatePage';
+import { ArizaWizardPage } from './pages/ArizaWizardPage';
+import { ArizaPreviewPage } from './pages/ArizaPreviewPage';
+import { ArizaDonePage } from './pages/ArizaDonePage';
+import { GuideTypePage } from './pages/GuideTypePage';
+import { GuideTemplatePage } from './pages/GuideTemplatePage';
+import { GuideDetailPage } from './pages/GuideDetailPage';
+import { DocumentsPage } from './pages/DocumentsPage';
+import { SettingsPage } from './pages/SettingsPage';
 
+/** Picker state that survives across wizard routes — single source of
+ *  truth for which court type / region / court / template is in play. */
+export interface PickerState {
+  courtType: string | null;
+  region: string | null;
+  court: string | null;
+  template: string | null;
+}
+
+/** Schedule-flow state (same shape used previously for jadval). */
 export interface JadvalState {
   type: string | null;
   region: string | null;
   court: string | null;
-  date: string | null; // YYYY-MM-DD
+  date: string | null;
 }
 
-const INITIAL: JadvalState = { type: null, region: null, court: null, date: null };
+const EMPTY_PICKER: PickerState = {
+  courtType: null,
+  region: null,
+  court: null,
+  template: null,
+};
+const EMPTY_JADVAL: JadvalState = {
+  type: null,
+  region: null,
+  court: null,
+  date: null,
+};
 
+/**
+ * Top-level app: locale + picker + jadval state are kept here and
+ * threaded down to pages. Per-template field values use sessionStorage
+ * (see ArizaWizardPage) so they survive a route reload but get
+ * deliberately wiped on a fresh "📄 Подать заявление" tap.
+ */
 export function App() {
-  const [locale] = useState<Locale>(detectLocale());
-  const [state, setState] = useState<JadvalState>(INITIAL);
+  const [locale, setLocale] = useState<Locale>(detectLocale());
+  const [picker, setPicker] = useState<PickerState>(EMPTY_PICKER);
+  const [jadval, setJadval] = useState<JadvalState>(EMPTY_JADVAL);
+  const [me, setMe] = useState<MeResponse | null>(null);
 
-  // Sync the Telegram BackButton with router state — when the user is
-  // not on the root, show it; tapping it walks back through our flow.
-  // This is handled by useTelegramBack inside each page so it stays
-  // colocated with route-specific back behavior.
+  // Authenticate + sync server-side locale preference.
+  useEffect(() => {
+    api.me()
+      .then((u) => {
+        setMe(u);
+        // Server preference takes precedence over Telegram language_code.
+        if (u.language) setLocale(u.language as Locale);
+      })
+      .catch(() => {
+        /* Will fall back to detectLocale's guess. The unauthenticated
+           jadval flow still works because those endpoints are public. */
+      });
+  }, []);
 
   useEffect(() => {
-    // Disable closing-confirmation on Android — Telegram lets the WebApp
-    // ask "Are you sure you want to close?" but we have no unsaved state.
-    const tg = getTg();
-    tg.MainButton.hide();
+    // Always hide the MainButton on App mount — individual pages opt
+    // in via useMainButton when they need it.
+    getTg().MainButton.hide();
   }, []);
+
+  const ctx = {
+    locale,
+    setLocale: async (next: Locale) => {
+      setLocale(next);
+      try {
+        const u = await api.setLanguage(next);
+        setMe(u);
+      } catch {
+        /* network — keep local pref */
+      }
+    },
+    picker,
+    setPicker,
+    jadval,
+    setJadval,
+    me,
+    resetPicker: () => setPicker(EMPTY_PICKER),
+    resetJadval: () => setJadval(EMPTY_JADVAL),
+  };
 
   return (
     <div className="min-h-full bg-tg-secondary-bg text-tg-text safe-bottom">
       <Routes>
-        <Route path="/" element={<TypePage locale={locale} setState={setState} />} />
-        <Route
-          path="/region"
-          element={<RegionPage locale={locale} state={state} setState={setState} />}
-        />
-        <Route
-          path="/court"
-          element={<CourtPage locale={locale} state={state} setState={setState} />}
-        />
-        <Route
-          path="/date"
-          element={<DatePage locale={locale} state={state} setState={setState} />}
-        />
-        <Route
-          path="/schedule"
-          element={<SchedulePage locale={locale} state={state} />}
-        />
+        <Route path="/" element={<HomePage {...ctx} />} />
+
+        {/* Jadval (court schedule) flow — preserved from v1 */}
+        <Route path="/jadval" element={<TypePage locale={locale} setState={setJadval} />} />
+        <Route path="/jadval/region" element={<RegionPage locale={locale} state={jadval} setState={setJadval} />} />
+        <Route path="/jadval/court" element={<CourtPage locale={locale} state={jadval} setState={setJadval} />} />
+        <Route path="/jadval/date" element={<DatePage locale={locale} state={jadval} setState={setJadval} />} />
+        <Route path="/jadval/schedule" element={<SchedulePage locale={locale} state={jadval} />} />
+
+        {/* Ariza (document generation) flow */}
+        <Route path="/ariza" element={<ArizaTypePage {...ctx} />} />
+        <Route path="/ariza/region" element={<ArizaRegionPage {...ctx} />} />
+        <Route path="/ariza/court" element={<ArizaCourtPage {...ctx} />} />
+        <Route path="/ariza/template" element={<ArizaTemplatePage {...ctx} />} />
+        <Route path="/ariza/wizard" element={<ArizaWizardPage {...ctx} />} />
+        <Route path="/ariza/preview" element={<ArizaPreviewPage {...ctx} />} />
+        <Route path="/ariza/done" element={<ArizaDonePage {...ctx} />} />
+
+        {/* Guide flow */}
+        <Route path="/guide" element={<GuideTypePage {...ctx} />} />
+        <Route path="/guide/templates" element={<GuideTemplatePage {...ctx} />} />
+        <Route path="/guide/detail" element={<GuideDetailPage {...ctx} />} />
+
+        {/* Documents */}
+        <Route path="/documents" element={<DocumentsPage {...ctx} />} />
+
+        {/* Settings */}
+        <Route path="/settings" element={<SettingsPage {...ctx} />} />
       </Routes>
     </div>
   );
 }
 
-/** Wire the Telegram BackButton to a router navigate target while a
- *  page is mounted. Hides the button on unmount. */
-export function useTelegramBack(onBack: () => void) {
+/** Re-export so jadval pages can keep their existing import. */
+export function useBackTo(target: string) {
+  const nav = useNavigate();
   useEffect(() => {
     const tg = getTg();
-    const handler = () => onBack();
+    const handler = () => nav(target);
     tg.BackButton.show();
     tg.BackButton.onClick(handler);
     return () => {
       tg.BackButton.offClick(handler);
       tg.BackButton.hide();
     };
-  }, [onBack]);
+  }, [target, nav]);
 }
 
-/** Navigate-by-default back hook for pages: pop one level. */
-export function useBackTo(target: string) {
-  const nav = useNavigate();
-  useTelegramBack(() => nav(target));
+/** Shared context object passed down to pages. */
+export interface PageCtx {
+  locale: Locale;
+  setLocale: (next: Locale) => Promise<void>;
+  picker: PickerState;
+  setPicker: (s: PickerState) => void;
+  jadval: JadvalState;
+  setJadval: (s: JadvalState) => void;
+  me: MeResponse | null;
+  resetPicker: () => void;
+  resetJadval: () => void;
 }
+
+/** Helper for pages that need to render a fragment / no-op. */
+export const Frag = ({ children }: { children: ReactNode }) => <>{children}</>;

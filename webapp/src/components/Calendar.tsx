@@ -6,6 +6,10 @@ import { getTg } from '../tg';
 interface CalendarProps {
   locale: Locale;
   onPick: (dateISO: string) => void;
+  /** When true, past dates ARE clickable (used by the ariza wizard
+   *  where dates of birth / events naturally lie in the past). Default
+   *  false matches the jadval flow where past dates can't be looked up. */
+  allowPast?: boolean;
 }
 
 function pad2(n: number): string {
@@ -21,7 +25,7 @@ function daysInMonth(year: number, month: number): number {
  * jcal flow — jadval2 API rejects past dates). The selected day is
  * sent back to the parent as a YYYY-MM-DD string.
  */
-export function Calendar({ locale, onPick }: CalendarProps) {
+export function Calendar({ locale, onPick, allowPast = false }: CalendarProps) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const [year, setYear] = useState(today.getFullYear());
@@ -51,7 +55,7 @@ export function Calendar({ locale, onPick }: CalendarProps) {
 
   function tap(day: number, isPast: boolean) {
     const tg = getTg();
-    if (isPast) {
+    if (isPast && !allowPast) {
       tg.HapticFeedback.notificationOccurred('warning');
       tg.showAlert(t(locale, 'cal.past'));
       return;
@@ -106,7 +110,7 @@ export function Calendar({ locale, onPick }: CalendarProps) {
               onClick={() => tap(day, isPast)}
               className={
                 'h-10 rounded-full text-[15px] font-medium row-tap ' +
-                (isPast
+                (isPast && !allowPast
                   ? 'text-tg-hint opacity-50'
                   : isToday
                     ? 'bg-tg-link/15 text-tg-link font-semibold'

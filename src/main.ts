@@ -22,7 +22,7 @@ async function main(): Promise<void> {
   await new SeedService(new TemplateRepository(prisma)).run();
 
   const documentRepo = new DocumentRepository(prisma);
-  const { bot, paymentService, userRepo } = createBot();
+  const { bot, paymentService, userRepo, webappServices } = createBot();
 
   startHttpServer(paymentService, documentRepo, async (userId, status) => {
     if (status !== 'paid') return;
@@ -44,7 +44,7 @@ async function main(): Promise<void> {
     } catch (e) {
       logger.error({ e, userId }, 'Cannot deliver payment success message');
     }
-  });
+  }, webappServices);
 
   const shutdown = async (signal: string): Promise<void> => {
     logger.warn({ signal }, 'Shutting down');

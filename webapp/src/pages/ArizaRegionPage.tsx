@@ -1,49 +1,44 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Locale } from '../tg';
 import { getTg } from '../tg';
 import { t } from '../i18n';
 import { api, type Region } from '../api';
-import { useBackTo, type JadvalState } from '../App';
+import { useBackTo, type PageCtx } from '../App';
 import { Page } from '../components/Page';
 import { List, ListItem } from '../components/List';
 import { Loader, ErrorBox } from '../components/Loader';
 
-interface Props {
-  locale: Locale;
-  state: JadvalState;
-  setState: (s: JadvalState) => void;
-}
-
-export function RegionPage({ locale, state, setState }: Props) {
+export function ArizaRegionPage(ctx: PageCtx) {
   const nav = useNavigate();
-  useBackTo('/jadval');
+  useBackTo('/ariza');
 
   const [regions, setRegions] = useState<Region[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!state.type) {
-      nav('/jadval');
+    if (!ctx.picker.courtType) {
+      nav('/ariza');
       return;
     }
-    api.regions().then(setRegions).catch((e) => setError(String(e.message ?? e)));
-  }, [nav, state.type]);
+    api.regions()
+      .then(setRegions)
+      .catch((e) => setError(String(e.message ?? e)));
+  }, [nav, ctx.picker.courtType]);
 
-  function pick(regionCode: string) {
+  function pick(code: string) {
     getTg().HapticFeedback.impactOccurred('light');
-    setState({ ...state, region: regionCode, court: null, date: null });
-    nav('/jadval/court');
+    ctx.setPicker({ ...ctx.picker, region: code, court: null, template: null });
+    nav('/ariza/court');
   }
 
   return (
-    <Page title={t(locale, 'title.regions')}>
+    <Page title={t(ctx.locale, 'wiz.pick-region')}>
       {error && <ErrorBox message={error} />}
-      {!regions && !error && <Loader label={t(locale, 'loading')} />}
+      {!regions && !error && <Loader label={t(ctx.locale, 'loading')} />}
       {regions && (
         <List>
           {regions.map((r) => (
-            <ListItem key={r.code} title={r.label[locale]} onClick={() => pick(r.code)} />
+            <ListItem key={r.code} title={r.label[ctx.locale]} onClick={() => pick(r.code)} />
           ))}
         </List>
       )}
