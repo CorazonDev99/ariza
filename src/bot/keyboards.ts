@@ -96,10 +96,17 @@ export function districtCourtsInline(
   locale: Locale,
   courts: DistrictCourtDef[],
 ) {
+  // Two-line button label: court name on top, address on bottom.
+  // Telegram inline buttons accept "\n" and render it as a soft line
+  // break in the button label. Mirrors the visual layout of MySud
+  // cards so users can pick the correct local court without a
+  // separate lookup. Falls back to name-only when address is missing.
   return Markup.inlineKeyboard([
-    ...courts.map((c) => [
-      Markup.button.callback(c.name[locale], `dc:${c.code}`),
-    ]),
+    ...courts.map((c) => {
+      const addr = c.address?.[locale];
+      const label = addr ? `${c.name[locale]}\n${addr}` : c.name[locale];
+      return [Markup.button.callback(label, `dc:${c.code}`)];
+    }),
     [Markup.button.callback(t(locale, 'district.back'), 'back-regions')],
   ]);
 }
