@@ -6,7 +6,7 @@
   "description": "Telegram Mini App for the ariza-bot (jadval2 court-schedule lookup)",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc --noEmit && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
