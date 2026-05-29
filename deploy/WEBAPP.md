@@ -18,12 +18,14 @@ HTTPS to Telegram.
 
 ## Pick your hosting path
 
-| Option                 | Persistent URL? | Needs domain? | When to use                  |
-|------------------------|-----------------|---------------|------------------------------|
-| **A — Named tunnel**   | ✅ yes          | ✅ yes        | Production, real users       |
-| **B — Quick tunnel**   | ❌ rotates      | ❌ no         | Just trying it out, dev/test |
+| Option                          | Persistent URL? | Needs domain? | Setup time | When to use                  |
+|---------------------------------|-----------------|---------------|------------|------------------------------|
+| **A — Named tunnel (own domain)** | ✅ yes        | ✅ yes        | 5 min      | You already own a CF domain  |
+| **A2 — Named tunnel (is-a.dev)**  | ✅ yes        | ❌ free       | 1-3 days   | Best free option             |
+| **B — Quick tunnel**              | ❌ rotates    | ❌ no         | 1 min      | Testing, dev                 |
 
-Either way is fully free.
+All options are free; A2 takes a few days because a maintainer has
+to merge your is-a.dev PR.
 
 ---
 
@@ -78,6 +80,62 @@ journalctl -u cloudflared -f
 journalctl -u ariza-bot -f
 systemctl status cloudflared
 ```
+
+---
+
+## Option A2 — Named tunnel with FREE is-a.dev subdomain
+
+`is-a.dev` gives developers free `*.is-a.dev` subdomains backed by
+Cloudflare DNS. You open a tiny PR with your tunnel's UUID; once a
+maintainer merges (usually 1-3 days) the subdomain is yours forever.
+
+### Phase 1 — get your tunnel UUID
+
+```bash
+sudo bash /var/www/ariza/deploy/setup-is-a-dev.sh prepare ariza
+```
+
+This installs cloudflared, prompts the Cloudflare login (URL → open
+in your local browser → approve), creates a tunnel called `ariza`,
+and prints:
+
+```
+{
+  "owner": {
+    "username": "<YOUR_GITHUB_USERNAME>",
+    "email":    "<YOUR_EMAIL>"
+  },
+  "description": "ariza-bot — Telegram Mini App for Uzbekistan court schedules",
+  "record": {
+    "CNAME": "<TUNNEL_UUID>.cfargotunnel.com"
+  },
+  "proxied": true
+}
+```
+
+### Phase 2 — open the PR
+
+1. Fork **<https://github.com/is-a-dev/register>**
+2. Add the JSON from Phase 1 to `domains/ariza.json` (use whichever
+   subdomain you want — `ariza`, `arizapro`, etc.).
+3. Edit the `username` / `email` fields.
+4. Open a Pull Request titled e.g. **"Add ariza.is-a.dev"**.
+5. Wait for a maintainer to merge — usually 1-3 days.
+
+### Phase 3 — finish the setup
+
+Once the PR is merged:
+
+```bash
+sudo bash /var/www/ariza/deploy/setup-is-a-dev.sh finish ariza
+```
+
+This verifies DNS, writes `/etc/cloudflared/config.yml`, enables the
+`cloudflared` systemd service, sets `WEBAPP_URL=https://ariza.is-a.dev/webapp`
+in `.env`, and restarts the bot.
+
+Public URL after that: `https://ariza.is-a.dev/webapp` — survives
+reboots, fully free, forever.
 
 ---
 
