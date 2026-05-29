@@ -15,8 +15,21 @@ export const ru: Dict = {
 
   'menu.new': '📄 Подать заявление',
   'menu.instructions': '📖 Инструкция',
+  'menu.jadval': '📋 Проверить дело',
   'menu.about': 'ℹ️ О боте',
   'menu.lang': '🌐 Язык',
+
+  'jadval.type.pick': '📋 <b>Выберите тип дела:</b>',
+  'jadval.region.pick': '🏛️ <b>Выберите область:</b>',
+  'jadval.court.pick': '⚖️ <b>{region}</b>\n\nВыберите суд:',
+  'jadval.loading': '⏳ Загружаем данные с jadval2.sud.uz...',
+  'jadval.empty': '📭 <b>{court}</b>\n📅 {date}\n\nНа эту дату нет назначенных судебных заседаний.',
+  'jadval.error': '⚠️ Не удалось получить данные с jadval2.sud.uz. Попробуйте позже.',
+  'jadval.header': '📋 <b>{court}</b>\n📅 {date}\n\nВсего: <b>{count}</b> дел',
+  'jadval.more': '\n\n<i>… ещё {n} дел. Полный список — <a href="https://jadval2.sud.uz">jadval2.sud.uz</a></i>',
+  'jadval.back-types': '⬅️ Типы дел',
+  'jadval.back-regions': '⬅️ Области',
+  'jadval.cmd.desc': '📋 Проверить дело',
 
   'cmd.new.desc': 'Новое заявление',
   'cmd.guide.desc': 'Инструкция по заявлениям',

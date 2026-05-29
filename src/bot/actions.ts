@@ -2,7 +2,13 @@ import { t } from '../i18n';
 import { config } from '../config';
 import { ARIZA_WIZARD_ID } from '../scenes';
 import { COURT_TYPES } from '../templates/court-types';
-import { aboutInline, guideCourtTypesInline, languageInline, mainMenu } from './keyboards';
+import {
+  aboutInline,
+  guideCourtTypesInline,
+  jadvalTypesInline,
+  languageInline,
+  mainMenu,
+} from './keyboards';
 import type { BotContext } from './context';
 import type { DocumentRepository } from '../repositories/document.repository';
 import type { DraftRepository } from '../repositories/draft.repository';
@@ -78,6 +84,14 @@ export const actions = {
     await ctx.reply(t(ctx.locale, 'court-type.pick'), {
       parse_mode: 'HTML',
       ...guideCourtTypesInline(ctx.locale, COURT_TYPES),
+    });
+  },
+
+  async jadval(ctx: BotContext): Promise<void> {
+    ctx.session.jadvalPicker = {};
+    await ctx.reply(t(ctx.locale, 'jadval.type.pick'), {
+      parse_mode: 'HTML',
+      ...jadvalTypesInline(ctx.locale, COURT_TYPES),
     });
   },
 

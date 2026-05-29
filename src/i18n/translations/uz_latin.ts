@@ -15,8 +15,21 @@ export const uz_latin: Dict = {
 
   'menu.new': '📄 Ariza topshirish',
   'menu.instructions': "📖 Yo‘riqnoma",
+  'menu.jadval': '📋 Ishimni tekshirish',
   'menu.about': 'ℹ️ Bot haqida',
   'menu.lang': '🌐 Til',
+
+  'jadval.type.pick': '📋 <b>Ish turini tanlang:</b>',
+  'jadval.region.pick': "🏛️ <b>Hududni tanlang:</b>",
+  'jadval.court.pick': '⚖️ <b>{region}</b>\n\nSudni tanlang:',
+  'jadval.loading': "⏳ jadval2.sud.uz dan ma'lumotlar yuklanmoqda...",
+  'jadval.empty': "📭 <b>{court}</b>\n📅 {date}\n\nUshbu sanaga sud majlisiga tayinlangan ishlar yo‘q.",
+  'jadval.error': "⚠️ jadval2.sud.uz dan ma'lumotlarni olib bo‘lmadi. Birozdan keyin qayta urinib ko‘ring.",
+  'jadval.header': '📋 <b>{court}</b>\n📅 {date}\n\nJami: <b>{count}</b> ta ish',
+  'jadval.more': '\n\n<i>… yana {n} ta ish. To‘liq ro‘yxat — <a href="https://jadval2.sud.uz">jadval2.sud.uz</a></i>',
+  'jadval.back-types': '⬅️ Ish turlari',
+  'jadval.back-regions': '⬅️ Hududlar',
+  'jadval.cmd.desc': "📋 Ish bo‘yicha jadval",
 
   'cmd.new.desc': "Yangi ariza tayyorlash",
   'cmd.guide.desc': "Arizalar bo‘yicha yo‘riqnoma",

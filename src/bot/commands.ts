@@ -7,6 +7,10 @@ import {
   instructionsDetailInline,
   instructionsListInline,
   guideCourtTypesInline,
+  jadvalCourtsInline,
+  jadvalRegionsInline,
+  jadvalResultsInline,
+  jadvalTypesInline,
   mainMenu,
 } from './keyboards';
 import { ARIZA_WIZARD_ID } from '../scenes';
@@ -17,6 +21,13 @@ import {
   getDistrictCourtByCode,
   getDistrictCourtsFor,
 } from '../templates/district-courts';
+import {
+  extractGlobalId,
+  fetchSchedule,
+  formatHumanDate,
+  type CaseEntry,
+} from '../services/jadval2.service';
+import { logger } from '../utils/logger';
 import type { BotContext } from './context';
 import type { DocumentRepository } from '../repositories/document.repository';
 import type { DraftRepository } from '../repositories/draft.repository';
@@ -74,6 +85,7 @@ export function registerCommands(
   bot.command('about', (ctx) => actions.about(ctx, actionDeps));
   bot.command('new', (ctx) => actions.newDocument(ctx));
   bot.command('guide', (ctx) => actions.guide(ctx));
+  bot.command('jadval', (ctx) => actions.jadval(ctx));
   bot.command('lang', (ctx) => actions.lang(ctx));
   bot.command('cancel', (ctx) => actions.cancel(ctx, actionDeps));
 
@@ -85,6 +97,7 @@ export function registerCommands(
     const action = detectMenuAction(text);
     if (action === 'new') return actions.newDocument(ctx);
     if (action === 'instructions') return actions.guide(ctx);
+    if (action === 'jadval') return actions.jadval(ctx);
     if (action === 'about') return actions.about(ctx, actionDeps);
     if (action === 'lang') return actions.lang(ctx);
     return next();
@@ -255,6 +268,111 @@ export function registerCommands(
     }
   });
 
+  // ---- 📋 jadval2 schedule-lookup flow -------------------------------
+
+  bot.action(/^jdv-ct:(.+)$/, async (ctx) => {
+    const code = ctx.match[1]!;
+    const ct = getCourtTypeByCode(code);
+    if (!ct || !ct.active) {
+      await ctx.answerCbQuery();
+      return;
+    }
+    ctx.session.jadvalPicker = { courtTypeCode: ct.code };
+    await ctx.answerCbQuery();
+    await ctx.editMessageText(t(ctx.locale, 'jadval.region.pick'), {
+      parse_mode: 'HTML',
+      ...jadvalRegionsInline(ctx.locale, REGIONS),
+    });
+  });
+
+  bot.action(/^jdv-region:(.+)$/, async (ctx) => {
+    const code = ctx.match[1]!;
+    const region = getRegionByCode(code);
+    const picker = ctx.session.jadvalPicker;
+    if (!region || !picker?.courtTypeCode) {
+      await ctx.answerCbQuery();
+      return;
+    }
+    picker.regionCode = region.code;
+    const courts = getDistrictCourtsFor(picker.courtTypeCode, region.code);
+    await ctx.answerCbQuery();
+    await ctx.editMessageText(
+      t(ctx.locale, 'jadval.court.pick', { region: region.label[ctx.locale] }),
+      { parse_mode: 'HTML', ...jadvalCourtsInline(ctx.locale, courts) },
+    );
+  });
+
+  bot.action(/^jdv-court:(.+)$/, async (ctx) => {
+    const courtCode = ctx.match[1]!;
+    const court = getDistrictCourtByCode(courtCode);
+    const picker = ctx.session.jadvalPicker;
+    if (!court || !picker?.courtTypeCode) {
+      await ctx.answerCbQuery();
+      return;
+    }
+    await ctx.answerCbQuery();
+    await ctx.editMessageText(t(ctx.locale, 'jadval.loading'), {
+      parse_mode: 'HTML',
+    });
+
+    const date = new Date();
+    const dateStr = formatHumanDate(date);
+    const globalId = extractGlobalId(court.code);
+    let entries: CaseEntry[];
+    try {
+      entries = await fetchSchedule(picker.courtTypeCode, globalId, date);
+    } catch (err) {
+      logger.warn({ err, court: court.code, globalId }, 'jadval2 fetch failed');
+      await ctx.editMessageText(t(ctx.locale, 'jadval.error'), {
+        parse_mode: 'HTML',
+        ...jadvalResultsInline(ctx.locale),
+      });
+      return;
+    }
+
+    const courtName = court.name[ctx.locale];
+    if (entries.length === 0) {
+      await ctx.editMessageText(
+        t(ctx.locale, 'jadval.empty', { court: courtName, date: dateStr }),
+        { parse_mode: 'HTML', ...jadvalResultsInline(ctx.locale) },
+      );
+      return;
+    }
+
+    const message = renderSchedule(
+      ctx.locale,
+      courtName,
+      dateStr,
+      entries,
+      picker.courtTypeCode,
+    );
+    await ctx.editMessageText(message, {
+      parse_mode: 'HTML',
+      link_preview_options: { is_disabled: true },
+      ...jadvalResultsInline(ctx.locale),
+    });
+  });
+
+  bot.action('jdv-back-types', async (ctx) => {
+    await ctx.answerCbQuery();
+    ctx.session.jadvalPicker = {};
+    await ctx.editMessageText(t(ctx.locale, 'jadval.type.pick'), {
+      parse_mode: 'HTML',
+      ...jadvalTypesInline(ctx.locale, COURT_TYPES),
+    });
+  });
+
+  bot.action('jdv-back-regions', async (ctx) => {
+    await ctx.answerCbQuery();
+    if (ctx.session.jadvalPicker) {
+      ctx.session.jadvalPicker.regionCode = undefined;
+    }
+    await ctx.editMessageText(t(ctx.locale, 'jadval.region.pick'), {
+      parse_mode: 'HTML',
+      ...jadvalRegionsInline(ctx.locale, REGIONS),
+    });
+  });
+
   // Language selection
   bot.action(/^lang:(uz_cyrillic|uz_latin|ru)$/, async (ctx) => {
     const newLocale = ctx.match[1] as Locale;
@@ -274,5 +392,67 @@ export function registerCommands(
       { parse_mode: 'HTML', ...mainMenu(newLocale) },
     );
   });
+}
+
+const TELEGRAM_MESSAGE_LIMIT = 4096;
+
+/** Escape `<`, `>`, `&` for safe Telegram HTML parse mode. */
+function htmlEscape(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderEntry(locale: Locale, e: CaseEntry, typeCode: string): string {
+  const lines: string[] = [];
+  lines.push(`🕐 <b>${htmlEscape(e.time)}</b> · ${htmlEscape(e.instance)}`);
+  lines.push(`📌 <code>${htmlEscape(e.caseNumber)}</code>`);
+  if (e.category) lines.push(`📂 ${htmlEscape(e.category)}`);
+
+  // For criminal: party1 = defendant (with charge), party2 = victims
+  // For civil/economic/admin: party1 = claimant, party2 = defendant
+  if (typeCode === 'jinoyat') {
+    lines.push(`👤 ${htmlEscape(e.party1)}`);
+    if (e.party2 !== '—') lines.push(`🛡️ ${htmlEscape(e.party2)}`);
+  } else {
+    lines.push(`👤 ${htmlEscape(e.party1)}`);
+    lines.push(`   ↳ ${htmlEscape(e.party2)}`);
+  }
+  lines.push(`👨‍⚖️ ${htmlEscape(e.judge)}`);
+  // Locale param reserved for future localization — header/footer already
+  // handle l10n; per-entry text is name+number+time so no translation yet.
+  void locale;
+  return lines.join('\n');
+}
+
+/** Render a full schedule message, capping at Telegram's 4096-char limit. */
+function renderSchedule(
+  locale: Locale,
+  courtName: string,
+  dateStr: string,
+  entries: CaseEntry[],
+  typeCode: string,
+): string {
+  const header = t(locale, 'jadval.header', {
+    court: htmlEscape(courtName),
+    date: dateStr,
+    count: entries.length,
+  });
+
+  const rendered = entries.map((e) => renderEntry(locale, e, typeCode));
+  const sep = '\n\n';
+  let body = '';
+  let included = 0;
+  for (const block of rendered) {
+    const candidate = body ? `${body}${sep}${block}` : block;
+    // Reserve headroom for header + potential "more" footer
+    if (header.length + sep.length + candidate.length > TELEGRAM_MESSAGE_LIMIT - 200) {
+      break;
+    }
+    body = candidate;
+    included += 1;
+  }
+
+  const omitted = entries.length - included;
+  const footer = omitted > 0 ? t(locale, 'jadval.more', { n: omitted }) : '';
+  return `${header}${sep}${body}${footer}`;
 }
 

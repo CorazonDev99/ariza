@@ -25,6 +25,12 @@ export interface SessionData extends Scenes.SceneSession<SceneSessionData> {
     regionCode: string;
     districtCourtCode: string;
   };
+  /** Scratchpad for the "📋 Проверить дело" jadval2 lookup flow.
+   *  Lives outside any scene — handlers are plain `bot.action(...)`. */
+  jadvalPicker?: {
+    courtTypeCode?: string;
+    regionCode?: string;
+  };
 }
 
 export interface SceneSessionData extends Scenes.SceneSessionData {

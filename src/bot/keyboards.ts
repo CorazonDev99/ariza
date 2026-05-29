@@ -12,6 +12,7 @@ import type { DistrictCourtDef } from '../templates/district-courts';
 export function mainMenu(locale: Locale) {
   return Markup.keyboard([
     [t(locale, 'menu.new')],
+    [t(locale, 'menu.jadval')],
     [t(locale, 'menu.instructions'), t(locale, 'menu.about')],
     [t(locale, 'menu.lang')],
   ]).resize();
@@ -392,12 +393,20 @@ export function progressBar(current: number, total: number, width = 10): string 
 }
 
 /** Resolve translated menu button text → locale-agnostic action id. */
-export type MenuAction = 'new' | 'instructions' | 'about' | 'lang' | 'back' | 'cancel';
+export type MenuAction =
+  | 'new'
+  | 'instructions'
+  | 'jadval'
+  | 'about'
+  | 'lang'
+  | 'back'
+  | 'cancel';
 
 export function detectMenuAction(text: string): MenuAction | null {
   for (const locale of LOCALES) {
     if (text === t(locale, 'menu.new')) return 'new';
     if (text === t(locale, 'menu.instructions')) return 'instructions';
+    if (text === t(locale, 'menu.jadval')) return 'jadval';
     if (text === t(locale, 'menu.about')) return 'about';
     if (text === t(locale, 'menu.lang')) return 'lang';
     if (text === t(locale, 'btn.back')) return 'back';
@@ -463,6 +472,54 @@ export function guideDistrictCourtsInline(
       Markup.button.callback(c.name[locale], `g-dc:${c.code}`),
     ]),
     [Markup.button.callback(t(locale, 'district.back'), 'g-back-regions')],
+  ]);
+}
+
+// =====================================================================
+// 📋 jadval2 flow: court-type → region → court → schedule. Uses `jdv-`
+// prefixes to stay distinct from the wizard (ct/region/dc) and guide
+// (g-ct/g-region/g-dc) callback namespaces.
+// =====================================================================
+
+export function jadvalTypesInline(locale: Locale, types: CourtTypeDef[]) {
+  return Markup.inlineKeyboard(
+    types
+      .filter((c) => c.active)
+      .map((c) => [Markup.button.callback(c.label[locale], `jdv-ct:${c.code}`)]),
+  );
+}
+
+export function jadvalRegionsInline(locale: Locale, regions: RegionDef[]) {
+  const rows: ReturnType<typeof Markup.button.callback>[][] = [];
+  for (let i = 0; i < regions.length; i += 2) {
+    const row = [
+      Markup.button.callback(regions[i]!.label[locale], `jdv-region:${regions[i]!.code}`),
+    ];
+    const next = regions[i + 1];
+    if (next) row.push(Markup.button.callback(next.label[locale], `jdv-region:${next.code}`));
+    rows.push(row);
+  }
+  rows.push([Markup.button.callback(t(locale, 'jadval.back-types'), 'jdv-back-types')]);
+  return Markup.inlineKeyboard(rows);
+}
+
+export function jadvalCourtsInline(
+  locale: Locale,
+  courts: DistrictCourtDef[],
+) {
+  return Markup.inlineKeyboard([
+    ...courts.map((c) => [
+      Markup.button.callback(c.name[locale], `jdv-court:${c.code}`),
+    ]),
+    [Markup.button.callback(t(locale, 'jadval.back-regions'), 'jdv-back-regions')],
+  ]);
+}
+
+/** Shown under the final schedule message — lets the user pick another
+ *  date / court without retyping. For MVP just a "back to courts" button. */
+export function jadvalResultsInline(locale: Locale) {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(t(locale, 'jadval.back-regions'), 'jdv-back-regions')],
   ]);
 }
 

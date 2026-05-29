@@ -18,8 +18,22 @@ export const uz_cyrillic: Dict = {
   // main menu
   'menu.new': '📄 Ариза топшириш',
   'menu.instructions': '📖 Қўлланма',
+  'menu.jadval': '📋 Ишимни текшириш',
   'menu.about': 'ℹ️ Бот ҳақида',
   'menu.lang': '🌐 Тил',
+
+  // jadval2 case-schedule lookup flow
+  'jadval.type.pick': '📋 <b>Иш турини танланг:</b>',
+  'jadval.region.pick': '🏛️ <b>Ҳудудни танланг:</b>',
+  'jadval.court.pick': '⚖️ <b>{region}</b>\n\nСудни танланг:',
+  'jadval.loading': '⏳ jadval2.sud.uz дан маълумотлар юкланмоқда...',
+  'jadval.empty': '📭 <b>{court}</b>\n📅 {date}\n\nУшбу санага суд мажлисига тайинланган ишлар йўқ.',
+  'jadval.error': '⚠️ jadval2.sud.uz дан маълумотларни олиб бўлмади. Бироздан кейин қайта уриниб кўринг.',
+  'jadval.header': '📋 <b>{court}</b>\n📅 {date}\n\nЖами: <b>{count}</b> та иш',
+  'jadval.more': '\n\n<i>… яна {n} та иш. Тўлиқ рўйхат — <a href="https://jadval2.sud.uz">jadval2.sud.uz</a></i>',
+  'jadval.back-types': '⬅️ Иш турлари',
+  'jadval.back-regions': '⬅️ Ҳудудлар',
+  'jadval.cmd.desc': '📋 Иш бўйича жадвал',
 
   // /-menu descriptions (Telegram client shows next to command name)
   'cmd.new.desc': 'Янги ариза тайёрлаш',
