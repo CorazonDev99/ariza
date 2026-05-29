@@ -73,11 +73,25 @@ const envSchema = z.object({
   // OpenAI-COMPATIBLE Whisper endpoint for voice-to-text on free-form
   // text fields. Works with any provider that exposes the OpenAI Audio
   // Transcriptions API at <BASE>/audio/transcriptions:
-  //   - OpenAI:    BASE=https://api.openai.com/v1     MODEL=whisper-1
-  //   - Groq:      BASE=https://api.groq.com/openai/v1 MODEL=whisper-large-v3
-  //                (free tier — recommended)
-  //   - DeepInfra: BASE=https://api.deepinfra.com/v1/openai
-  // Empty API key disables the feature.
+  //
+  //   RECOMMENDED — Groq (FREE tier, fastest, best Uzbek accuracy):
+  //     1. Sign up at https://console.groq.com (no credit card)
+  //     2. Create an API key → starts with `gsk_...`
+  //     3. Set on server:
+  //          OPENAI_API_KEY=gsk_xxxxxxxxxxxx
+  //          OPENAI_BASE_URL=https://api.groq.com/openai/v1
+  //          OPENAI_TRANSCRIBE_MODEL=whisper-large-v3-turbo
+  //     Free tier: 7200 requests/day, 28 800 audio seconds/day.
+  //
+  //   OpenAI (paid, weak with Uzbek):
+  //     OPENAI_API_KEY=sk-...
+  //     OPENAI_BASE_URL=https://api.openai.com/v1
+  //     OPENAI_TRANSCRIBE_MODEL=whisper-1  (or gpt-4o-transcribe — best, $$$)
+  //
+  //   DeepInfra (paid, OK):
+  //     OPENAI_BASE_URL=https://api.deepinfra.com/v1/openai
+  //
+  // Empty API key disables the feature entirely.
   OPENAI_API_KEY: z.string().default(''),
   OPENAI_BASE_URL: z
     .string()

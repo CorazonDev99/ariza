@@ -21,6 +21,14 @@ export interface TranscribeInput {
   /** Original filename hint. Whisper uses the extension to pick a decoder. */
   filename: string;
   locale: Locale;
+  /**
+   * Optional vocabulary / style hint passed to Whisper as the `prompt`
+   * parameter. Up to ~244 tokens. Should match the audio language. Use
+   * it to anchor recognition of common Uzbek names, addresses, and
+   * legal vocabulary that whisper-1 / whisper-large-v3 otherwise mangle.
+   * See https://platform.openai.com/docs/guides/speech-to-text/prompting
+   */
+  prompt?: string;
 }
 
 /**
@@ -74,6 +82,13 @@ export class TranscriptionService {
     form.append('model', this.model);
     form.append('language', LOCALE_TO_WHISPER_LANG[input.locale]);
     form.append('response_format', 'json');
+    // Whisper supports a free-text `prompt` that anchors the vocabulary.
+    // We pass it for fields like FIO / address where Uzbek names get
+    // mangled by default. Capped at 800 chars for safety (the model
+    // truncates to ~244 tokens anyway). Empty / undefined → skip.
+    if (input.prompt && input.prompt.trim()) {
+      form.append('prompt', input.prompt.slice(0, 800));
+    }
 
     const url = `${this.baseUrl}/audio/transcriptions`;
     const startedAt = Date.now();

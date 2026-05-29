@@ -7,6 +7,7 @@ import type { TemplateRepository } from '../repositories/template.repository';
 import type { PaymentService } from '../services/payment.service';
 import type { AiAssistService } from '../services/ai-assist.service';
 import type { TranscriptionService } from '../services/transcription.service';
+import { buildWhisperPrompt } from '../services/voice-prompts';
 import type { BotContext } from '../bot/context';
 import { actions, type ActionDeps } from '../bot/actions';
 import {
@@ -1497,6 +1498,10 @@ export function buildArizaWizardScene(
         mimeType,
         filename: mimeType.includes('ogg') ? 'voice.ogg' : 'voice.bin',
         locale: ctx.locale,
+        // Vocabulary hint matched to the field type — drastically
+        // improves Whisper's accuracy on Uzbek names, addresses, and
+        // Cyrillic letters that the model otherwise drops.
+        prompt: buildWhisperPrompt(f.validator, ctx.locale),
       });
     } catch (err) {
       logger.error({ err }, 'Voice transcription failed');
