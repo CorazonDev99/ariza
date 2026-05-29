@@ -60,6 +60,19 @@ interface RawCriminal {
 
 const VKA_BASE = 'https://jadvalapi.sud.uz/vka';
 
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_MAX_SIZE = 500;
+interface CacheEntry {
+  entries: CaseEntry[];
+  expiresAt: number;
+}
+const CACHE = new Map<string, CacheEntry>();
+
+/** Test/admin hook — drops every cached schedule. */
+export function clearScheduleCache(): void {
+  CACHE.clear();
+}
+
 /** Strip the `{prefix}-{region}-` portion to recover the jadval2 button id. */
 export function extractGlobalId(courtCode: string): string {
   const parts = courtCode.split('-');
@@ -82,16 +95,28 @@ export function formatHumanDate(date: Date): string {
   return `${dd}.${mm}.${yy}`;
 }
 
-function buildUrl(typeCode: string, globalId: string, dateStr: string): string {
+/**
+ * URLs to fetch for a single (type, court, date) lookup. The first
+ * URL is the primary — if it fails, the user gets an error. The rest
+ * are backups: failures are swallowed and merged in best-effort, just
+ * like jadval2.sud.uz's own page does for fib/is.
+ */
+function buildUrls(typeCode: string, globalId: string, dateStr: string): string[] {
   switch (typeCode) {
     case 'fuqarolik':
-      return `${VKA_BASE}/CIVIL/${globalId}/${dateStr}`;
+      return [
+        `${VKA_BASE}/CIVIL/${globalId}/${dateStr}`,
+        `https://api2.sud.uz/${globalId}/${dateStr}`,
+      ];
     case 'iqtisodiy':
-      return `${VKA_BASE}/ECONOMIC/${globalId}/${dateStr}`;
+      return [
+        `${VKA_BASE}/ECONOMIC/${globalId}/${dateStr}`,
+        `https://api3.sud.uz/${globalId}/${dateStr}`,
+      ];
     case 'mamuriy':
-      return `${VKA_BASE}/CONFLICT/${globalId}/${dateStr}`;
+      return [`${VKA_BASE}/CONFLICT/${globalId}/${dateStr}`];
     case 'jinoyat':
-      return `https://api4.sud.uz/${globalId}/${dateStr}`;
+      return [`https://api4.sud.uz/${globalId}/${dateStr}`];
     default:
       throw new Error(`Unknown court type: ${typeCode}`);
   }
@@ -139,30 +164,95 @@ function normalizeCriminal(raw: unknown): CaseEntry {
   };
 }
 
-/** Fetch + normalize all hearings for one court on one date. Throws on
- *  network / HTTP errors; the caller renders a localized error message. */
+async function fetchJsonArray(url: string): Promise<unknown[]> {
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'raport-bot (ariza)' },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  const data = (await res.json()) as unknown;
+  return Array.isArray(data) ? data : [];
+}
+
+/**
+ * Fetch + normalize all hearings for one court on one date. Throws on
+ * primary-endpoint network / HTTP errors so the caller can render a
+ * localized error. Backup-endpoint failures are silent.
+ *
+ * Results are cached for {@link CACHE_TTL_MS} per (type, court, date)
+ * key — useful when a viral message in a chat sends many users to look
+ * up the same hearing list.
+ */
 export async function fetchSchedule(
   courtTypeCode: string,
   globalId: string,
   date: Date,
 ): Promise<CaseEntry[]> {
   const dateStr = formatDDMMYYYY(date);
-  const url = buildUrl(courtTypeCode, globalId, dateStr);
+  const cacheKey = `${courtTypeCode}|${globalId}|${dateStr}`;
 
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'raport-bot (ariza)' },
-  });
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} for ${url}`);
+  const cached = CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.entries;
   }
-  const data = (await res.json()) as unknown;
-  if (!Array.isArray(data)) return [];
 
-  const entries =
-    courtTypeCode === 'jinoyat'
-      ? data.map(normalizeCriminal)
-      : data.map(normalizeCivilLike);
+  const urls = buildUrls(courtTypeCode, globalId, dateStr);
+  const normalize =
+    courtTypeCode === 'jinoyat' ? normalizeCriminal : normalizeCivilLike;
 
-  // Sort by time so the user sees morning hearings first.
-  return entries.sort((a, b) => a.time.localeCompare(b.time));
+  // Primary failure → user-visible error. We deliberately don't fall
+  // back to backups for the primary error case — backups exist for
+  // *additional* coverage (mainline sometimes drops courts), not as
+  // a replacement when the main API is down.
+  const primaryData = await fetchJsonArray(urls[0]!);
+  const primaryEntries = primaryData.map(normalize);
+
+  // Backups run in parallel; any failure is treated as "no extra data".
+  const backupEntries: CaseEntry[] = [];
+  if (urls.length > 1) {
+    const results = await Promise.allSettled(
+      urls.slice(1).map((u) => fetchJsonArray(u).then((d) => d.map(normalize))),
+    );
+    for (const r of results) {
+      if (r.status === 'fulfilled') backupEntries.push(...r.value);
+    }
+  }
+
+  // Dedup by (case number, time) — primary + backup occasionally return
+  // the same hearing. Primary wins (it appears first in the merged list).
+  const seen = new Set<string>();
+  const merged: CaseEntry[] = [];
+  for (const e of [...primaryEntries, ...backupEntries]) {
+    const key = `${e.caseNumber}|${e.time}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(e);
+  }
+  merged.sort((a, b) => a.time.localeCompare(b.time));
+
+  // Drop oldest 20% if cache is full — simple LRU-ish eviction.
+  if (CACHE.size >= CACHE_MAX_SIZE) {
+    const drop = Math.ceil(CACHE_MAX_SIZE * 0.2);
+    let i = 0;
+    for (const k of CACHE.keys()) {
+      if (i++ >= drop) break;
+      CACHE.delete(k);
+    }
+  }
+  CACHE.set(cacheKey, {
+    entries: merged,
+    expiresAt: Date.now() + CACHE_TTL_MS,
+  });
+
+  return merged;
+}
+
+/** Case-insensitive substring match against the visible fields. */
+export function searchEntries(entries: CaseEntry[], query: string): CaseEntry[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return entries;
+  return entries.filter((e) =>
+    [e.party1, e.party2, e.caseNumber, e.judge, e.category]
+      .filter((s): s is string => !!s)
+      .some((field) => field.toLowerCase().includes(q)),
+  );
 }

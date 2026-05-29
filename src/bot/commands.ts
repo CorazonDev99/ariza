@@ -1,6 +1,8 @@
 import type { Telegraf } from 'telegraf';
 import { LOCALE_META, t, type Locale } from '../i18n';
 import {
+  calendarInline,
+  calendarYearInline,
   detectMenuAction,
   guideDistrictCourtsInline,
   guideRegionsInline,
@@ -10,6 +12,8 @@ import {
   jadvalCourtsInline,
   jadvalRegionsInline,
   jadvalResultsInline,
+  jadvalSearchPromptInline,
+  jadvalSearchResultsInline,
   jadvalTypesInline,
   mainMenu,
 } from './keyboards';
@@ -25,6 +29,7 @@ import {
   extractGlobalId,
   fetchSchedule,
   formatHumanDate,
+  searchEntries,
   type CaseEntry,
 } from '../services/jadval2.service';
 import { logger } from '../utils/logger';
@@ -94,6 +99,18 @@ export function registerCommands(
   // happens in `scene.on('text')` so the menu keeps working there too.
   bot.on('text', async (ctx, next) => {
     const text = (ctx.message as { text: string }).text?.trim() ?? '';
+
+    // jadval2 search mode: the next non-empty text is treated as a
+    // filter query against the cached schedule, regardless of whether
+    // it looks like a menu button. The user explicitly opted in by
+    // tapping "🔍 Поиск", so we honor that intent first.
+    if (ctx.session.jadvalPicker?.searchPending) {
+      ctx.session.jadvalPicker.searchPending = false;
+      if (text.length === 0) return;
+      await sendScheduleReply(ctx, text);
+      return;
+    }
+
     const action = detectMenuAction(text);
     if (action === 'new') return actions.newDocument(ctx);
     if (action === 'instructions') return actions.guide(ctx);
@@ -310,47 +327,139 @@ export function registerCommands(
       await ctx.answerCbQuery();
       return;
     }
+    picker.courtCode = court.code;
+    picker.date = undefined;
+    picker.searchPending = false;
     await ctx.answerCbQuery();
-    await ctx.editMessageText(t(ctx.locale, 'jadval.loading'), {
-      parse_mode: 'HTML',
-    });
-
-    const date = new Date();
-    const dateStr = formatHumanDate(date);
-    const globalId = extractGlobalId(court.code);
-    let entries: CaseEntry[];
-    try {
-      entries = await fetchSchedule(picker.courtTypeCode, globalId, date);
-    } catch (err) {
-      logger.warn({ err, court: court.code, globalId }, 'jadval2 fetch failed');
-      await ctx.editMessageText(t(ctx.locale, 'jadval.error'), {
+    const now = new Date();
+    await ctx.editMessageText(
+      t(ctx.locale, 'jadval.date.pick', { court: court.name[ctx.locale] }),
+      {
         parse_mode: 'HTML',
-        ...jadvalResultsInline(ctx.locale),
+        ...calendarInline(ctx.locale, now.getFullYear(), now.getMonth() + 1, 'jcal'),
+      },
+    );
+  });
+
+  // ---- jadval calendar (jcal:* mirrors cal:* but in its own namespace) ----
+
+  bot.action(/^jcal:nav:(\d+):(\d+)$/, async (ctx) => {
+    await ctx.answerCbQuery();
+    const y = Number(ctx.match[1]);
+    const m = Number(ctx.match[2]);
+    await ctx.editMessageReplyMarkup(
+      calendarInline(ctx.locale, y, m, 'jcal').reply_markup,
+    );
+  });
+
+  bot.action('jcal:yearmode', async (ctx) => {
+    await ctx.answerCbQuery();
+    const now = new Date();
+    await ctx.editMessageReplyMarkup(
+      calendarYearInline(ctx.locale, now.getMonth() + 1, 0, undefined, 'jcal').reply_markup,
+    );
+  });
+
+  bot.action(/^jcal:ypage:(\d+):(\d+)$/, async (ctx) => {
+    await ctx.answerCbQuery();
+    const page = Number(ctx.match[1]);
+    const monthHint = Number(ctx.match[2]);
+    await ctx.editMessageReplyMarkup(
+      calendarYearInline(ctx.locale, monthHint, page, undefined, 'jcal').reply_markup,
+    );
+  });
+
+  bot.action(/^jcal:y:(\d+):(\d+)$/, async (ctx) => {
+    await ctx.answerCbQuery();
+    const y = Number(ctx.match[1]);
+    const m = Number(ctx.match[2]);
+    await ctx.editMessageReplyMarkup(
+      calendarInline(ctx.locale, y, m, 'jcal').reply_markup,
+    );
+  });
+
+  bot.action(/^jcal:d:(\d+):(\d+):(\d+)$/, async (ctx) => {
+    const y = Number(ctx.match[1]);
+    const m = Number(ctx.match[2]);
+    const d = Number(ctx.match[3]);
+    const picker = ctx.session.jadvalPicker;
+    if (!picker?.courtTypeCode || !picker.courtCode) {
+      await ctx.answerCbQuery();
+      return;
+    }
+    picker.date = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    await ctx.answerCbQuery();
+    await editScheduleResults(ctx);
+  });
+
+  bot.action('jcal:back', async (ctx) => {
+    await ctx.answerCbQuery();
+    const picker = ctx.session.jadvalPicker;
+    if (!picker?.courtTypeCode || !picker.regionCode) {
+      await ctx.editMessageText(t(ctx.locale, 'jadval.region.pick'), {
+        parse_mode: 'HTML',
+        ...jadvalRegionsInline(ctx.locale, REGIONS),
       });
       return;
     }
-
-    const courtName = court.name[ctx.locale];
-    if (entries.length === 0) {
-      await ctx.editMessageText(
-        t(ctx.locale, 'jadval.empty', { court: courtName, date: dateStr }),
-        { parse_mode: 'HTML', ...jadvalResultsInline(ctx.locale) },
-      );
-      return;
-    }
-
-    const message = renderSchedule(
-      ctx.locale,
-      courtName,
-      dateStr,
-      entries,
-      picker.courtTypeCode,
+    picker.courtCode = undefined;
+    picker.date = undefined;
+    const region = getRegionByCode(picker.regionCode);
+    const courts = getDistrictCourtsFor(picker.courtTypeCode, picker.regionCode);
+    await ctx.editMessageText(
+      t(ctx.locale, 'jadval.court.pick', { region: region?.label[ctx.locale] ?? '' }),
+      { parse_mode: 'HTML', ...jadvalCourtsInline(ctx.locale, courts) },
     );
-    await ctx.editMessageText(message, {
+  });
+
+  bot.action('jcal:noop', async (ctx) => {
+    await ctx.answerCbQuery();
+  });
+
+  // ---- jadval search + date / back ----
+
+  bot.action('jdv-search', async (ctx) => {
+    await ctx.answerCbQuery();
+    const picker = ctx.session.jadvalPicker;
+    if (!picker?.courtCode || !picker.date) return;
+    picker.searchPending = true;
+    await ctx.editMessageText(t(ctx.locale, 'jadval.search.prompt'), {
       parse_mode: 'HTML',
-      link_preview_options: { is_disabled: true },
-      ...jadvalResultsInline(ctx.locale),
+      ...jadvalSearchPromptInline(ctx.locale),
     });
+  });
+
+  bot.action('jdv-cancel-search', async (ctx) => {
+    await ctx.answerCbQuery();
+    const picker = ctx.session.jadvalPicker;
+    if (!picker) return;
+    picker.searchPending = false;
+    await editScheduleResults(ctx);
+  });
+
+  bot.action('jdv-all', async (ctx) => {
+    await ctx.answerCbQuery();
+    const picker = ctx.session.jadvalPicker;
+    if (!picker) return;
+    picker.searchPending = false;
+    await editScheduleResults(ctx);
+  });
+
+  bot.action('jdv-date', async (ctx) => {
+    await ctx.answerCbQuery();
+    const picker = ctx.session.jadvalPicker;
+    if (!picker?.courtCode) return;
+    const court = getDistrictCourtByCode(picker.courtCode);
+    if (!court) return;
+    picker.searchPending = false;
+    const now = picker.date ? new Date(`${picker.date}T00:00:00`) : new Date();
+    await ctx.editMessageText(
+      t(ctx.locale, 'jadval.date.pick', { court: court.name[ctx.locale] }),
+      {
+        parse_mode: 'HTML',
+        ...calendarInline(ctx.locale, now.getFullYear(), now.getMonth() + 1, 'jcal'),
+      },
+    );
   });
 
   bot.action('jdv-back-types', async (ctx) => {
@@ -366,6 +475,9 @@ export function registerCommands(
     await ctx.answerCbQuery();
     if (ctx.session.jadvalPicker) {
       ctx.session.jadvalPicker.regionCode = undefined;
+      ctx.session.jadvalPicker.courtCode = undefined;
+      ctx.session.jadvalPicker.date = undefined;
+      ctx.session.jadvalPicker.searchPending = false;
     }
     await ctx.editMessageText(t(ctx.locale, 'jadval.region.pick'), {
       parse_mode: 'HTML',
@@ -401,7 +513,7 @@ function htmlEscape(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function renderEntry(locale: Locale, e: CaseEntry, typeCode: string): string {
+function renderEntry(e: CaseEntry, typeCode: string): string {
   const lines: string[] = [];
   lines.push(`🕐 <b>${htmlEscape(e.time)}</b> · ${htmlEscape(e.instance)}`);
   lines.push(`📌 <code>${htmlEscape(e.caseNumber)}</code>`);
@@ -417,42 +529,138 @@ function renderEntry(locale: Locale, e: CaseEntry, typeCode: string): string {
     lines.push(`   ↳ ${htmlEscape(e.party2)}`);
   }
   lines.push(`👨‍⚖️ ${htmlEscape(e.judge)}`);
-  // Locale param reserved for future localization — header/footer already
-  // handle l10n; per-entry text is name+number+time so no translation yet.
-  void locale;
   return lines.join('\n');
 }
 
-/** Render a full schedule message, capping at Telegram's 4096-char limit. */
-function renderSchedule(
-  locale: Locale,
-  courtName: string,
-  dateStr: string,
+/** Build a schedule message body (no header) with Telegram's 4096-char cap.
+ *  Returns the body plus the number of entries that were omitted. */
+function renderEntriesCapped(
   entries: CaseEntry[],
   typeCode: string,
-): string {
-  const header = t(locale, 'jadval.header', {
-    court: htmlEscape(courtName),
-    date: dateStr,
-    count: entries.length,
-  });
-
-  const rendered = entries.map((e) => renderEntry(locale, e, typeCode));
+  headerLen: number,
+): { body: string; omitted: number } {
+  const rendered = entries.map((e) => renderEntry(e, typeCode));
   const sep = '\n\n';
   let body = '';
   let included = 0;
   for (const block of rendered) {
     const candidate = body ? `${body}${sep}${block}` : block;
-    // Reserve headroom for header + potential "more" footer
-    if (header.length + sep.length + candidate.length > TELEGRAM_MESSAGE_LIMIT - 200) {
+    if (headerLen + sep.length + candidate.length > TELEGRAM_MESSAGE_LIMIT - 200) {
       break;
     }
     body = candidate;
     included += 1;
   }
+  return { body, omitted: entries.length - included };
+}
 
-  const omitted = entries.length - included;
-  const footer = omitted > 0 ? t(locale, 'jadval.more', { n: omitted }) : '';
-  return `${header}${sep}${body}${footer}`;
+/** Resolve the bot's session state into a ready-to-send schedule message.
+ *  Returns null when state is incomplete; throws / returns error text on
+ *  network failure (caller decides whether to editMessageText or reply). */
+async function buildScheduleResponse(
+  ctx: BotContext,
+  query?: string,
+): Promise<{ text: string; isSearch: boolean; ok: boolean } | null> {
+  const picker = ctx.session.jadvalPicker;
+  if (!picker?.courtTypeCode || !picker.courtCode || !picker.date) {
+    return null;
+  }
+  const court = getDistrictCourtByCode(picker.courtCode);
+  if (!court) return null;
+
+  const date = new Date(`${picker.date}T00:00:00`);
+  const dateStr = formatHumanDate(date);
+  const globalId = extractGlobalId(court.code);
+
+  let allEntries: CaseEntry[];
+  try {
+    allEntries = await fetchSchedule(picker.courtTypeCode, globalId, date);
+  } catch (err) {
+    logger.warn(
+      { err, court: court.code, globalId, date: picker.date },
+      'jadval2 fetch failed',
+    );
+    return { text: t(ctx.locale, 'jadval.error'), isSearch: !!query, ok: false };
+  }
+
+  const courtName = court.name[ctx.locale];
+  const isSearch = !!query && query.trim().length > 0;
+  const filtered = isSearch ? searchEntries(allEntries, query!) : allEntries;
+
+  if (allEntries.length === 0) {
+    return {
+      text: t(ctx.locale, 'jadval.empty', { court: courtName, date: dateStr }),
+      isSearch: false,
+      ok: true,
+    };
+  }
+
+  if (isSearch && filtered.length === 0) {
+    return {
+      text: t(ctx.locale, 'jadval.search.empty', {
+        court: courtName,
+        date: dateStr,
+        query: htmlEscape(query!),
+        total: allEntries.length,
+      }),
+      isSearch: true,
+      ok: true,
+    };
+  }
+
+  const header = isSearch
+    ? t(ctx.locale, 'jadval.search.header', {
+        query: htmlEscape(query!),
+        matched: filtered.length,
+        total: allEntries.length,
+        court: htmlEscape(courtName),
+        date: dateStr,
+      })
+    : t(ctx.locale, 'jadval.header', {
+        court: htmlEscape(courtName),
+        date: dateStr,
+        count: filtered.length,
+      });
+
+  const { body, omitted } = renderEntriesCapped(
+    filtered,
+    picker.courtTypeCode,
+    header.length,
+  );
+  const footer = omitted > 0 ? t(ctx.locale, 'jadval.more', { n: omitted }) : '';
+  return { text: `${header}\n\n${body}${footer}`, isSearch, ok: true };
+}
+
+function resultsKeyboard(ctx: BotContext, isSearch: boolean) {
+  return isSearch
+    ? jadvalSearchResultsInline(ctx.locale)
+    : jadvalResultsInline(ctx.locale);
+}
+
+/** Edit the current callback message in place — used after inline-button
+ *  clicks (date pick, "📋 All", "❌ Cancel search"). */
+async function editScheduleResults(
+  ctx: BotContext,
+  query?: string,
+): Promise<void> {
+  const res = await buildScheduleResponse(ctx, query);
+  if (!res) return;
+  await ctx.editMessageText(res.text, {
+    parse_mode: 'HTML',
+    link_preview_options: { is_disabled: true },
+    ...resultsKeyboard(ctx, res.isSearch),
+  });
+}
+
+/** Send the schedule as a NEW message — used after the user types a
+ *  search query (we can't edit our own message in response to theirs). */
+async function sendScheduleReply(ctx: BotContext, query: string): Promise<void> {
+  const res = await buildScheduleResponse(ctx, query);
+  if (!res) return;
+  await ctx.reply(res.text, {
+    parse_mode: 'HTML',
+    link_preview_options: { is_disabled: true },
+    ...resultsKeyboard(ctx, res.isSearch),
+  });
 }
 

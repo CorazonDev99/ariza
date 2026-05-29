@@ -295,8 +295,15 @@ function shiftMonth(year: number, month: number, delta: number): { y: number; m:
   return { y, m };
 }
 
-/** Month-view calendar. `month` is 1-indexed. */
-export function calendarInline(locale: Locale, year: number, month: number) {
+/** Month-view calendar. `month` is 1-indexed. `prefix` lets callers
+ *  swap the callback namespace (e.g. 'cal' for the wizard scene,
+ *  'jcal' for the jadval2 lookup flow). */
+export function calendarInline(
+  locale: Locale,
+  year: number,
+  month: number,
+  prefix: string = 'cal',
+) {
   const monthName = capitalize(t(locale, `month.${month}`));
   const header = `${monthName} ${year}`;
 
@@ -311,22 +318,22 @@ export function calendarInline(locale: Locale, year: number, month: number) {
   const next = shiftMonth(year, month, +1);
   const navRow: ReturnType<typeof Markup.button.callback>[] = [];
   if (prev.y >= CAL_MIN_YEAR) {
-    navRow.push(Markup.button.callback('◀', `cal:nav:${prev.y}:${prev.m}`));
+    navRow.push(Markup.button.callback('◀', `${prefix}:nav:${prev.y}:${prev.m}`));
   } else {
-    navRow.push(Markup.button.callback(' ', 'cal:noop'));
+    navRow.push(Markup.button.callback(' ', `${prefix}:noop`));
   }
-  navRow.push(Markup.button.callback(header, 'cal:yearmode'));
+  navRow.push(Markup.button.callback(header, `${prefix}:yearmode`));
   if (next.y <= CAL_MAX_YEAR) {
-    navRow.push(Markup.button.callback('▶', `cal:nav:${next.y}:${next.m}`));
+    navRow.push(Markup.button.callback('▶', `${prefix}:nav:${next.y}:${next.m}`));
   } else {
-    navRow.push(Markup.button.callback(' ', 'cal:noop'));
+    navRow.push(Markup.button.callback(' ', `${prefix}:noop`));
   }
   rows.push(navRow);
 
   // Weekday header row
   rows.push(
     [1, 2, 3, 4, 5, 6, 7].map((d) =>
-      Markup.button.callback(t(locale, `cal.wd.${d}`), 'cal:noop'),
+      Markup.button.callback(t(locale, `cal.wd.${d}`), `${prefix}:noop`),
     ),
   );
 
@@ -338,10 +345,10 @@ export function calendarInline(locale: Locale, year: number, month: number) {
     for (let dow = 0; dow < 7; dow++) {
       const slot = week * 7 + dow;
       if (slot < firstDow || day > total) {
-        row.push(Markup.button.callback(' ', 'cal:noop'));
+        row.push(Markup.button.callback(' ', `${prefix}:noop`));
       } else {
         row.push(
-          Markup.button.callback(String(day), `cal:d:${year}:${month}:${day}`),
+          Markup.button.callback(String(day), `${prefix}:d:${year}:${month}:${day}`),
         );
         day += 1;
       }
@@ -349,7 +356,7 @@ export function calendarInline(locale: Locale, year: number, month: number) {
     rows.push(row);
   }
 
-  rows.push([Markup.button.callback(t(locale, 'btn.back'), 'cal:back')]);
+  rows.push([Markup.button.callback(t(locale, 'btn.back'), `${prefix}:back`)]);
   return Markup.inlineKeyboard(rows);
 }
 
@@ -359,6 +366,7 @@ export function calendarYearInline(
   monthHint: number,
   page = 0,
   baseYear?: number,
+  prefix: string = 'cal',
 ) {
   const top = baseYear ?? new Date().getFullYear();
   const start = top - page * YEARS_PER_PAGE;
@@ -369,19 +377,24 @@ export function calendarYearInline(
   for (let i = 0; i < years.length; i += 4) {
     rows.push(
       years.slice(i, i + 4).map((y) =>
-        Markup.button.callback(String(y), `cal:y:${y}:${monthHint}`),
+        Markup.button.callback(String(y), `${prefix}:y:${y}:${monthHint}`),
       ),
     );
   }
   const nav: ReturnType<typeof Markup.button.callback>[] = [];
   if (page > 0) {
-    nav.push(Markup.button.callback(t(locale, 'dp.prev'), `cal:ypage:${page - 1}:${monthHint}`));
+    nav.push(Markup.button.callback(t(locale, 'dp.prev'), `${prefix}:ypage:${page - 1}:${monthHint}`));
   }
   if (start - YEARS_PER_PAGE >= CAL_MIN_YEAR) {
-    nav.push(Markup.button.callback(t(locale, 'dp.next'), `cal:ypage:${page + 1}:${monthHint}`));
+    nav.push(Markup.button.callback(t(locale, 'dp.next'), `${prefix}:ypage:${page + 1}:${monthHint}`));
   }
   if (nav.length) rows.push(nav);
-  rows.push([Markup.button.callback(t(locale, 'btn.back'), `cal:nav:${top - page * YEARS_PER_PAGE}:${monthHint}`)]);
+  rows.push([
+    Markup.button.callback(
+      t(locale, 'btn.back'),
+      `${prefix}:nav:${top - page * YEARS_PER_PAGE}:${monthHint}`,
+    ),
+  ]);
   return Markup.inlineKeyboard(rows);
 }
 
@@ -515,11 +528,37 @@ export function jadvalCourtsInline(
   ]);
 }
 
-/** Shown under the final schedule message — lets the user pick another
- *  date / court without retyping. For MVP just a "back to courts" button. */
+/** Shown under the unfiltered schedule message. Lets the user search,
+ *  pick a different date, or step back to the court list. */
 export function jadvalResultsInline(locale: Locale) {
   return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(t(locale, 'jadval.btn.search'), 'jdv-search'),
+      Markup.button.callback(t(locale, 'jadval.btn.date'), 'jdv-date'),
+    ],
     [Markup.button.callback(t(locale, 'jadval.back-regions'), 'jdv-back-regions')],
+  ]);
+}
+
+/** Shown under a search-filtered results message. "📋 All" clears the
+ *  filter; "🔍 New search" replaces the query. */
+export function jadvalSearchResultsInline(locale: Locale) {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(t(locale, 'jadval.btn.all'), 'jdv-all'),
+      Markup.button.callback(t(locale, 'jadval.btn.search'), 'jdv-search'),
+    ],
+    [
+      Markup.button.callback(t(locale, 'jadval.btn.date'), 'jdv-date'),
+      Markup.button.callback(t(locale, 'jadval.back-regions'), 'jdv-back-regions'),
+    ],
+  ]);
+}
+
+/** Shown under the "send your query" prompt — lets the user back out. */
+export function jadvalSearchPromptInline(locale: Locale) {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(t(locale, 'jadval.btn.cancel-search'), 'jdv-cancel-search')],
   ]);
 }
 

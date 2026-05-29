@@ -34,6 +34,15 @@ export const uz_cyrillic: Dict = {
   'jadval.back-types': '⬅️ Иш турлари',
   'jadval.back-regions': '⬅️ Ҳудудлар',
   'jadval.cmd.desc': '📋 Иш бўйича жадвал',
+  'jadval.date.pick': '📅 <b>{court}</b>\n\nСанани танланг:',
+  'jadval.btn.search': '🔍 Қидириш',
+  'jadval.btn.date': '📅 Бошқа сана',
+  'jadval.btn.all': '📋 Барчасини кўрсатиш',
+  'jadval.btn.cancel-search': '❌ Бекор қилиш',
+  'jadval.search.prompt': '🔍 <b>Қидириш</b>\n\nФ.И.Ш. ёки иш рақамининг бир қисмини юборинг (масалан: <code>KIRGIZBOYEV</code> ёки <code>2-1701-2608</code>):',
+  'jadval.search.cancelled': '❌ Қидириш бекор қилинди.',
+  'jadval.search.header': '🔍 <b>«{query}»</b> бўйича топилди: <b>{matched}</b> / {total}\n📋 <b>{court}</b> · 📅 {date}',
+  'jadval.search.empty': '🔍 <b>«{query}»</b> бўйича ҳеч нарса топилмади.\n\n📋 <b>{court}</b> · 📅 {date}\nЖами рўйхатда: {total} та иш',
 
   // /-menu descriptions (Telegram client shows next to command name)
   'cmd.new.desc': 'Янги ариза тайёрлаш',

@@ -30,6 +30,16 @@ export interface SessionData extends Scenes.SceneSession<SceneSessionData> {
   jadvalPicker?: {
     courtTypeCode?: string;
     regionCode?: string;
+    /** Picked court — stored once we move to the date step. Lets the
+     *  date/search/back handlers refetch without making the user repick. */
+    courtCode?: string;
+    /** Picked date in ISO "YYYY-MM-DD" form so it survives JSON
+     *  serialization of the session. */
+    date?: string;
+    /** True between "🔍 Поиск" click and the user's next text message.
+     *  The text handler in commands.ts treats that next text as a
+     *  filter query against the cached schedule. */
+    searchPending?: boolean;
   };
 }
 
