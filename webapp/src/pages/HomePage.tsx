@@ -42,10 +42,10 @@ export function HomePage(ctx: PageCtx) {
       bg: 'from-amber-500/15 to-amber-500/5',
     },
     {
-      icon: '📁',
-      title: t(ctx.locale, 'home.action.docs'),
-      sub: t(ctx.locale, 'home.action.docs.sub'),
-      to: '/documents',
+      icon: 'ℹ️',
+      title: t(ctx.locale, 'home.action.about'),
+      sub: t(ctx.locale, 'home.action.about.sub'),
+      to: '/about',
       bg: 'from-purple-500/15 to-purple-500/5',
     },
   ];

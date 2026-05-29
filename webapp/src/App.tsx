@@ -18,8 +18,8 @@ import { ArizaDonePage } from './pages/ArizaDonePage';
 import { GuideTypePage } from './pages/GuideTypePage';
 import { GuideTemplatePage } from './pages/GuideTemplatePage';
 import { GuideDetailPage } from './pages/GuideDetailPage';
-import { DocumentsPage } from './pages/DocumentsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { AboutPage } from './pages/AboutPage';
 import { AuthGuard } from './components/AuthGuard';
 
 /** Picker state that survives across wizard routes — single source of
@@ -131,8 +131,8 @@ export function App() {
         <Route path="/guide/templates" element={<GuideTemplatePage {...ctx} />} />
         <Route path="/guide/detail" element={<GuideDetailPage {...ctx} />} />
 
-        {/* Documents — needs auth (per-user file list) */}
-        <Route path="/documents" element={<AuthGuard><DocumentsPage {...ctx} /></AuthGuard>} />
+        {/* About — public, no auth needed */}
+        <Route path="/about" element={<AboutPage {...ctx} />} />
 
         {/* Settings — needs auth (writes User.language) */}
         <Route path="/settings" element={<AuthGuard><SettingsPage {...ctx} /></AuthGuard>} />
