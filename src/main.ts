@@ -71,6 +71,34 @@ async function main(): Promise<void> {
   void registerBotProfile(bot).catch((err) =>
     logger.warn({ err }, 'registerBotProfile failed'),
   );
+  // Set the persistent ≡ menu button next to the chat input. Tapping
+  // this button opens the Mini App via Telegram's official "menu button"
+  // mechanism, which passes initData reliably on all clients — unlike
+  // reply-keyboard web_app buttons which silently drop initData on some
+  // Telegram Desktop builds.
+  if (config.webappUrl) {
+    void registerChatMenuButton(bot).catch((err) =>
+      logger.warn({ err }, 'setChatMenuButton failed'),
+    );
+  }
+}
+
+/**
+ * Configure the persistent chat menu button to launch the Mini App.
+ * This is the recommended Telegram-side entry point for Mini Apps —
+ * reply-keyboard web_app buttons have inconsistent initData delivery
+ * on certain Telegram Desktop versions, which manifests as
+ * "missing_init_data" 401's on every authenticated API call.
+ */
+async function registerChatMenuButton(bot: Telegraf<BotContext>): Promise<void> {
+  await bot.telegram.callApi('setChatMenuButton', {
+    menu_button: {
+      type: 'web_app',
+      text: 'Mini App',
+      web_app: { url: config.webappUrl },
+    },
+  } as never);
+  logger.info({ url: config.webappUrl }, 'Chat menu button set to Mini App');
 }
 
 /**

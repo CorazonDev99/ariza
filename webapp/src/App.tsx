@@ -20,6 +20,7 @@ import { GuideTemplatePage } from './pages/GuideTemplatePage';
 import { GuideDetailPage } from './pages/GuideDetailPage';
 import { DocumentsPage } from './pages/DocumentsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { AuthGuard } from './components/AuthGuard';
 
 /** Picker state that survives across wizard routes — single source of
  *  truth for which court type / region / court / template is in play. */
@@ -115,25 +116,26 @@ export function App() {
         <Route path="/jadval/date" element={<DatePage locale={locale} state={jadval} setState={setJadval} />} />
         <Route path="/jadval/schedule" element={<SchedulePage locale={locale} state={jadval} />} />
 
-        {/* Ariza (document generation) flow */}
-        <Route path="/ariza" element={<ArizaTypePage {...ctx} />} />
-        <Route path="/ariza/region" element={<ArizaRegionPage {...ctx} />} />
-        <Route path="/ariza/court" element={<ArizaCourtPage {...ctx} />} />
-        <Route path="/ariza/template" element={<ArizaTemplatePage {...ctx} />} />
-        <Route path="/ariza/wizard" element={<ArizaWizardPage {...ctx} />} />
-        <Route path="/ariza/preview" element={<ArizaPreviewPage {...ctx} />} />
-        <Route path="/ariza/done" element={<ArizaDonePage {...ctx} />} />
+        {/* Ariza (document generation) flow — REQUIRES auth (initData)
+         *   so we don't let users fill 20 fields just to fail on Generate. */}
+        <Route path="/ariza" element={<AuthGuard><ArizaTypePage {...ctx} /></AuthGuard>} />
+        <Route path="/ariza/region" element={<AuthGuard><ArizaRegionPage {...ctx} /></AuthGuard>} />
+        <Route path="/ariza/court" element={<AuthGuard><ArizaCourtPage {...ctx} /></AuthGuard>} />
+        <Route path="/ariza/template" element={<AuthGuard><ArizaTemplatePage {...ctx} /></AuthGuard>} />
+        <Route path="/ariza/wizard" element={<AuthGuard><ArizaWizardPage {...ctx} /></AuthGuard>} />
+        <Route path="/ariza/preview" element={<AuthGuard><ArizaPreviewPage {...ctx} /></AuthGuard>} />
+        <Route path="/ariza/done" element={<AuthGuard><ArizaDonePage {...ctx} /></AuthGuard>} />
 
-        {/* Guide flow */}
+        {/* Guide flow — public (read-only template browser) */}
         <Route path="/guide" element={<GuideTypePage {...ctx} />} />
         <Route path="/guide/templates" element={<GuideTemplatePage {...ctx} />} />
         <Route path="/guide/detail" element={<GuideDetailPage {...ctx} />} />
 
-        {/* Documents */}
-        <Route path="/documents" element={<DocumentsPage {...ctx} />} />
+        {/* Documents — needs auth (per-user file list) */}
+        <Route path="/documents" element={<AuthGuard><DocumentsPage {...ctx} /></AuthGuard>} />
 
-        {/* Settings */}
-        <Route path="/settings" element={<SettingsPage {...ctx} />} />
+        {/* Settings — needs auth (writes User.language) */}
+        <Route path="/settings" element={<AuthGuard><SettingsPage {...ctx} /></AuthGuard>} />
       </Routes>
     </div>
   );
