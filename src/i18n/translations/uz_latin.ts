@@ -45,7 +45,7 @@ export const uz_latin: Dict = {
 
   // court directory (info) flow: region → court type → court → info card
   'courtinfo.region.pick': '🏛 <b>Hududni tanlang:</b>',
-  'courtinfo.type.pick': '🏛 <b>{region}</b>\n\nSud turini tanlang:',
+  'courtinfo.type.pick': '🏛 <b>Sud turini tanlang:</b>',
   'courtinfo.court.pick': '🏛 <b>{region}</b>\n\nSudni tanlang:',
   'courtinfo.card': '🏛 <b>{name}</b>\n\n📋 Sud turi: {type}\n📍 Manzil: {address}\n📞 Telefon: {phone}\n✉️ Email: {email}\n🗓 Jadval: <a href="https://jadval2.sud.uz">jadval2.sud.uz</a>',
   'courtinfo.back-regions': '⬅️ Hududlar',

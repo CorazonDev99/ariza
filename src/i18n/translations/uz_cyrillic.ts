@@ -49,7 +49,7 @@ export const uz_cyrillic: Dict = {
 
   // court directory (info) flow: region → court type → court → info card
   'courtinfo.region.pick': '🏛 <b>Ҳудудни танланг:</b>',
-  'courtinfo.type.pick': '🏛 <b>{region}</b>\n\nСуд турини танланг:',
+  'courtinfo.type.pick': '🏛 <b>Суд турини танланг:</b>',
   'courtinfo.court.pick': '🏛 <b>{region}</b>\n\nСудни танланг:',
   'courtinfo.card': '🏛 <b>{name}</b>\n\n📋 Суд тури: {type}\n📍 Манзил: {address}\n📞 Телефон: {phone}\n✉️ Email: {email}\n🗓 Жадвал: <a href="https://jadval2.sud.uz">jadval2.sud.uz</a>',
   'courtinfo.back-regions': '⬅️ Ҳудудлар',

@@ -15,21 +15,25 @@ interface Props {
   setState: (s: InfoState) => void;
 }
 
-export function InfoRegionPage({ locale, setState }: Props) {
+export function InfoRegionPage({ locale, state, setState }: Props) {
   const nav = useNavigate();
-  useBackTo('/');
+  useBackTo('/info');
 
   const [regions, setRegions] = useState<Region[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.regions().then(setRegions).catch((e) => setError(String(e.message ?? e)));
-  }, []);
+    if (!state.type) {
+      nav('/info');
+      return;
+    }
+    api.infoRegions(state.type).then(setRegions).catch((e) => setError(String(e.message ?? e)));
+  }, [nav, state.type]);
 
   function pick(regionCode: string) {
     getTg().HapticFeedback.impactOccurred('light');
-    setState({ region: regionCode, type: null, court: null });
-    nav('/info/type');
+    setState({ ...state, region: regionCode, court: null });
+    nav('/info/court');
   }
 
   return (

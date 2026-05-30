@@ -15,25 +15,21 @@ interface Props {
   setState: (s: InfoState) => void;
 }
 
-export function InfoTypePage({ locale, state, setState }: Props) {
+export function InfoTypePage({ locale, setState }: Props) {
   const nav = useNavigate();
-  useBackTo('/info');
+  useBackTo('/');
 
   const [types, setTypes] = useState<CourtType[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!state.region) {
-      nav('/info');
-      return;
-    }
-    api.infoTypes(state.region).then(setTypes).catch((e) => setError(String(e.message ?? e)));
-  }, [nav, state.region]);
+    api.infoTypes().then(setTypes).catch((e) => setError(String(e.message ?? e)));
+  }, []);
 
   function pick(typeCode: string) {
     getTg().HapticFeedback.impactOccurred('light');
-    setState({ ...state, type: typeCode, court: null });
-    nav('/info/court');
+    setState({ type: typeCode, region: null, court: null });
+    nav('/info/region');
   }
 
   return (

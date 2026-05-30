@@ -8,7 +8,8 @@ import {
 } from '../templates/court-types';
 import { REGIONS, getRegionByCode } from '../templates/regions';
 import {
-  getInfoTypesForRegion,
+  getInfoTypeCodes,
+  getInfoRegionsForType,
   getInfoCourtsFor,
 } from '../templates/court-info';
 import {
@@ -97,13 +98,18 @@ export async function handleApi(ctx: ApiContext): Promise<boolean> {
     sendJson(ctx.res, 200, list);
     return true;
   }
-  // Court directory (info) flow. Public — read-only court contact cards.
-  const ciTypesMatch = p.match(/^\/court-info\/types\/([^/]+)$/);
-  if (m === 'GET' && ciTypesMatch) {
-    const types = getInfoTypesForRegion(ciTypesMatch[1]!)
+  // Court directory (info) flow: type → region → court. Public.
+  if (m === 'GET' && p === '/court-info/types') {
+    const types = getInfoTypeCodes()
       .map((code) => getCourtTypeByCode(code))
       .filter((c): c is NonNullable<typeof c> => Boolean(c));
     sendJson(ctx.res, 200, types);
+    return true;
+  }
+  const ciRegionsMatch = p.match(/^\/court-info\/regions\/([^/]+)$/);
+  if (m === 'GET' && ciRegionsMatch) {
+    const present = getInfoRegionsForType(ciRegionsMatch[1]!);
+    sendJson(ctx.res, 200, REGIONS.filter((r) => present.has(r.code)));
     return true;
   }
   const ciCourtsMatch = p.match(/^\/court-info\/courts\/([^/]+)\/([^/]+)$/);

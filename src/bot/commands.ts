@@ -22,7 +22,8 @@ import {
   mainMenu,
 } from './keyboards';
 import {
-  getInfoTypesForRegion,
+  getInfoTypeCodes,
+  getInfoRegionsForType,
   getInfoCourtsFor,
   getCourtInfoByCode,
   buildMapLink,
@@ -371,55 +372,61 @@ export function registerCommands(
     );
   });
 
-  // ---- 🏛 court-directory (info) flow: region → type → court → card ----
+  // ---- 🏛 court-directory (info) flow: type → region → court → card ----
 
-  /** Resolve the in-flight region from the session (or undefined). */
+  /** All court types that have info, as CourtTypeDef[] (step 1). */
+  function ciTypeList(): CourtTypeDef[] {
+    return getInfoTypeCodes()
+      .map((c) => getCourtTypeByCode(c))
+      .filter((c): c is CourtTypeDef => Boolean(c));
+  }
+
+  /** Regions that have courts of the in-flight type, as RegionDef[]. */
+  function ciRegionsForType(typeCode: string) {
+    const present = getInfoRegionsForType(typeCode);
+    return REGIONS.filter((r) => present.has(r.code));
+  }
+
   function ciRegion(ctx: BotContext) {
     const code = ctx.session.courtInfoPicker?.regionCode;
     return code ? getRegionByCode(code) : undefined;
   }
 
-  function ciTypes(regionCode: string): CourtTypeDef[] {
-    return getInfoTypesForRegion(regionCode)
-      .map((c) => getCourtTypeByCode(c))
-      .filter((c): c is CourtTypeDef => Boolean(c));
-  }
-
-  bot.action(/^ci-region:(.+)$/, async (ctx) => {
-    const region = getRegionByCode(ctx.match[1]!);
-    if (!region) {
-      await ctx.answerCbQuery();
-      return;
-    }
-    ctx.session.courtInfoPicker = { regionCode: region.code };
-    const types = ciTypes(region.code);
+  // Step 1 → 2: type chosen, show regions that have it.
+  bot.action(/^ci-type:(.+)$/, async (ctx) => {
+    const typeCode = ctx.match[1]!;
+    const regions = ciRegionsForType(typeCode);
     await ctx.answerCbQuery();
-    if (types.length === 0) {
+    if (regions.length === 0) {
       await ctx.editMessageText(t(ctx.locale, 'courtinfo.empty'), {
         parse_mode: 'HTML',
-        ...courtInfoRegionsInline(ctx.locale, REGIONS),
+        ...courtInfoTypesInline(ctx.locale, ciTypeList()),
       });
       return;
     }
-    await ctx.editMessageText(
-      t(ctx.locale, 'courtinfo.type.pick', { region: region.label[ctx.locale] }),
-      { parse_mode: 'HTML', ...courtInfoTypesInline(ctx.locale, types) },
-    );
+    ctx.session.courtInfoPicker = { courtTypeCode: typeCode };
+    await ctx.editMessageText(t(ctx.locale, 'courtinfo.region.pick'), {
+      parse_mode: 'HTML',
+      ...courtInfoRegionsInline(ctx.locale, regions),
+    });
   });
 
-  bot.action(/^ci-type:(.+)$/, async (ctx) => {
-    const typeCode = ctx.match[1]!;
-    const region = ciRegion(ctx);
-    if (!region) {
+  // Step 2 → 3: region chosen, show its courts for the in-flight type.
+  bot.action(/^ci-region:(.+)$/, async (ctx) => {
+    const region = getRegionByCode(ctx.match[1]!);
+    const typeCode = ctx.session.courtInfoPicker?.courtTypeCode;
+    if (!region || !typeCode) {
       await ctx.answerCbQuery();
       return;
     }
-    ctx.session.courtInfoPicker!.courtTypeCode = typeCode;
-    const courts = getInfoCourtsFor(region.code, typeCode);
+    ctx.session.courtInfoPicker!.regionCode = region.code;
     await ctx.answerCbQuery();
     await ctx.editMessageText(
       t(ctx.locale, 'courtinfo.court.pick', { region: region.label[ctx.locale] }),
-      { parse_mode: 'HTML', ...courtInfoCourtsInline(ctx.locale, courts) },
+      {
+        parse_mode: 'HTML',
+        ...courtInfoCourtsInline(ctx.locale, getInfoCourtsFor(region.code, typeCode)),
+      },
     );
   });
 
@@ -444,32 +451,35 @@ export function registerCommands(
     });
   });
 
-  bot.action('ci-back-regions', async (ctx) => {
+  // Back: region picker → type picker (step 1).
+  bot.action('ci-back-types', async (ctx) => {
     ctx.session.courtInfoPicker = {};
     await ctx.answerCbQuery();
-    await ctx.editMessageText(t(ctx.locale, 'courtinfo.region.pick'), {
+    await ctx.editMessageText(t(ctx.locale, 'courtinfo.type.pick'), {
       parse_mode: 'HTML',
-      ...courtInfoRegionsInline(ctx.locale, REGIONS),
+      ...courtInfoTypesInline(ctx.locale, ciTypeList()),
     });
   });
 
-  bot.action('ci-back-types', async (ctx) => {
-    const region = ciRegion(ctx);
+  // Back: court picker → region picker (step 2).
+  bot.action('ci-back-regions', async (ctx) => {
+    const typeCode = ctx.session.courtInfoPicker?.courtTypeCode;
     await ctx.answerCbQuery();
-    if (!region) {
-      await ctx.editMessageText(t(ctx.locale, 'courtinfo.region.pick'), {
+    if (!typeCode) {
+      await ctx.editMessageText(t(ctx.locale, 'courtinfo.type.pick'), {
         parse_mode: 'HTML',
-        ...courtInfoRegionsInline(ctx.locale, REGIONS),
+        ...courtInfoTypesInline(ctx.locale, ciTypeList()),
       });
       return;
     }
-    if (ctx.session.courtInfoPicker) ctx.session.courtInfoPicker.courtTypeCode = undefined;
-    await ctx.editMessageText(
-      t(ctx.locale, 'courtinfo.type.pick', { region: region.label[ctx.locale] }),
-      { parse_mode: 'HTML', ...courtInfoTypesInline(ctx.locale, ciTypes(region.code)) },
-    );
+    if (ctx.session.courtInfoPicker) ctx.session.courtInfoPicker.regionCode = undefined;
+    await ctx.editMessageText(t(ctx.locale, 'courtinfo.region.pick'), {
+      parse_mode: 'HTML',
+      ...courtInfoRegionsInline(ctx.locale, ciRegionsForType(typeCode)),
+    });
   });
 
+  // Back: card → court picker (step 3).
   bot.action('ci-back-courts', async (ctx) => {
     const region = ciRegion(ctx);
     const typeCode = ctx.session.courtInfoPicker?.courtTypeCode;

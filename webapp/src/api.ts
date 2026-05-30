@@ -154,9 +154,10 @@ export const api = {
     request<DistrictCourt[]>(
       `/courts/${encodeURIComponent(type)}/${encodeURIComponent(region)}?for=ariza`,
     ),
-  // court directory (info) flow
-  infoTypes: (region: string) =>
-    request<CourtType[]>(`/court-info/types/${encodeURIComponent(region)}`),
+  // court directory (info) flow: type → region → court
+  infoTypes: () => request<CourtType[]>('/court-info/types'),
+  infoRegions: (type: string) =>
+    request<Region[]>(`/court-info/regions/${encodeURIComponent(type)}`),
   infoCourts: (region: string, type: string) =>
     request<CourtInfo[]>(
       `/court-info/courts/${encodeURIComponent(region)}/${encodeURIComponent(type)}`,

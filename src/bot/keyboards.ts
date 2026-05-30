@@ -590,6 +590,14 @@ export function jadvalSearchPromptInline(locale: Locale) {
 // callback namespaces.
 // =====================================================================
 
+// Flow order: court type (step 1) → region (step 2) → court (step 3).
+
+export function courtInfoTypesInline(locale: Locale, types: CourtTypeDef[]) {
+  return Markup.inlineKeyboard(
+    types.map((c) => [Markup.button.callback(c.label[locale], `ci-type:${c.code}`)]),
+  );
+}
+
 export function courtInfoRegionsInline(locale: Locale, regions: RegionDef[]) {
   const rows: ReturnType<typeof Markup.button.callback>[][] = [];
   for (let i = 0; i < regions.length; i += 2) {
@@ -600,14 +608,8 @@ export function courtInfoRegionsInline(locale: Locale, regions: RegionDef[]) {
     if (next) row.push(Markup.button.callback(next.label[locale], `ci-region:${next.code}`));
     rows.push(row);
   }
+  rows.push([Markup.button.callback(t(locale, 'courtinfo.back-types'), 'ci-back-types')]);
   return Markup.inlineKeyboard(rows);
-}
-
-export function courtInfoTypesInline(locale: Locale, types: CourtTypeDef[]) {
-  return Markup.inlineKeyboard([
-    ...types.map((c) => [Markup.button.callback(c.label[locale], `ci-type:${c.code}`)]),
-    [Markup.button.callback(t(locale, 'courtinfo.back-regions'), 'ci-back-regions')],
-  ]);
 }
 
 export function courtInfoCourtsInline(
@@ -618,7 +620,7 @@ export function courtInfoCourtsInline(
     ...courts.map((c) => [
       Markup.button.callback(c.name[locale], `ci-court:${c.code}`),
     ]),
-    [Markup.button.callback(t(locale, 'courtinfo.back-types'), 'ci-back-types')],
+    [Markup.button.callback(t(locale, 'courtinfo.back-regions'), 'ci-back-regions')],
   ]);
 }
 

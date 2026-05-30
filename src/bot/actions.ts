@@ -1,11 +1,16 @@
 import { t } from '../i18n';
 import { config } from '../config';
 import { ARIZA_WIZARD_ID } from '../scenes';
-import { COURT_TYPES, SCHEDULE_CATEGORIES } from '../templates/court-types';
-import { REGIONS } from '../templates/regions';
+import {
+  COURT_TYPES,
+  SCHEDULE_CATEGORIES,
+  getCourtTypeByCode,
+  type CourtTypeDef,
+} from '../templates/court-types';
+import { getInfoTypeCodes } from '../templates/court-info';
 import {
   aboutInline,
-  courtInfoRegionsInline,
+  courtInfoTypesInline,
   guideCourtTypesInline,
   jadvalTypesInline,
   languageInline,
@@ -99,9 +104,12 @@ export const actions = {
 
   async courtInfo(ctx: BotContext): Promise<void> {
     ctx.session.courtInfoPicker = {};
-    await ctx.reply(t(ctx.locale, 'courtinfo.region.pick'), {
+    const types = getInfoTypeCodes()
+      .map((c) => getCourtTypeByCode(c))
+      .filter((c): c is CourtTypeDef => Boolean(c));
+    await ctx.reply(t(ctx.locale, 'courtinfo.type.pick'), {
       parse_mode: 'HTML',
-      ...courtInfoRegionsInline(ctx.locale, REGIONS),
+      ...courtInfoTypesInline(ctx.locale, types),
     });
   },
 

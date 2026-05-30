@@ -45,7 +45,7 @@ export const ru: Dict = {
 
   // court directory (info) flow: region → court type → court → info card
   'courtinfo.region.pick': '🏛 <b>Выберите регион:</b>',
-  'courtinfo.type.pick': '🏛 <b>{region}</b>\n\nВыберите тип суда:',
+  'courtinfo.type.pick': '🏛 <b>Выберите тип суда:</b>',
   'courtinfo.court.pick': '🏛 <b>{region}</b>\n\nВыберите суд:',
   'courtinfo.card': '🏛 <b>{name}</b>\n\n📋 Тип суда: {type}\n📍 Адрес: {address}\n📞 Телефон: {phone}\n✉️ Email: {email}\n🗓 Расписание: <a href="https://jadval2.sud.uz">jadval2.sud.uz</a>',
   'courtinfo.back-regions': '⬅️ Регионы',

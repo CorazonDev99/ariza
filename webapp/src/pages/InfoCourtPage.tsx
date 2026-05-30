@@ -17,7 +17,7 @@ interface Props {
 
 export function InfoCourtPage({ locale, state, setState }: Props) {
   const nav = useNavigate();
-  useBackTo('/info/type');
+  useBackTo('/info/region');
 
   const [courts, setCourts] = useState<CourtInfo[] | null>(null);
   const [error, setError] = useState<string | null>(null);

@@ -151,9 +151,9 @@ export function App() {
         <Route path="/guide/templates" element={<GuideTemplatePage {...ctx} />} />
         <Route path="/guide/detail" element={<GuideDetailPage {...ctx} />} />
 
-        {/* Court directory (info) flow — public: region → type → court → card */}
-        <Route path="/info" element={<InfoRegionPage locale={locale} state={info} setState={setInfo} />} />
-        <Route path="/info/type" element={<InfoTypePage locale={locale} state={info} setState={setInfo} />} />
+        {/* Court directory (info) flow — public: type → region → court → card */}
+        <Route path="/info" element={<InfoTypePage locale={locale} state={info} setState={setInfo} />} />
+        <Route path="/info/region" element={<InfoRegionPage locale={locale} state={info} setState={setInfo} />} />
         <Route path="/info/court" element={<InfoCourtPage locale={locale} state={info} setState={setInfo} />} />
         <Route path="/info/detail" element={<InfoDetailPage locale={locale} state={info} />} />
 

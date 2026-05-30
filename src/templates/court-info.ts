@@ -16,9 +16,25 @@ export function getInfoRegionCodes(): Set<string> {
   return new Set(COURT_INFO.map((c) => c.regionCode));
 }
 
+/** Court-type codes that have any court with info, in display order.
+ *  Flow step 1 (court type → region → court). */
+const TYPE_ORDER = ['fuqarolik', 'jinoyat', 'mamuriy', 'iqtisodiy'];
+export function getInfoTypeCodes(): string[] {
+  const present = new Set(COURT_INFO.map((c) => c.courtTypeCode));
+  return TYPE_ORDER.filter((t) => present.has(t));
+}
+
+/** Region codes that have courts of the given type with info. */
+export function getInfoRegionsForType(courtTypeCode: string): Set<string> {
+  return new Set(
+    COURT_INFO.filter((c) => c.courtTypeCode === courtTypeCode).map(
+      (c) => c.regionCode,
+    ),
+  );
+}
+
 /** Distinct court-type codes available within a region (in a stable
  *  order matching COURT_TYPES: fuqarolik, jinoyat, mamuriy, iqtisodiy). */
-const TYPE_ORDER = ['fuqarolik', 'jinoyat', 'mamuriy', 'iqtisodiy'];
 export function getInfoTypesForRegion(regionCode: string): string[] {
   const present = new Set(
     COURT_INFO.filter((c) => c.regionCode === regionCode).map(
