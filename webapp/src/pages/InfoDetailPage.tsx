@@ -61,10 +61,15 @@ export function InfoDetailPage({ locale, state }: Props) {
       {!court && !error && <Loader label={t(locale, 'loading')} />}
       {court && (
         <>
-          <h2 className="px-1 mb-3 text-[20px] font-bold text-tg-text leading-tight">
-            🏛 {court.name[locale]}
-          </h2>
-          <div className="bg-tg-section-bg rounded-2xl overflow-hidden divide-y divide-black/[0.06] dark:divide-white/[0.08]">
+          <div className="flex items-center gap-3 px-1 mb-3.5">
+            <div className="shrink-0 w-11 h-11 rounded-2xl grid place-items-center text-[22px] brand-bg ring-accent">
+              🏛
+            </div>
+            <h2 className="text-[20px] font-extrabold text-tg-text leading-tight">
+              {court.name[locale]}
+            </h2>
+          </div>
+          <div className="card rounded-[20px] overflow-hidden divide-y divide-tg-text/[0.07]">
             <Row label={t(locale, 'ci.label.type')}>
               {t(
                 locale,
@@ -101,7 +106,7 @@ export function InfoDetailPage({ locale, state }: Props) {
               href={mapLink(court.address)}
               target="_blank"
               rel="noreferrer"
-              className="row-tap mt-3 w-full rounded-2xl p-4 text-center bg-tg-button text-tg-button-text font-semibold block"
+              className="press mt-3 w-full rounded-2xl p-4 text-center brand-bg text-tg-button-text font-semibold block ring-accent"
             >
               {t(locale, 'ci.map')}
             </a>

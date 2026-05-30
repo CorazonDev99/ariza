@@ -43,7 +43,7 @@ export function GuideDetailPage(ctx: PageCtx) {
   return (
     <Page title={tpl.title[ctx.locale]} subtitle={tpl.subtitle[ctx.locale]}>
       <div
-        className="bg-tg-section-bg rounded-2xl p-4 text-[14px] leading-relaxed whitespace-pre-line"
+        className="card rounded-[20px] p-5 text-[14px] leading-relaxed whitespace-pre-line text-tg-text/90"
         dangerouslySetInnerHTML={{ __html: tpl.instructions[ctx.locale] }}
       />
       <button

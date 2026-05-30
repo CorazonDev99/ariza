@@ -89,7 +89,7 @@ export function SchedulePage({ locale, state }: Props) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={t(locale, 'search.placeholder')}
-                className="w-full bg-tg-section-bg rounded-xl px-4 py-2.5 text-[15px] outline-none placeholder:text-tg-hint"
+                className="w-full card rounded-2xl px-4 py-3 text-[15px] outline-none placeholder:text-tg-hint focus:ring-2 focus:ring-accent/40 transition-shadow"
                 inputMode="search"
               />
               {query && (
@@ -158,10 +158,12 @@ function EntryCard({
   criminal: boolean;
 }) {
   return (
-    <div className="bg-tg-section-bg rounded-2xl p-4">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-[17px] font-semibold text-tg-link">{entry.time}</div>
-        <div className="text-[12px] text-tg-subtitle text-right max-w-[60%] break-words">
+    <div className="card rounded-[18px] p-4">
+      <div className="flex items-center justify-between gap-2 mb-2.5">
+        <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[15px] font-bold text-accent bg-accent/12">
+          🕒 {entry.time}
+        </div>
+        <div className="text-[12px] text-tg-subtitle text-right max-w-[58%] break-words">
           {entry.instance}
         </div>
       </div>
@@ -169,7 +171,7 @@ function EntryCard({
         {entry.caseNumber}
       </div>
       {entry.category && (
-        <div className="text-[13px] text-tg-text/80 mb-2 italic break-words">
+        <div className="text-[13px] text-tg-text/80 mb-2.5 italic break-words">
           {entry.category}
         </div>
       )}

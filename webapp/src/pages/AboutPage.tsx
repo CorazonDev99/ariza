@@ -56,9 +56,12 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-tg-section-bg rounded-2xl p-4">
-      <div className="text-[15px] font-semibold mb-2">{title}</div>
-      {children}
+    <div className="card rounded-[20px] p-5">
+      <div className="flex items-center gap-2 mb-2.5">
+        <span className="w-1.5 h-4 rounded-full brand-bg" />
+        <div className="text-[15px] font-bold text-tg-text">{title}</div>
+      </div>
+      <div className="text-tg-text/90">{children}</div>
     </div>
   );
 }

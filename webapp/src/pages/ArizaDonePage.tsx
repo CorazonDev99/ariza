@@ -29,10 +29,15 @@ export function ArizaDonePage(ctx: PageCtx) {
 
   return (
     <Page title={t(ctx.locale, 'wiz.done.title')} subtitle={doc.format.toUpperCase()}>
-      <div className="bg-tg-section-bg rounded-2xl p-6 text-center">
-        <div className="text-5xl mb-3">📄</div>
-        <div className="text-[15px] text-tg-subtitle">
-          {doc.format.toUpperCase()} #{doc.documentId}
+      <div className="card card-float rounded-[22px] p-7 text-center">
+        <div className="pop mx-auto mb-4 w-20 h-20 rounded-[24px] grid place-items-center text-[40px] brand-bg ring-accent">
+          📄
+        </div>
+        <div className="text-[17px] font-bold text-tg-text">
+          {t(ctx.locale, 'wiz.done.title')}
+        </div>
+        <div className="text-[13px] text-tg-subtitle mt-1">
+          {doc.format.toUpperCase()} · #{doc.documentId}
         </div>
       </div>
       <div className="mt-4 flex flex-col gap-2">

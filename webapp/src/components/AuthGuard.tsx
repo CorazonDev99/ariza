@@ -24,8 +24,8 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   if (ok) return <>{children}</>;
 
   return (
-    <div className="min-h-full bg-tg-secondary-bg text-tg-text p-5 flex flex-col gap-4">
-      <div className="bg-tg-section-bg rounded-2xl p-5">
+    <div className="min-h-full text-tg-text p-5 flex flex-col gap-4 safe-top safe-bottom">
+      <div className="card rounded-[20px] p-5">
         <div className="text-[20px] font-bold mb-2">⚠️ Telegram не передал данные авторизации</div>
         <div className="text-[14px] text-tg-subtitle leading-relaxed">
           Mini App запустился, но Telegram не передал signed initData.
@@ -37,7 +37,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      <div className="bg-tg-section-bg rounded-2xl p-5">
+      <div className="card rounded-[20px] p-5">
         <div className="text-[16px] font-semibold mb-3">🔧 Как исправить</div>
         <ol className="text-[14px] leading-relaxed space-y-3 list-decimal pl-5">
           <li>
@@ -64,20 +64,20 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
       <button
         onClick={() => window.location.reload()}
-        className="bg-tg-button text-tg-button-text rounded-2xl p-4 font-semibold"
+        className="press brand-bg text-tg-button-text rounded-2xl p-4 font-semibold ring-accent"
       >
         🔄 Перезагрузить страницу
       </button>
 
       <button
         onClick={() => setShow((s) => !s)}
-        className="bg-tg-section-bg rounded-2xl p-3 text-[13px] text-tg-link"
+        className="card rounded-[20px] p-3 text-[13px] text-tg-link"
       >
         {show ? 'Скрыть' : 'Показать'} диагностику
       </button>
 
       {show && (
-        <div className="bg-tg-section-bg rounded-2xl p-4 text-[11px] font-mono break-all leading-relaxed">
+        <div className="card rounded-[20px] p-4 text-[11px] font-mono break-all leading-relaxed">
           <div className="text-tg-subtitle mb-1">platform:</div>
           <div>{tg.platform || '—'}</div>
           <div className="text-tg-subtitle mt-2 mb-1">version:</div>

@@ -58,10 +58,10 @@ export function ArizaPreviewPage(ctx: PageCtx) {
 
   return (
     <Page title={t(ctx.locale, 'wiz.preview.title')} subtitle={tpl.title[ctx.locale]}>
-      <div className="bg-tg-section-bg rounded-2xl divide-y divide-black/[0.06] dark:divide-white/[0.08]">
+      <div className="card stagger rounded-[20px] overflow-hidden divide-y divide-tg-text/[0.07]">
         {visible.map((f) => (
           <div key={f.key} className="px-4 py-3">
-            <div className="text-[12px] text-tg-subtitle">{f.label[ctx.locale]}</div>
+            <div className="text-[12px] font-medium text-tg-subtitle">{f.label[ctx.locale]}</div>
             <div className="text-[15px] text-tg-text mt-1 whitespace-pre-line break-words">
               {values[f.key] || '—'}
             </div>

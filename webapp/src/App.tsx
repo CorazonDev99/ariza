@@ -125,7 +125,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-full bg-tg-secondary-bg text-tg-text safe-bottom">
+    <div className="min-h-full text-tg-text safe-bottom">
       <Routes>
         <Route path="/" element={<HomePage {...ctx} />} />
 

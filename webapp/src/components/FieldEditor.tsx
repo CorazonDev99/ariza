@@ -76,9 +76,10 @@ export function FieldEditor({ field, locale, initialValue, onCommit, values }: P
               getTg().HapticFeedback.impactOccurred('medium');
               onCommit(c.value);
             }}
-            className="bg-tg-section-bg rounded-2xl p-4 text-left row-tap"
+            className="card rounded-2xl p-4 text-left row-tap flex items-center gap-2"
           >
-            <div className="text-[16px] font-medium text-tg-text">{c.label[locale]}</div>
+            <span className="w-1.5 h-5 rounded-full brand-bg shrink-0" />
+            <div className="text-[16px] font-semibold text-tg-text">{c.label[locale]}</div>
           </button>
         ))}
       </div>
@@ -125,7 +126,7 @@ export function FieldEditor({ field, locale, initialValue, onCommit, values }: P
           }}
           placeholder={t(locale, 'wiz.field.placeholder.multi')}
           rows={6}
-          className="w-full bg-tg-section-bg rounded-2xl p-4 text-[16px] outline-none placeholder:text-tg-hint resize-y min-h-[160px]"
+          className="w-full card rounded-2xl p-4 text-[16px] outline-none placeholder:text-tg-hint resize-y min-h-[160px] focus:ring-2 focus:ring-accent/40 transition-shadow"
         />
         {error && (
           <div className="text-tg-destructive text-[13px]">{t(locale, 'wiz.field.error', { error })}</div>
@@ -169,7 +170,7 @@ export function FieldEditor({ field, locale, initialValue, onCommit, values }: P
           }
         }}
         placeholder={t(locale, 'wiz.field.placeholder')}
-        className="w-full bg-tg-section-bg rounded-2xl p-4 text-[16px] outline-none placeholder:text-tg-hint"
+        className="w-full card rounded-2xl p-4 text-[16px] outline-none placeholder:text-tg-hint focus:ring-2 focus:ring-accent/40 transition-shadow"
       />
       {error && (
         <div className="text-tg-destructive text-[13px]">{t(locale, 'wiz.field.error', { error })}</div>
