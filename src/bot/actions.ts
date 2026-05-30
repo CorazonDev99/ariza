@@ -11,6 +11,7 @@ import { getInfoTypeCodes } from '../templates/court-info';
 import {
   aboutInline,
   courtInfoTypesInline,
+  feedbackCancelInline,
   guideCourtTypesInline,
   jadvalTypesInline,
   languageInline,
@@ -117,6 +118,18 @@ export const actions = {
     await ctx.reply(t(ctx.locale, 'lang.pick'), {
       parse_mode: 'HTML',
       ...languageInline(ctx.locale),
+    });
+  },
+
+  async feedback(ctx: BotContext): Promise<void> {
+    if (!config.feedbackGroupId) {
+      await ctx.reply(t(ctx.locale, 'feedback.disabled'), mainMenu(ctx.locale));
+      return;
+    }
+    ctx.session.feedbackPending = true;
+    await ctx.reply(t(ctx.locale, 'feedback.prompt'), {
+      parse_mode: 'HTML',
+      ...feedbackCancelInline(ctx.locale),
     });
   },
 

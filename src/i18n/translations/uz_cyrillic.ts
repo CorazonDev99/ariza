@@ -20,6 +20,7 @@ export const uz_cyrillic: Dict = {
   'menu.instructions': '📖 Қўлланма',
   'menu.jadval': '📋 Ишимни текшириш',
   'menu.courtinfo': '🏛 Судлар маълумоти',
+  'menu.feedback': '📝 Ариза бўйича шикоят ва таклифлар',
   'menu.webapp': '🌐 Mini App да очиш',
   'menu.about': 'ℹ️ Бот ҳақида',
   'menu.lang': '🌐 Тил',
@@ -62,6 +63,16 @@ export const uz_cyrillic: Dict = {
   'courtinfo.t.jinoyat': 'Жиноят суди',
   'courtinfo.t.mamuriy': 'Маъмурий суд',
   'courtinfo.t.iqtisodiy': 'Иқтисодий суд',
+
+  // feedback / suggestions (forwarded to the feedback group)
+  'feedback.prompt': '📝 <b>Ариза бўйича шикоят ва таклифлар</b>\n\nАризалар тузилишини яхшилаш ёки янги ариза турлари бўйича фикр-мулоҳазангизни бир хабарда ёзинг. Хабарингиз жамоамизга юборилади.',
+  'feedback.sent': '✅ Раҳмат! Фикрингиз қабул қилинди ва жамоамизга юборилди.',
+  'feedback.empty': '⚠️ Илтимос, фикрингизни матн кўринишида ёзинг.',
+  'feedback.disabled': '⚠️ Ҳозирча фикр-мулоҳаза қабул қилиш ёқилмаган.',
+  'feedback.error': '⚠️ Хабарни юбориб бўлмади. Бироздан кейин қайта уриниб кўринг.',
+  'feedback.btn.cancel': '❌ Бекор қилиш',
+  'feedback.cancelled': '❌ Бекор қилинди.',
+  'feedback.cmd.desc': '📝 Шикоят ва таклифлар',
 
   // /-menu descriptions (Telegram client shows next to command name)
   'cmd.new.desc': 'Янги ариза тайёрлаш',

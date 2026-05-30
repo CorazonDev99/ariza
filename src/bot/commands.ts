@@ -50,6 +50,7 @@ import {
   type CaseEntry,
 } from '../services/jadval2.service';
 import { logger } from '../utils/logger';
+import { config } from '../config';
 import type { BotContext } from './context';
 import type { DocumentRepository } from '../repositories/document.repository';
 import type { DraftRepository } from '../repositories/draft.repository';
@@ -109,6 +110,7 @@ export function registerCommands(
   bot.command('guide', (ctx) => actions.guide(ctx));
   bot.command('jadval', (ctx) => actions.jadval(ctx));
   bot.command('sudinfo', (ctx) => actions.courtInfo(ctx));
+  bot.command('feedback', (ctx) => actions.feedback(ctx));
   bot.command('lang', (ctx) => actions.lang(ctx));
   bot.command('cancel', (ctx) => actions.cancel(ctx, actionDeps));
 
@@ -130,13 +132,34 @@ export function registerCommands(
     }
 
     const action = detectMenuAction(text);
+
+    // Feedback capture: the message right after tapping "Шикоят ва
+    // таклифлар" is forwarded to the group — unless the user tapped
+    // another menu button instead (then we cancel and handle that).
+    if (ctx.session.feedbackPending && !action) {
+      await submitFeedback(ctx, text);
+      return;
+    }
+    if (ctx.session.feedbackPending) ctx.session.feedbackPending = false;
+
     if (action === 'new') return actions.newDocument(ctx);
     if (action === 'instructions') return actions.guide(ctx);
     if (action === 'jadval') return actions.jadval(ctx);
     if (action === 'courtinfo') return actions.courtInfo(ctx);
+    if (action === 'feedback') return actions.feedback(ctx);
     if (action === 'about') return actions.about(ctx, actionDeps);
     if (action === 'lang') return actions.lang(ctx);
     return next();
+  });
+
+  bot.action('fb-cancel', async (ctx) => {
+    ctx.session.feedbackPending = false;
+    await ctx.answerCbQuery();
+    try {
+      await ctx.editMessageText(t(ctx.locale, 'feedback.cancelled'));
+    } catch {
+      /* message too old — ignore */
+    }
   });
 
   // ---- Guide flow: court type → region → district → template → instruction ----
@@ -858,5 +881,38 @@ async function sendScheduleReply(ctx: BotContext, query: string): Promise<void> 
     link_preview_options: { is_disabled: true },
     ...resultsKeyboard(ctx, res.isSearch),
   });
+}
+
+function escapeHtmlMin(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/** Forward a user's feedback/suggestion message to the feedback group,
+ *  tagged with who sent it, then confirm back to the user. */
+async function submitFeedback(ctx: BotContext, text: string): Promise<void> {
+  if (text.trim().length === 0) {
+    // Keep waiting — the user sent something empty/non-text.
+    ctx.session.feedbackPending = true;
+    await ctx.reply(t(ctx.locale, 'feedback.empty'));
+    return;
+  }
+  const u = ctx.from;
+  const name = [u?.first_name, u?.last_name].filter(Boolean).join(' ').trim();
+  const handle = u?.username ? `@${u.username}` : '—';
+  const composed =
+    `📝 <b>Янги шикоят / таклиф</b>\n\n` +
+    `👤 ${escapeHtmlMin(name || handle)} (${escapeHtmlMin(handle)})\n` +
+    `🆔 <code>${u?.id ?? '—'}</code>\n\n` +
+    escapeHtmlMin(text.trim());
+  try {
+    await ctx.telegram.sendMessage(config.feedbackGroupId, composed, {
+      parse_mode: 'HTML',
+      link_preview_options: { is_disabled: true },
+    });
+    await ctx.reply(t(ctx.locale, 'feedback.sent'), mainMenu(ctx.locale));
+  } catch (err) {
+    logger.warn({ err, groupId: config.feedbackGroupId }, 'feedback send failed');
+    await ctx.reply(t(ctx.locale, 'feedback.error'), mainMenu(ctx.locale));
+  }
 }
 

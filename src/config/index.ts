@@ -42,6 +42,9 @@ export interface AppConfig {
   supportContact: string;
   /** Telegram user IDs allowed into the admin panel. */
   adminChatIds: number[];
+  /** Chat ID of the group that receives feedback / suggestions. Empty
+   *  string disables the feedback button. */
+  feedbackGroupId: string;
   ai: {
     /** When empty, AI-assist UI is disabled. */
     apiKey: string;
@@ -90,6 +93,7 @@ export const config: AppConfig = {
     .map((s) => s.trim())
     .filter((s) => /^\d+$/.test(s))
     .map((s) => Number(s)),
+  feedbackGroupId: env.FEEDBACK_GROUP_ID.trim(),
   ai: {
     apiKey: env.ANTHROPIC_API_KEY,
     model: env.ANTHROPIC_MODEL,

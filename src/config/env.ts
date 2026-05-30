@@ -72,6 +72,12 @@ const envSchema = z.object({
   // Example: ADMIN_CHAT_IDS=123456789,987654321
   ADMIN_CHAT_IDS: z.string().default(''),
 
+  // Telegram chat ID of the group that receives users' "Ариза бўйича
+  // шикоят ва таклифлар" (complaints / suggestions) messages. Groups are
+  // negative (e.g. -1001234567890); add the bot to the group first.
+  // Empty hides the feedback button.
+  FEEDBACK_GROUP_ID: z.string().default(''),
+
   // Anthropic API key for the in-wizard AI rewrite button on free-form
   // fields (e.g. objection_reasons). When empty the AI button is hidden.
   ANTHROPIC_API_KEY: z.string().default(''),

@@ -1,4 +1,5 @@
 import { Markup } from 'telegraf';
+import { config } from '../config';
 import { LOCALE_META, LOCALES, t, type Locale } from '../i18n';
 import type { TemplateDef } from '../types';
 import type { RegionDef } from '../templates/regions';
@@ -18,11 +19,14 @@ export function mainMenu(locale: Locale) {
   // launcher via the persistent menu button next to the chat input —
   // set by registerChatMenuButton() in main.ts at startup, and equally
   // via BotFather → Menu Button / Configure Mini App.
-  return Markup.keyboard([
+  const rows: string[][] = [
     [t(locale, 'menu.new'), t(locale, 'menu.jadval')],
     [t(locale, 'menu.instructions'), t(locale, 'menu.courtinfo')],
-    [t(locale, 'menu.about'), t(locale, 'menu.lang')],
-  ]).resize();
+  ];
+  // Feedback button only when a destination group is configured.
+  if (config.feedbackGroupId) rows.push([t(locale, 'menu.feedback')]);
+  rows.push([t(locale, 'menu.about'), t(locale, 'menu.lang')]);
+  return Markup.keyboard(rows).resize();
 }
 
 /**
@@ -431,6 +435,7 @@ export type MenuAction =
   | 'instructions'
   | 'jadval'
   | 'courtinfo'
+  | 'feedback'
   | 'about'
   | 'lang'
   | 'back'
@@ -442,6 +447,7 @@ export function detectMenuAction(text: string): MenuAction | null {
     if (text === t(locale, 'menu.instructions')) return 'instructions';
     if (text === t(locale, 'menu.jadval')) return 'jadval';
     if (text === t(locale, 'menu.courtinfo')) return 'courtinfo';
+    if (text === t(locale, 'menu.feedback')) return 'feedback';
     if (text === t(locale, 'menu.about')) return 'about';
     if (text === t(locale, 'menu.lang')) return 'lang';
     if (text === t(locale, 'btn.back')) return 'back';
@@ -629,6 +635,13 @@ export function courtInfoCardInline(locale: Locale, mapUrl: string) {
   return Markup.inlineKeyboard([
     [Markup.button.url(t(locale, 'courtinfo.map'), mapUrl)],
     [Markup.button.callback(t(locale, 'courtinfo.back-courts'), 'ci-back-courts')],
+  ]);
+}
+
+/** Shown under the feedback prompt — lets the user abort. */
+export function feedbackCancelInline(locale: Locale) {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(t(locale, 'feedback.btn.cancel'), 'fb-cancel')],
   ]);
 }
 

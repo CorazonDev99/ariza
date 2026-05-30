@@ -48,6 +48,9 @@ export interface SessionData extends Scenes.SceneSession<SceneSessionData> {
     regionCode?: string;
     courtTypeCode?: string;
   };
+  /** True between the "📝 Шикоят ва таклифлар" tap and the user's next
+   *  message — that message is forwarded to the feedback group. */
+  feedbackPending?: boolean;
 }
 
 export interface SceneSessionData extends Scenes.SceneSessionData {

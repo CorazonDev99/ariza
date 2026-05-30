@@ -17,6 +17,7 @@ export const uz_latin: Dict = {
   'menu.instructions': "📖 Yo‘riqnoma",
   'menu.jadval': '📋 Ishimni tekshirish',
   'menu.courtinfo': '🏛 Sudlar maʼlumoti',
+  'menu.feedback': '📝 Ariza boʻyicha shikoyat va takliflar',
   'menu.webapp': '🌐 Mini App da ochish',
   'menu.about': 'ℹ️ Bot haqida',
   'menu.lang': '🌐 Til',
@@ -58,6 +59,16 @@ export const uz_latin: Dict = {
   'courtinfo.t.jinoyat': 'Jinoyat sudi',
   'courtinfo.t.mamuriy': 'Maʼmuriy sud',
   'courtinfo.t.iqtisodiy': 'Iqtisodiy sud',
+
+  // feedback / suggestions (forwarded to the feedback group)
+  'feedback.prompt': '📝 <b>Ariza boʻyicha shikoyat va takliflar</b>\n\nArizalar tuzilishini yaxshilash yoki yangi ariza turlari boʻyicha fikr-mulohazangizni bitta xabarda yozing. Xabaringiz jamoamizga yuboriladi.',
+  'feedback.sent': '✅ Rahmat! Fikringiz qabul qilindi va jamoamizga yuborildi.',
+  'feedback.empty': '⚠️ Iltimos, fikringizni matn koʻrinishida yozing.',
+  'feedback.disabled': '⚠️ Hozircha fikr-mulohaza qabul qilish yoqilmagan.',
+  'feedback.error': '⚠️ Xabarni yuborib boʻlmadi. Birozdan keyin qayta urinib koʻring.',
+  'feedback.btn.cancel': '❌ Bekor qilish',
+  'feedback.cancelled': '❌ Bekor qilindi.',
+  'feedback.cmd.desc': '📝 Shikoyat va takliflar',
 
   'cmd.new.desc': "Yangi ariza tayyorlash",
   'cmd.guide.desc': "Arizalar bo‘yicha yo‘riqnoma",

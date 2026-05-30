@@ -17,6 +17,7 @@ export const ru: Dict = {
   'menu.instructions': '📖 Инструкция',
   'menu.jadval': '📋 Проверить дело',
   'menu.courtinfo': '🏛 Информация о судах',
+  'menu.feedback': '📝 Жалобы и предложения по заявлениям',
   'menu.webapp': '🌐 Открыть в Mini App',
   'menu.about': 'ℹ️ О боте',
   'menu.lang': '🌐 Язык',
@@ -58,6 +59,16 @@ export const ru: Dict = {
   'courtinfo.t.jinoyat': 'Уголовный суд',
   'courtinfo.t.mamuriy': 'Административный суд',
   'courtinfo.t.iqtisodiy': 'Экономический суд',
+
+  // feedback / suggestions (forwarded to the feedback group)
+  'feedback.prompt': '📝 <b>Жалобы и предложения по заявлениям</b>\n\nОдним сообщением напишите, как улучшить структуру заявлений или какие новые виды заявлений добавить. Ваше сообщение будет отправлено нашей команде.',
+  'feedback.sent': '✅ Спасибо! Ваше сообщение принято и отправлено команде.',
+  'feedback.empty': '⚠️ Пожалуйста, напишите ваше сообщение текстом.',
+  'feedback.disabled': '⚠️ Приём обратной связи пока не настроен.',
+  'feedback.error': '⚠️ Не удалось отправить сообщение. Попробуйте позже.',
+  'feedback.btn.cancel': '❌ Отмена',
+  'feedback.cancelled': '❌ Отменено.',
+  'feedback.cmd.desc': '📝 Жалобы и предложения',
 
   'cmd.new.desc': 'Новое заявление',
   'cmd.guide.desc': 'Инструкция по заявлениям',
