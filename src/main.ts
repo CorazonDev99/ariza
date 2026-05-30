@@ -121,6 +121,7 @@ async function registerBotCommands(
   const baseCmd = (locale: Locale) => [
     { command: 'new', description: t(locale, 'cmd.new.desc') },
     { command: 'jadval', description: t(locale, 'jadval.cmd.desc') },
+    { command: 'sudinfo', description: t(locale, 'courtinfo.cmd.desc') },
     { command: 'guide', description: t(locale, 'cmd.guide.desc') },
     { command: 'lang', description: t(locale, 'cmd.lang.desc') },
     { command: 'about', description: t(locale, 'cmd.about.desc') },

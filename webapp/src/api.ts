@@ -22,6 +22,15 @@ export interface DistrictCourt {
   name: LocalizedLabel;
   address?: LocalizedLabel;
 }
+export interface CourtInfo {
+  code: string;
+  regionCode: string;
+  courtTypeCode: string;
+  name: LocalizedLabel;
+  address: string;
+  phone: string;
+  email: string;
+}
 export interface CaseEntry {
   caseNumber: string;
   time: string;
@@ -142,6 +151,13 @@ export const api = {
   arizaCourts: (type: string, region: string) =>
     request<DistrictCourt[]>(
       `/courts/${encodeURIComponent(type)}/${encodeURIComponent(region)}?for=ariza`,
+    ),
+  // court directory (info) flow
+  infoTypes: (region: string) =>
+    request<CourtType[]>(`/court-info/types/${encodeURIComponent(region)}`),
+  infoCourts: (region: string, type: string) =>
+    request<CourtInfo[]>(
+      `/court-info/courts/${encodeURIComponent(region)}/${encodeURIComponent(type)}`,
     ),
   templates: (type: string) =>
     request<TemplateSummary[]>(`/templates/${encodeURIComponent(type)}`),

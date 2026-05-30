@@ -15,11 +15,25 @@ import {
   jadvalSearchPromptInline,
   jadvalSearchResultsInline,
   jadvalTypesInline,
+  courtInfoRegionsInline,
+  courtInfoTypesInline,
+  courtInfoCourtsInline,
+  courtInfoCardInline,
   mainMenu,
 } from './keyboards';
+import {
+  getInfoTypesForRegion,
+  getInfoCourtsFor,
+  getCourtInfoByCode,
+  buildMapLink,
+} from '../templates/court-info';
 import { ARIZA_WIZARD_ID } from '../scenes';
 import { TEMPLATES, getTemplateByCode } from '../templates/registry';
-import { COURT_TYPES, getCourtTypeByCode } from '../templates/court-types';
+import {
+  COURT_TYPES,
+  getCourtTypeByCode,
+  type CourtTypeDef,
+} from '../templates/court-types';
 import { REGIONS, getRegionByCode } from '../templates/regions';
 import {
   getArizaCourtsFor,
@@ -92,6 +106,7 @@ export function registerCommands(
   bot.command('new', (ctx) => actions.newDocument(ctx));
   bot.command('guide', (ctx) => actions.guide(ctx));
   bot.command('jadval', (ctx) => actions.jadval(ctx));
+  bot.command('sudinfo', (ctx) => actions.courtInfo(ctx));
   bot.command('lang', (ctx) => actions.lang(ctx));
   bot.command('cancel', (ctx) => actions.cancel(ctx, actionDeps));
 
@@ -116,6 +131,7 @@ export function registerCommands(
     if (action === 'new') return actions.newDocument(ctx);
     if (action === 'instructions') return actions.guide(ctx);
     if (action === 'jadval') return actions.jadval(ctx);
+    if (action === 'courtinfo') return actions.courtInfo(ctx);
     if (action === 'about') return actions.about(ctx, actionDeps);
     if (action === 'lang') return actions.lang(ctx);
     return next();
@@ -350,6 +366,122 @@ export function registerCommands(
           'jcal',
           startOfToday(),
         ),
+      },
+    );
+  });
+
+  // ---- 🏛 court-directory (info) flow: region → type → court → card ----
+
+  /** Resolve the in-flight region from the session (or undefined). */
+  function ciRegion(ctx: BotContext) {
+    const code = ctx.session.courtInfoPicker?.regionCode;
+    return code ? getRegionByCode(code) : undefined;
+  }
+
+  function ciTypes(regionCode: string): CourtTypeDef[] {
+    return getInfoTypesForRegion(regionCode)
+      .map((c) => getCourtTypeByCode(c))
+      .filter((c): c is CourtTypeDef => Boolean(c));
+  }
+
+  bot.action(/^ci-region:(.+)$/, async (ctx) => {
+    const region = getRegionByCode(ctx.match[1]!);
+    if (!region) {
+      await ctx.answerCbQuery();
+      return;
+    }
+    ctx.session.courtInfoPicker = { regionCode: region.code };
+    const types = ciTypes(region.code);
+    await ctx.answerCbQuery();
+    if (types.length === 0) {
+      await ctx.editMessageText(t(ctx.locale, 'courtinfo.empty'), {
+        parse_mode: 'HTML',
+        ...courtInfoRegionsInline(ctx.locale, REGIONS),
+      });
+      return;
+    }
+    await ctx.editMessageText(
+      t(ctx.locale, 'courtinfo.type.pick', { region: region.label[ctx.locale] }),
+      { parse_mode: 'HTML', ...courtInfoTypesInline(ctx.locale, types) },
+    );
+  });
+
+  bot.action(/^ci-type:(.+)$/, async (ctx) => {
+    const typeCode = ctx.match[1]!;
+    const region = ciRegion(ctx);
+    if (!region) {
+      await ctx.answerCbQuery();
+      return;
+    }
+    ctx.session.courtInfoPicker!.courtTypeCode = typeCode;
+    const courts = getInfoCourtsFor(region.code, typeCode);
+    await ctx.answerCbQuery();
+    await ctx.editMessageText(
+      t(ctx.locale, 'courtinfo.court.pick', { region: region.label[ctx.locale] }),
+      { parse_mode: 'HTML', ...courtInfoCourtsInline(ctx.locale, courts) },
+    );
+  });
+
+  bot.action(/^ci-court:(.+)$/, async (ctx) => {
+    const info = getCourtInfoByCode(ctx.match[1]!);
+    if (!info) {
+      await ctx.answerCbQuery();
+      return;
+    }
+    await ctx.answerCbQuery();
+    const text = t(ctx.locale, 'courtinfo.card', {
+      name: info.name[ctx.locale],
+      type: t(ctx.locale, `courtinfo.t.${info.courtTypeCode}`),
+      address: info.address || '—',
+      phone: info.phone || '—',
+      email: info.email || '—',
+    });
+    await ctx.editMessageText(text, {
+      parse_mode: 'HTML',
+      link_preview_options: { is_disabled: true },
+      ...courtInfoCardInline(ctx.locale, buildMapLink(info.address)),
+    });
+  });
+
+  bot.action('ci-back-regions', async (ctx) => {
+    ctx.session.courtInfoPicker = {};
+    await ctx.answerCbQuery();
+    await ctx.editMessageText(t(ctx.locale, 'courtinfo.region.pick'), {
+      parse_mode: 'HTML',
+      ...courtInfoRegionsInline(ctx.locale, REGIONS),
+    });
+  });
+
+  bot.action('ci-back-types', async (ctx) => {
+    const region = ciRegion(ctx);
+    await ctx.answerCbQuery();
+    if (!region) {
+      await ctx.editMessageText(t(ctx.locale, 'courtinfo.region.pick'), {
+        parse_mode: 'HTML',
+        ...courtInfoRegionsInline(ctx.locale, REGIONS),
+      });
+      return;
+    }
+    if (ctx.session.courtInfoPicker) ctx.session.courtInfoPicker.courtTypeCode = undefined;
+    await ctx.editMessageText(
+      t(ctx.locale, 'courtinfo.type.pick', { region: region.label[ctx.locale] }),
+      { parse_mode: 'HTML', ...courtInfoTypesInline(ctx.locale, ciTypes(region.code)) },
+    );
+  });
+
+  bot.action('ci-back-courts', async (ctx) => {
+    const region = ciRegion(ctx);
+    const typeCode = ctx.session.courtInfoPicker?.courtTypeCode;
+    if (!region || !typeCode) {
+      await ctx.answerCbQuery();
+      return;
+    }
+    await ctx.answerCbQuery();
+    await ctx.editMessageText(
+      t(ctx.locale, 'courtinfo.court.pick', { region: region.label[ctx.locale] }),
+      {
+        parse_mode: 'HTML',
+        ...courtInfoCourtsInline(ctx.locale, getInfoCourtsFor(region.code, typeCode)),
       },
     );
   });

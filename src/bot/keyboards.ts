@@ -20,8 +20,8 @@ export function mainMenu(locale: Locale) {
   // via BotFather → Menu Button / Configure Mini App.
   return Markup.keyboard([
     [t(locale, 'menu.new'), t(locale, 'menu.jadval')],
-    [t(locale, 'menu.instructions'), t(locale, 'menu.about')],
-    [t(locale, 'menu.lang')],
+    [t(locale, 'menu.instructions'), t(locale, 'menu.courtinfo')],
+    [t(locale, 'menu.about'), t(locale, 'menu.lang')],
   ]).resize();
 }
 
@@ -430,6 +430,7 @@ export type MenuAction =
   | 'new'
   | 'instructions'
   | 'jadval'
+  | 'courtinfo'
   | 'about'
   | 'lang'
   | 'back'
@@ -440,6 +441,7 @@ export function detectMenuAction(text: string): MenuAction | null {
     if (text === t(locale, 'menu.new')) return 'new';
     if (text === t(locale, 'menu.instructions')) return 'instructions';
     if (text === t(locale, 'menu.jadval')) return 'jadval';
+    if (text === t(locale, 'menu.courtinfo')) return 'courtinfo';
     if (text === t(locale, 'menu.about')) return 'about';
     if (text === t(locale, 'menu.lang')) return 'lang';
     if (text === t(locale, 'btn.back')) return 'back';
@@ -579,6 +581,52 @@ export function jadvalSearchResultsInline(locale: Locale) {
 export function jadvalSearchPromptInline(locale: Locale) {
   return Markup.inlineKeyboard([
     [Markup.button.callback(t(locale, 'jadval.btn.cancel-search'), 'jdv-cancel-search')],
+  ]);
+}
+
+// =====================================================================
+// 🏛 Court directory (info) flow: region → court type → court → card.
+// Uses `ci-` prefixes to stay distinct from the wizard / guide / jadval
+// callback namespaces.
+// =====================================================================
+
+export function courtInfoRegionsInline(locale: Locale, regions: RegionDef[]) {
+  const rows: ReturnType<typeof Markup.button.callback>[][] = [];
+  for (let i = 0; i < regions.length; i += 2) {
+    const row = [
+      Markup.button.callback(regions[i]!.label[locale], `ci-region:${regions[i]!.code}`),
+    ];
+    const next = regions[i + 1];
+    if (next) row.push(Markup.button.callback(next.label[locale], `ci-region:${next.code}`));
+    rows.push(row);
+  }
+  return Markup.inlineKeyboard(rows);
+}
+
+export function courtInfoTypesInline(locale: Locale, types: CourtTypeDef[]) {
+  return Markup.inlineKeyboard([
+    ...types.map((c) => [Markup.button.callback(c.label[locale], `ci-type:${c.code}`)]),
+    [Markup.button.callback(t(locale, 'courtinfo.back-regions'), 'ci-back-regions')],
+  ]);
+}
+
+export function courtInfoCourtsInline(
+  locale: Locale,
+  courts: { code: string; name: Record<Locale, string> }[],
+) {
+  return Markup.inlineKeyboard([
+    ...courts.map((c) => [
+      Markup.button.callback(c.name[locale], `ci-court:${c.code}`),
+    ]),
+    [Markup.button.callback(t(locale, 'courtinfo.back-types'), 'ci-back-types')],
+  ]);
+}
+
+/** Shown under a court info card — map link + back to the court list. */
+export function courtInfoCardInline(locale: Locale, mapUrl: string) {
+  return Markup.inlineKeyboard([
+    [Markup.button.url(t(locale, 'courtinfo.map'), mapUrl)],
+    [Markup.button.callback(t(locale, 'courtinfo.back-courts'), 'ci-back-courts')],
   ]);
 }
 

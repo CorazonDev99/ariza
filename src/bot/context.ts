@@ -41,6 +41,13 @@ export interface SessionData extends Scenes.SceneSession<SceneSessionData> {
      *  filter query against the cached schedule. */
     searchPending?: boolean;
   };
+  /** Scratchpad for the "🏛 Судлар маълумоти" court-directory flow
+   *  (region → court type → court → info card). Plain `bot.action(...)`
+   *  handlers, like the jadval flow. */
+  courtInfoPicker?: {
+    regionCode?: string;
+    courtTypeCode?: string;
+  };
 }
 
 export interface SceneSessionData extends Scenes.SceneSessionData {

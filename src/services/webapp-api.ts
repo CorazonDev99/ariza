@@ -1,8 +1,12 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { COURT_TYPES } from '../templates/court-types';
+import { COURT_TYPES, getCourtTypeByCode } from '../templates/court-types';
 import { REGIONS, getRegionByCode } from '../templates/regions';
+import {
+  getInfoTypesForRegion,
+  getInfoCourtsFor,
+} from '../templates/court-info';
 import {
   getArizaCourtsFor,
   getDistrictCourtsFor,
@@ -84,6 +88,21 @@ export async function handleApi(ctx: ApiContext): Promise<boolean> {
     sendJson(ctx.res, 200, list);
     return true;
   }
+  // Court directory (info) flow. Public — read-only court contact cards.
+  const ciTypesMatch = p.match(/^\/court-info\/types\/([^/]+)$/);
+  if (m === 'GET' && ciTypesMatch) {
+    const types = getInfoTypesForRegion(ciTypesMatch[1]!)
+      .map((code) => getCourtTypeByCode(code))
+      .filter((c): c is NonNullable<typeof c> => Boolean(c));
+    sendJson(ctx.res, 200, types);
+    return true;
+  }
+  const ciCourtsMatch = p.match(/^\/court-info\/courts\/([^/]+)\/([^/]+)$/);
+  if (m === 'GET' && ciCourtsMatch) {
+    sendJson(ctx.res, 200, getInfoCourtsFor(ciCourtsMatch[1]!, ciCourtsMatch[2]!));
+    return true;
+  }
+
   if (m === 'GET' && p === '/court-types/with-region') {
     // Convenience endpoint — also include the per-region pre-fill names
     // so the wizard can show "<region> вилоят суди" subtitles instantly

@@ -1381,6 +1381,10 @@ export function buildArizaWizardScene(
       await ctx.scene.leave();
       return actions.jadval(ctx);
     }
+    if (menuAction === 'courtinfo') {
+      await ctx.scene.leave();
+      return actions.courtInfo(ctx);
+    }
     if (menuAction === 'about') {
       await ctx.scene.leave();
       return actions.about(ctx, actionDeps);

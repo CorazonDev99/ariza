@@ -42,6 +42,13 @@ export function HomePage(ctx: PageCtx) {
       bg: 'from-amber-500/15 to-amber-500/5',
     },
     {
+      icon: '🏛',
+      title: t(ctx.locale, 'home.action.courtinfo'),
+      sub: t(ctx.locale, 'home.action.courtinfo.sub'),
+      to: '/info',
+      bg: 'from-sky-500/15 to-sky-500/5',
+    },
+    {
       icon: 'ℹ️',
       title: t(ctx.locale, 'home.action.about'),
       sub: t(ctx.locale, 'home.action.about.sub'),
@@ -54,6 +61,7 @@ export function HomePage(ctx: PageCtx) {
     getTg().HapticFeedback.impactOccurred('light');
     if (to === '/ariza') ctx.resetPicker();
     if (to === '/jadval') ctx.resetJadval();
+    if (to === '/info') ctx.resetInfo();
     nav(to);
   }
 

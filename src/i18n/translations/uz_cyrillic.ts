@@ -19,6 +19,7 @@ export const uz_cyrillic: Dict = {
   'menu.new': '📄 Ариза топшириш',
   'menu.instructions': '📖 Қўлланма',
   'menu.jadval': '📋 Ишимни текшириш',
+  'menu.courtinfo': '🏛 Судлар маълумоти',
   'menu.webapp': '🌐 Mini App да очиш',
   'menu.about': 'ℹ️ Бот ҳақида',
   'menu.lang': '🌐 Тил',
@@ -45,6 +46,22 @@ export const uz_cyrillic: Dict = {
   'jadval.search.header': '🔍 <b>«{query}»</b> бўйича топилди: <b>{matched}</b> / {total}\n📋 <b>{court}</b> · 📅 {date}',
   'jadval.search.empty': '🔍 <b>«{query}»</b> бўйича ҳеч нарса топилмади.\n\n📋 <b>{court}</b> · 📅 {date}\nЖами рўйхатда: {total} та иш',
   'jadval.past-not-available': 'Ўтган санадаги ишлар jadval2.sud.uz да сақланмайди. Фақат бугунги ва кейинги саналарни танлаш мумкин.',
+
+  // court directory (info) flow: region → court type → court → info card
+  'courtinfo.region.pick': '🏛 <b>Ҳудудни танланг:</b>',
+  'courtinfo.type.pick': '🏛 <b>{region}</b>\n\nСуд турини танланг:',
+  'courtinfo.court.pick': '🏛 <b>{region}</b>\n\nСудни танланг:',
+  'courtinfo.card': '🏛 <b>{name}</b>\n\n📋 Суд тури: {type}\n📍 Манзил: {address}\n📞 Телефон: {phone}\n✉️ Email: {email}\n🗓 Жадвал: <a href="https://jadval2.sud.uz">jadval2.sud.uz</a>',
+  'courtinfo.back-regions': '⬅️ Ҳудудлар',
+  'courtinfo.back-types': '⬅️ Суд турлари',
+  'courtinfo.back-courts': '⬅️ Судлар',
+  'courtinfo.map': '🗺 Харитада очиш',
+  'courtinfo.empty': '📭 Бу ҳудуд учун маълумот топилмади.',
+  'courtinfo.cmd.desc': '🏛 Судлар маълумоти',
+  'courtinfo.t.fuqarolik': 'Фуқаролик суди',
+  'courtinfo.t.jinoyat': 'Жиноят суди',
+  'courtinfo.t.mamuriy': 'Маъмурий суд',
+  'courtinfo.t.iqtisodiy': 'Иқтисодий суд',
 
   // /-menu descriptions (Telegram client shows next to command name)
   'cmd.new.desc': 'Янги ариза тайёрлаш',

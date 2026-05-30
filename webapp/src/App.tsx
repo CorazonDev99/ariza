@@ -20,6 +20,10 @@ import { GuideTemplatePage } from './pages/GuideTemplatePage';
 import { GuideDetailPage } from './pages/GuideDetailPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AboutPage } from './pages/AboutPage';
+import { InfoRegionPage } from './pages/InfoRegionPage';
+import { InfoTypePage } from './pages/InfoTypePage';
+import { InfoCourtPage } from './pages/InfoCourtPage';
+import { InfoDetailPage } from './pages/InfoDetailPage';
 import { AuthGuard } from './components/AuthGuard';
 
 /** Picker state that survives across wizard routes — single source of
@@ -39,6 +43,13 @@ export interface JadvalState {
   date: string | null;
 }
 
+/** Court-directory (info) flow state: region → type → court. */
+export interface InfoState {
+  region: string | null;
+  type: string | null;
+  court: string | null;
+}
+
 const EMPTY_PICKER: PickerState = {
   courtType: null,
   region: null,
@@ -51,6 +62,11 @@ const EMPTY_JADVAL: JadvalState = {
   court: null,
   date: null,
 };
+const EMPTY_INFO: InfoState = {
+  region: null,
+  type: null,
+  court: null,
+};
 
 /**
  * Top-level app: locale + picker + jadval state are kept here and
@@ -62,6 +78,7 @@ export function App() {
   const [locale, setLocale] = useState<Locale>(detectLocale());
   const [picker, setPicker] = useState<PickerState>(EMPTY_PICKER);
   const [jadval, setJadval] = useState<JadvalState>(EMPTY_JADVAL);
+  const [info, setInfo] = useState<InfoState>(EMPTY_INFO);
   const [me, setMe] = useState<MeResponse | null>(null);
 
   // Authenticate + sync server-side locale preference.
@@ -99,9 +116,12 @@ export function App() {
     setPicker,
     jadval,
     setJadval,
+    info,
+    setInfo,
     me,
     resetPicker: () => setPicker(EMPTY_PICKER),
     resetJadval: () => setJadval(EMPTY_JADVAL),
+    resetInfo: () => setInfo(EMPTY_INFO),
   };
 
   return (
@@ -130,6 +150,12 @@ export function App() {
         <Route path="/guide" element={<GuideTypePage {...ctx} />} />
         <Route path="/guide/templates" element={<GuideTemplatePage {...ctx} />} />
         <Route path="/guide/detail" element={<GuideDetailPage {...ctx} />} />
+
+        {/* Court directory (info) flow — public: region → type → court → card */}
+        <Route path="/info" element={<InfoRegionPage locale={locale} state={info} setState={setInfo} />} />
+        <Route path="/info/type" element={<InfoTypePage locale={locale} state={info} setState={setInfo} />} />
+        <Route path="/info/court" element={<InfoCourtPage locale={locale} state={info} setState={setInfo} />} />
+        <Route path="/info/detail" element={<InfoDetailPage locale={locale} state={info} />} />
 
         {/* About — public, no auth needed */}
         <Route path="/about" element={<AboutPage {...ctx} />} />
@@ -164,9 +190,12 @@ export interface PageCtx {
   setPicker: (s: PickerState) => void;
   jadval: JadvalState;
   setJadval: (s: JadvalState) => void;
+  info: InfoState;
+  setInfo: (s: InfoState) => void;
   me: MeResponse | null;
   resetPicker: () => void;
   resetJadval: () => void;
+  resetInfo: () => void;
 }
 
 /** Helper for pages that need to render a fragment / no-op. */

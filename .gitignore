@@ -13,3 +13,9 @@ generated/
 prisma/migrations/dev.db*
 .DS_Store
 coverage/
+
+# Court-directory source screenshots (25MB) — kept locally only. The
+# distilled OCR result `info sud/_merged.json` IS committed so
+# scripts/build-court-info.ts can regenerate court-info.generated.ts.
+info sud/*.jpg
+info sud/_ocr/
