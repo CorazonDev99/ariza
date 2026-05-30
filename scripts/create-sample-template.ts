@@ -2654,6 +2654,158 @@ const T_JIN_3243_RU: BlockSpec[] = [
   ...signatureBlockOffenderRU(),
 ];
 
+/* ============================================================
+ * Template — Жиноят: Шикоят ариза (жаримани камайтириш) &
+ *            Илтимоснома (шикоят муддатини тиклаш)
+ *
+ * Both address the tergov-sudya and have an applicant «from» block that
+ * branches org vs individual. document.service sets
+ * `applicant_is_org` / `applicant_is_individual`; the standalone
+ * `{{#…}}` / `{{/…}}` paragraphs are stripped by paragraphLoop:true so
+ * only the matching variant survives.
+ * ============================================================ */
+
+/** Applicant «from» block (right column) with org/individual variants.
+ *  `withPhone` adds a «Тел:» line (Шикоят has it, Илтимоснома does not). */
+const jinApplicantPartyBlockCY = (withPhone: boolean): BlockSpec[] => [
+  { text: '{{#applicant_is_individual}}' },
+  { text: [{ text: '{{plaintiff_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_fio}}', bold: true, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'томонидан', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: '{{/applicant_is_individual}}' },
+  { text: '{{#applicant_is_org}}' },
+  { text: [{ text: '{{plaintiff_org_name}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'раҳбари {{plaintiff_fio}}', bold: true, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'томонидан', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: '{{/applicant_is_org}}' },
+  ...(withPhone
+    ? [{ text: [{ text: 'Тел: {{plaintiff_phone}}', bold: true, italics: true }], leftIndent: PARTY_INDENT } as BlockSpec]
+    : []),
+  { text: '' },
+];
+
+const jinApplicantPartyBlockRU = (withPhone: boolean): BlockSpec[] => [
+  { text: '{{#applicant_is_individual}}' },
+  { text: [{ text: '{{plaintiff_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{plaintiff_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'от {{plaintiff_fio}}', bold: true, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: '{{/applicant_is_individual}}' },
+  { text: '{{#applicant_is_org}}' },
+  { text: [{ text: '{{plaintiff_org_name}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'в лице руководителя {{plaintiff_fio}}', bold: true, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: '{{/applicant_is_org}}' },
+  ...(withPhone
+    ? [{ text: [{ text: 'Тел: {{plaintiff_phone}}', bold: true, italics: true }], leftIndent: PARTY_INDENT } as BlockSpec]
+    : []),
+  { text: '' },
+];
+
+/** Signature block branching org («Раҳбар: … муҳр») vs individual. */
+const jinApplicantSignatureCY = (): BlockSpec[] => [
+  { text: '{{#applicant_is_individual}}' },
+  ...signatureBlock('Аризачи:'),
+  { text: '{{/applicant_is_individual}}' },
+  { text: '{{#applicant_is_org}}' },
+  { text: '' },
+  { text: '' },
+  { text: [
+    { text: 'Раҳбар:', bold: true },
+    { text: `${SIGNATURE_GAP}(имзо ва муҳр)${BLOCK_GAP}` },
+    { text: '{{plaintiff_fio}}', bold: true },
+  ] },
+  { text: '{{/applicant_is_org}}' },
+];
+
+const jinApplicantSignatureRU = (): BlockSpec[] => [
+  { text: '{{#applicant_is_individual}}' },
+  ...signatureBlockRU('Заявитель:'),
+  { text: '{{/applicant_is_individual}}' },
+  { text: '{{#applicant_is_org}}' },
+  { text: '' },
+  { text: '' },
+  { text: [
+    { text: 'Руководитель:', bold: true },
+    { text: `${SIGNATURE_GAP}(подпись и печать)${BLOCK_GAP}` },
+    { text: '{{plaintiff_fio}}', bold: true },
+  ] },
+  { text: '{{/applicant_is_org}}' },
+];
+
+const T_JIN_JARIMA_CY: BlockSpec[] = [
+  ...jinTergovHeaderCY(),
+  ...jinApplicantPartyBlockCY(true),
+  ...titleBlock('Ш И К О Я Т   А Р И З А', 'қўлланилган маъмурий жаримани камайтириш тўғрисида'),
+  body('Мазмуни шундан иборатки, {{penalty_org}} томонидан {{order_day}}.{{order_month}}.{{order_year}} йил куни Ўзбекистон Республикаси МЖтКнинг {{mjtk_article}}-моддаси {{mjtk_part}}-қисми билан базавий ҳисоблаш миқдорининг {{base_multiplier}} баравари миқдорида {{fine_amount}} сўм жарима тайинланган.'),
+  body('Ушбу жаримани тўлашга имкониятим йўқ, сабаби: {{reason}}'),
+  body('Юқоридагиларни инобатга олиб, қўлланилган жаримани камайтириб беришингизни сўрайман.'),
+  { text: '' },
+  ...attachmentBlock('Илова:', [
+    'Паспорт нусхаси;',
+    'Жарима солиш тўғрисидаги қарор;',
+    'Ҳуқуқбузарлик ҳолати олинган расм / солиқ ҳисоботи маълумотномаси;',
+    'Талабнома (ИИБдан олса бўлади);',
+    'Ойлик иш ҳаққи тўғрисидаги маълумотнома (бўлса);',
+    'Маҳалладан оилавий шароит ҳақида далолатнома;',
+    'Жаримани камайтириш учун асос бўладиган бошқа ҳужжатлар.',
+  ]),
+  ...jinApplicantSignatureCY(),
+];
+
+const T_JIN_JARIMA_RU: BlockSpec[] = [
+  ...jinTergovHeaderRU(),
+  ...jinApplicantPartyBlockRU(true),
+  ...titleBlock('Ж А Л О Б А', 'об уменьшении наложенного административного штрафа'),
+  body('Настоящим сообщаю, что {{penalty_org}} {{order_day}}.{{order_month}}.{{order_year}} в отношении меня вынесено постановление о наложении штрафа по статье {{mjtk_article}} части {{mjtk_part}} МЖтК Республики Узбекистан в размере {{base_multiplier}}-кратной базовой расчётной величины, что составляет {{fine_amount}} сум.'),
+  body('У меня нет возможности оплатить данный штраф, причина: {{reason}}'),
+  body('На основании изложенного прошу уменьшить наложенный штраф.'),
+  { text: '' },
+  ...attachmentBlock('Приложение:', [
+    'Копия паспорта;',
+    'Постановление о наложении штрафа;',
+    'Снимок правонарушения / справка о налоговой отчётности;',
+    'Требование (можно получить в ОВД);',
+    'Справка о заработной плате (при наличии);',
+    'Справка из махалли о семейном положении;',
+    'Иные документы — основание для снижения штрафа.',
+  ]),
+  ...jinApplicantSignatureRU(),
+];
+
+const T_JIN_MUDDAT_CY: BlockSpec[] = [
+  ...jinTergovHeaderCY(),
+  ...jinApplicantPartyBlockCY(false),
+  ...titleBlock('И Л Т И М О С Н О М А', 'шикоят бериш муддатини тиклаш тўғрисида'),
+  body('Мазмуни шундан иборатки, {{penalty_org}} томонидан {{order_day}}.{{order_month}}.{{order_year}} йил куни менга нисбатан {{fine_amount}} сўм маъмурий жарима қўллаш тўғрисида қарор қабул қилинган.'),
+  body('Ушбу қарорни {{late_reason}} шу сабабли ўз вақтида олмаганман.'),
+  body('Мазкур қарорни {{learned_day}}.{{learned_month}}.{{learned_year}} йил куни {{learned_where}} орқали олганман, шу боис қарор устидан шикоят бериш муддати ўтиб кетган.'),
+  body('Юқоридагиларни инобатга олиб, ушбу қарор бўйича шикоят бериш муддатини тиклаб беришингизни сўрайман.'),
+  { text: '' },
+  ...attachmentBlock('Илова:', [
+    'Паспорт нусхаси;',
+    'Жарима солиш тўғрисидаги қарор;',
+    'Нима сабабдан шикоят бериш муддати ўтиб кетганлиги ҳақида маълумотнома.',
+  ]),
+  ...jinApplicantSignatureCY(),
+];
+
+const T_JIN_MUDDAT_RU: BlockSpec[] = [
+  ...jinTergovHeaderRU(),
+  ...jinApplicantPartyBlockRU(false),
+  ...titleBlock('Х О Д А Т А Й С Т В О', 'о восстановлении срока подачи жалобы'),
+  body('Настоящим сообщаю, что {{penalty_org}} {{order_day}}.{{order_month}}.{{order_year}} в отношении меня вынесено постановление о наложении административного штрафа в размере {{fine_amount}} сум.'),
+  body('Данное постановление я не получил(а) вовремя по причине: {{late_reason}}'),
+  body('Указанное постановление я получил(а) {{learned_day}}.{{learned_month}}.{{learned_year}} через {{learned_where}}, в связи с чем срок подачи жалобы на постановление был пропущен.'),
+  body('На основании изложенного прошу восстановить срок подачи жалобы по данному постановлению.'),
+  { text: '' },
+  ...attachmentBlock('Приложение:', [
+    'Копия паспорта;',
+    'Постановление о наложении штрафа;',
+    'Справка о причине пропуска срока подачи жалобы.',
+  ]),
+  ...jinApplicantSignatureRU(),
+];
+
 /* ============================================================ */
 
 // QR code is no longer embedded in the document — it's sent as a
@@ -2760,6 +2912,16 @@ const BUILDERS: Record<string, Record<Locale, BlockSpec[]>> = {
     uz_cyrillic: T_JIN_3243_CY,
     uz_latin: deriveLatin(T_JIN_3243_CY),
     ru: T_JIN_3243_RU,
+  },
+  'shikoyat-jinoyat-jarima': {
+    uz_cyrillic: T_JIN_JARIMA_CY,
+    uz_latin: deriveLatin(T_JIN_JARIMA_CY),
+    ru: T_JIN_JARIMA_RU,
+  },
+  'iltimosnoma-jinoyat-muddat': {
+    uz_cyrillic: T_JIN_MUDDAT_CY,
+    uz_latin: deriveLatin(T_JIN_MUDDAT_CY),
+    ru: T_JIN_MUDDAT_RU,
   },
   'ariza-mamuriy-mansabdor': {
     uz_cyrillic: T_MAM_MANSABDOR_CY,
