@@ -23,6 +23,7 @@ export const ru: Dict = {
   'menu.lang': '🌐 Язык',
 
   'jadval.type.pick': '📋 <b>Выберите тип дела:</b>',
+  'jadval.sub.pick': '⚖️ <b>Уголовные суды</b>\n\nВыберите тип списка:',
   'jadval.region.pick': '🏛️ <b>Выберите область:</b>',
   'jadval.court.pick': '⚖️ <b>{region}</b>\n\nВыберите суд:',
   'jadval.loading': '⏳ Загружаем данные с jadval2.sud.uz...',

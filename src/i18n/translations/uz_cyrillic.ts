@@ -27,6 +27,7 @@ export const uz_cyrillic: Dict = {
 
   // jadval2 case-schedule lookup flow
   'jadval.type.pick': '📋 <b>Иш турини танланг:</b>',
+  'jadval.sub.pick': '⚖️ <b>Жиноят ишлари бўйича судлар</b>\n\nРўйхат турини танланг:',
   'jadval.region.pick': '🏛️ <b>Ҳудудни танланг:</b>',
   'jadval.court.pick': '⚖️ <b>{region}</b>\n\nСудни танланг:',
   'jadval.loading': '⏳ jadval2.sud.uz дан маълумотлар юкланмоқда...',

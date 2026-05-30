@@ -15,6 +15,7 @@ import {
   jadvalSearchPromptInline,
   jadvalSearchResultsInline,
   jadvalTypesInline,
+  jadvalSubInline,
   courtInfoRegionsInline,
   courtInfoTypesInline,
   courtInfoCourtsInline,
@@ -32,6 +33,7 @@ import { ARIZA_WIZARD_ID } from '../scenes';
 import { TEMPLATES, getTemplateByCode } from '../templates/registry';
 import {
   COURT_TYPES,
+  SCHEDULE_CATEGORIES,
   getCourtTypeByCode,
   getScheduleCategoryByCode,
   type CourtTypeDef,
@@ -337,12 +339,37 @@ export function registerCommands(
 
   bot.action(/^jdv-ct:(.+)$/, async (ctx) => {
     const code = ctx.match[1]!;
-    const ct = getScheduleCategoryByCode(code);
+    const ct = getCourtTypeByCode(code);
     if (!ct || !ct.active) {
       await ctx.answerCbQuery();
       return;
     }
+    await ctx.answerCbQuery();
+    // Жиноят splits into two schedule sub-categories (jib/jib criminal &
+    // jib/mhb administrative-offences); the others go straight to region.
+    if (code === 'jinoyat') {
+      ctx.session.jadvalPicker = {};
+      await ctx.editMessageText(t(ctx.locale, 'jadval.sub.pick'), {
+        parse_mode: 'HTML',
+        ...jadvalSubInline(ctx.locale, SCHEDULE_CATEGORIES),
+      });
+      return;
+    }
     ctx.session.jadvalPicker = { courtTypeCode: ct.code };
+    await ctx.editMessageText(t(ctx.locale, 'jadval.region.pick'), {
+      parse_mode: 'HTML',
+      ...jadvalRegionsInline(ctx.locale, REGIONS),
+    });
+  });
+
+  // Schedule sub-category (criminal / admin-offences) → region.
+  bot.action(/^jdv-sub:(.+)$/, async (ctx) => {
+    const cat = getScheduleCategoryByCode(ctx.match[1]!);
+    if (!cat) {
+      await ctx.answerCbQuery();
+      return;
+    }
+    ctx.session.jadvalPicker = { courtTypeCode: cat.code };
     await ctx.answerCbQuery();
     await ctx.editMessageText(t(ctx.locale, 'jadval.region.pick'), {
       parse_mode: 'HTML',

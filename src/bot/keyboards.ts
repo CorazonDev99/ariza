@@ -530,6 +530,15 @@ export function jadvalTypesInline(locale: Locale, types: CourtTypeDef[]) {
   );
 }
 
+/** Sub-categories shown after picking «Жиноят» in the schedule flow:
+ *  criminal cases (jib/jib) vs administrative offences (jib/mhb). */
+export function jadvalSubInline(locale: Locale, cats: CourtTypeDef[]) {
+  return Markup.inlineKeyboard([
+    ...cats.map((c) => [Markup.button.callback(c.label[locale], `jdv-sub:${c.code}`)]),
+    [Markup.button.callback(t(locale, 'jadval.back-types'), 'jdv-back-types')],
+  ]);
+}
+
 export function jadvalRegionsInline(locale: Locale, regions: RegionDef[]) {
   const rows: ReturnType<typeof Markup.button.callback>[][] = [];
   for (let i = 0; i < regions.length; i += 2) {

@@ -23,6 +23,7 @@ export const uz_latin: Dict = {
   'menu.lang': '🌐 Til',
 
   'jadval.type.pick': '📋 <b>Ish turini tanlang:</b>',
+  'jadval.sub.pick': '⚖️ <b>Jinoyat ishlari bo‘yicha sudlar</b>\n\nRo‘yxat turini tanlang:',
   'jadval.region.pick': "🏛️ <b>Hududni tanlang:</b>",
   'jadval.court.pick': '⚖️ <b>{region}</b>\n\nSudni tanlang:',
   'jadval.loading': "⏳ jadval2.sud.uz dan ma'lumotlar yuklanmoqda...",

@@ -34,6 +34,7 @@ const DICT = {
     // jadval (kept)
     'title.jadval': 'Ишимни текшириш',
     'title.types': 'Иш турини танланг',
+    'jadval.sub.title': 'Рўйхат турини танланг',
     'title.regions': 'Ҳудудни танланг',
     'title.courts': 'Судни танланг',
     'title.date': 'Санани танланг',
@@ -163,6 +164,7 @@ const DICT = {
 
     'title.jadval': 'Ishimni tekshirish',
     'title.types': 'Ish turini tanlang',
+    'jadval.sub.title': 'Ro‘yxat turini tanlang',
     'title.regions': 'Hududni tanlang',
     'title.courts': 'Sudni tanlang',
     'title.date': 'Sanani tanlang',
@@ -288,6 +290,7 @@ const DICT = {
 
     'title.jadval': 'Проверить дело',
     'title.types': 'Выберите тип дела',
+    'jadval.sub.title': 'Выберите тип списка',
     'title.regions': 'Выберите область',
     'title.courts': 'Выберите суд',
     'title.date': 'Выберите дату',

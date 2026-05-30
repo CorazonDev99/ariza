@@ -4,6 +4,7 @@ import { detectLocale, getTg, type Locale } from './tg';
 import { api, type MeResponse } from './api';
 import { HomePage } from './pages/HomePage';
 import { TypePage } from './pages/TypePage';
+import { JadvalSubPage } from './pages/JadvalSubPage';
 import { RegionPage } from './pages/RegionPage';
 import { CourtPage } from './pages/CourtPage';
 import { DatePage } from './pages/DatePage';
@@ -131,6 +132,7 @@ export function App() {
 
         {/* Jadval (court schedule) flow — preserved from v1 */}
         <Route path="/jadval" element={<TypePage locale={locale} setState={setJadval} />} />
+        <Route path="/jadval/sub" element={<JadvalSubPage locale={locale} setState={setJadval} />} />
         <Route path="/jadval/region" element={<RegionPage locale={locale} state={jadval} setState={setJadval} />} />
         <Route path="/jadval/court" element={<CourtPage locale={locale} state={jadval} setState={setJadval} />} />
         <Route path="/jadval/date" element={<DatePage locale={locale} state={jadval} setState={setJadval} />} />

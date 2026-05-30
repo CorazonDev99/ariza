@@ -21,11 +21,17 @@ export function TypePage({ locale, setState }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.scheduleCategories().then(setTypes).catch((e) => setError(String(e.message ?? e)));
+    api.courtTypes().then(setTypes).catch((e) => setError(String(e.message ?? e)));
   }, []);
 
   function pick(typeCode: string) {
     getTg().HapticFeedback.impactOccurred('light');
+    // «Жиноят» splits into criminal vs administrative-offences lists.
+    if (typeCode === 'jinoyat') {
+      setState({ type: null, region: null, court: null, date: null });
+      nav('/jadval/sub');
+      return;
+    }
     setState({ type: typeCode, region: null, court: null, date: null });
     nav('/jadval/region');
   }
@@ -34,7 +40,7 @@ export function TypePage({ locale, setState }: Props) {
     <Page title={t(locale, 'title.jadval')} subtitle={t(locale, 'title.types')}>
       {error && <ErrorBox message={error} onRetry={() => {
         setError(null);
-        api.scheduleCategories().then(setTypes).catch((e) => setError(String(e.message ?? e)));
+        api.courtTypes().then(setTypes).catch((e) => setError(String(e.message ?? e)));
       }} />}
       {!types && !error && <SkeletonList />}
       {types && (

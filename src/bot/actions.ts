@@ -3,7 +3,6 @@ import { config } from '../config';
 import { ARIZA_WIZARD_ID } from '../scenes';
 import {
   COURT_TYPES,
-  SCHEDULE_CATEGORIES,
   getCourtTypeByCode,
   type CourtTypeDef,
 } from '../templates/court-types';
@@ -99,7 +98,7 @@ export const actions = {
     ctx.session.jadvalPicker = {};
     await ctx.reply(t(ctx.locale, 'jadval.type.pick'), {
       parse_mode: 'HTML',
-      ...jadvalTypesInline(ctx.locale, SCHEDULE_CATEGORIES),
+      ...jadvalTypesInline(ctx.locale, COURT_TYPES),
     });
   },
 
