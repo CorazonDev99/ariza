@@ -1,7 +1,11 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { COURT_TYPES, getCourtTypeByCode } from '../templates/court-types';
+import {
+  COURT_TYPES,
+  SCHEDULE_CATEGORIES,
+  getCourtTypeByCode,
+} from '../templates/court-types';
 import { REGIONS, getRegionByCode } from '../templates/regions';
 import {
   getInfoTypesForRegion,
@@ -72,6 +76,11 @@ export async function handleApi(ctx: ApiContext): Promise<boolean> {
   }
   if (m === 'GET' && p === '/regions') {
     sendJson(ctx.res, 200, REGIONS);
+    return true;
+  }
+  // Schedule-flow entry categories: criminal (api4) + admin-offences (api5).
+  if (m === 'GET' && p === '/schedule-categories') {
+    sendJson(ctx.res, 200, SCHEDULE_CATEGORIES.filter((c) => c.active));
     return true;
   }
   const courtsMatch = p.match(/^\/courts\/([^/]+)\/([^/]+)$/);

@@ -1,5 +1,6 @@
 import type { Locale } from '../i18n';
 import { JADVAL2_COURTS } from './district-courts.generated';
+import { MHB_COURTS } from './mhb-courts.generated';
 
 /**
  * District / interdistrict court within a region. After the user picks
@@ -57,7 +58,13 @@ const IQTISODIY_ARIZA_COURTS: DistrictCourtDef[] = JADVAL2_COURTS
 export const DISTRICT_COURTS: DistrictCourtDef[] = [
   ...JADVAL2_COURTS,
   ...IQTISODIY_ARIZA_COURTS,
+  ...MHB_COURTS,
 ];
+
+/** Pool searched by the SCHEDULE flow — real jadval2 courts plus the
+ *  administrative-offences (`mhb`) courts (jib/mhb), which share the
+ *  criminal courts but use a different schedule API (api5). */
+const SCHEDULE_POOL: DistrictCourtDef[] = [...JADVAL2_COURTS, ...MHB_COURTS];
 
 export function getDistrictCourtByCode(code: string): DistrictCourtDef | undefined {
   return DISTRICT_COURTS.find((d) => d.code === code);
@@ -74,7 +81,7 @@ export function getDistrictCourtsFor(
   courtTypeCode: string,
   regionCode: string,
 ): DistrictCourtDef[] {
-  return JADVAL2_COURTS.filter(
+  return SCHEDULE_POOL.filter(
     (d) => d.courtTypeCode === courtTypeCode && d.regionCode === regionCode,
   );
 }

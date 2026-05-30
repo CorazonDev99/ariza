@@ -32,6 +32,7 @@ import { TEMPLATES, getTemplateByCode } from '../templates/registry';
 import {
   COURT_TYPES,
   getCourtTypeByCode,
+  getScheduleCategoryByCode,
   type CourtTypeDef,
 } from '../templates/court-types';
 import { REGIONS, getRegionByCode } from '../templates/regions';
@@ -312,7 +313,7 @@ export function registerCommands(
 
   bot.action(/^jdv-ct:(.+)$/, async (ctx) => {
     const code = ctx.match[1]!;
-    const ct = getCourtTypeByCode(code);
+    const ct = getScheduleCategoryByCode(code);
     if (!ct || !ct.active) {
       await ctx.answerCbQuery();
       return;

@@ -117,6 +117,10 @@ function buildUrls(typeCode: string, globalId: string, dateStr: string): string[
       return [`${VKA_BASE}/CONFLICT/${globalId}/${dateStr}`];
     case 'jinoyat':
       return [`https://api4.sud.uz/${globalId}/${dateStr}`];
+    case 'mhb':
+      // Маъмурий ҳуқуқбузарликлар (jib/mhb) — heard by the criminal
+      // courts, served by api5 with the criminal response shape.
+      return [`https://api5.sud.uz/${globalId}/${dateStr}`];
     default:
       throw new Error(`Unknown court type: ${typeCode}`);
   }
@@ -209,7 +213,9 @@ export async function fetchSchedule(
 
   const urls = buildUrls(courtTypeCode, globalId, dateStr);
   const normalize =
-    courtTypeCode === 'jinoyat' ? normalizeCriminal : normalizeCivilLike;
+    courtTypeCode === 'jinoyat' || courtTypeCode === 'mhb'
+      ? normalizeCriminal
+      : normalizeCivilLike;
 
   // Primary failure → user-visible error. We deliberately don't fall
   // back to backups for the primary error case — backups exist for

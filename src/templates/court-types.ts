@@ -68,3 +68,34 @@ export const COURT_TYPES: CourtTypeDef[] = [
 export function getCourtTypeByCode(code: string): CourtTypeDef | undefined {
   return COURT_TYPES.find((c) => c.code === code);
 }
+
+/**
+ * Categories shown at the FIRST step of the "📋 Ишимни текшириш"
+ * schedule flow. Mirrors jadval2.sud.uz `jib`: two subtypes —
+ * criminal (jib/jib → api4) and administrative-offences
+ * (jib/mhb → api5). NOT the same as the 4 ariza court types.
+ */
+export const SCHEDULE_CATEGORIES: CourtTypeDef[] = [
+  {
+    code: 'jinoyat',
+    label: L(
+      'Жиноят ишлар бўйича суд мажлисига тайинланган ишлар рўйхати',
+      'Jinoyat ishlar boʻyicha sud majlisiga tayinlangan ishlar roʻyxati',
+      'Список дел по уголовным делам, назначенных к судебному заседанию',
+    ),
+    active: true,
+  },
+  {
+    code: 'mhb',
+    label: L(
+      'Маъмурий ҳуқуқбузарликлар бўйича суд мажлисига тайинланган ишлар рўйхати',
+      'Maʼmuriy huquqbuzarliklar boʻyicha sud majlisiga tayinlangan ishlar roʻyxati',
+      'Список дел об административных правонарушениях, назначенных к заседанию',
+    ),
+    active: true,
+  },
+];
+
+export function getScheduleCategoryByCode(code: string): CourtTypeDef | undefined {
+  return SCHEDULE_CATEGORIES.find((c) => c.code === code);
+}

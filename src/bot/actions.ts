@@ -1,7 +1,7 @@
 import { t } from '../i18n';
 import { config } from '../config';
 import { ARIZA_WIZARD_ID } from '../scenes';
-import { COURT_TYPES } from '../templates/court-types';
+import { COURT_TYPES, SCHEDULE_CATEGORIES } from '../templates/court-types';
 import { REGIONS } from '../templates/regions';
 import {
   aboutInline,
@@ -93,7 +93,7 @@ export const actions = {
     ctx.session.jadvalPicker = {};
     await ctx.reply(t(ctx.locale, 'jadval.type.pick'), {
       parse_mode: 'HTML',
-      ...jadvalTypesInline(ctx.locale, COURT_TYPES),
+      ...jadvalTypesInline(ctx.locale, SCHEDULE_CATEGORIES),
     });
   },
 

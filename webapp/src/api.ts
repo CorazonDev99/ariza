@@ -143,6 +143,8 @@ async function request<T>(
 export const api = {
   // public
   courtTypes: () => request<CourtType[]>('/court-types'),
+  /** Entry categories for the schedule flow: criminal + admin-offences. */
+  scheduleCategories: () => request<CourtType[]>('/schedule-categories'),
   regions: () => request<Region[]>('/regions'),
   courts: (type: string, region: string) =>
     request<DistrictCourt[]>(`/courts/${encodeURIComponent(type)}/${encodeURIComponent(region)}`),

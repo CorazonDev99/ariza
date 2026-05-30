@@ -21,7 +21,7 @@ export function TypePage({ locale, setState }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.courtTypes().then(setTypes).catch((e) => setError(String(e.message ?? e)));
+    api.scheduleCategories().then(setTypes).catch((e) => setError(String(e.message ?? e)));
   }, []);
 
   function pick(typeCode: string) {
@@ -34,7 +34,7 @@ export function TypePage({ locale, setState }: Props) {
     <Page title={t(locale, 'title.jadval')} subtitle={t(locale, 'title.types')}>
       {error && <ErrorBox message={error} onRetry={() => {
         setError(null);
-        api.courtTypes().then(setTypes).catch((e) => setError(String(e.message ?? e)));
+        api.scheduleCategories().then(setTypes).catch((e) => setError(String(e.message ?? e)));
       }} />}
       {!types && !error && <Loader label={t(locale, 'loading')} />}
       {types && (
