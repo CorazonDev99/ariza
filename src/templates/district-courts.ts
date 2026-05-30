@@ -28,35 +28,35 @@ export interface DistrictCourtDef {
 }
 
 /**
- * Synthesised JINOYAT entries used by the ariza wizard ONLY. The jadval2
- * scrape gives us 219 real jinoyat courts (each district has its own
- * criminal court) — useful for schedule lookup but wrong for the ariza
- * picker, where the user files at viloyat / tumanlararo level just like
- * mamuriy (only 2 entries per region). We clone the mamuriy entries
- * 1:1 — same display names, same regional structure — but flip the
- * `courtTypeCode` to 'jinoyat' and re-prefix the codes so they're
- * distinct from the schedule-flow ones.
+ * Synthesised IQTISODIY entries used by the ariza wizard ONLY. The
+ * jadval2 scrape gives us 88 real iqtisodiy courts (several per region)
+ * — useful for schedule lookup but wrong for the ariza picker, where the
+ * user files at viloyat / tumanlararo level just like mamuriy (only 2
+ * entries per region). We clone the mamuriy entries 1:1 — same display
+ * names, same regional structure — but flip the `courtTypeCode` to
+ * 'iqtisodiy' and re-prefix the codes so they're distinct from the
+ * schedule-flow ones.
  *
  * The schedule flow (`getDistrictCourtsFor`) keeps using the original
- * 219 jinoyat courts so users can still drill down to their specific
- * district court when looking up hearings on jadval2.sud.uz.
+ * 88 iqtisodiy courts so users can still drill down to their specific
+ * court when looking up hearings on jadval2.sud.uz.
  */
-const JINOYAT_ARIZA_COURTS: DistrictCourtDef[] = JADVAL2_COURTS
+const IQTISODIY_ARIZA_COURTS: DistrictCourtDef[] = JADVAL2_COURTS
   .filter((c) => c.courtTypeCode === 'mamuriy')
   .map((c) => ({
     ...c,
-    code: c.code.replace(/^mam-/, 'jin-ariza-'),
-    courtTypeCode: 'jinoyat',
+    code: c.code.replace(/^mam-/, 'iqt-ariza-'),
+    courtTypeCode: 'iqtisodiy',
   }));
 
 /**
  * All known court entries — real (from jadval2) + synthesised
- * (jinoyat ariza). Used by `getDistrictCourtByCode` so that lookups
+ * (iqtisodiy ariza). Used by `getDistrictCourtByCode` so that lookups
  * by code work for both flow types.
  */
 export const DISTRICT_COURTS: DistrictCourtDef[] = [
   ...JADVAL2_COURTS,
-  ...JINOYAT_ARIZA_COURTS,
+  ...IQTISODIY_ARIZA_COURTS,
 ];
 
 export function getDistrictCourtByCode(code: string): DistrictCourtDef | undefined {
@@ -82,18 +82,18 @@ export function getDistrictCourtsFor(
 /**
  * District courts for the ARIZA wizard (📄 «Подать заявление»).
  *
- * Same as the schedule list for fuqarolik / mamuriy / iqtisodiy, but
- * for jinoyat we return ONLY the 2-per-region synthesised pair
+ * Same as the schedule list for fuqarolik / mamuriy / jinoyat, but
+ * for iqtisodiy we return ONLY the 2-per-region synthesised pair
  * (viloyat sudi + tumanlararo sudi) — matching mamuriy's structure —
- * because criminal arizas are filed at viloyat / tumanlararo level,
+ * because economic arizas are filed at viloyat / tumanlararo level,
  * not at each individual district court.
  */
 export function getArizaCourtsFor(
   courtTypeCode: string,
   regionCode: string,
 ): DistrictCourtDef[] {
-  if (courtTypeCode === 'jinoyat') {
-    return JINOYAT_ARIZA_COURTS.filter((d) => d.regionCode === regionCode);
+  if (courtTypeCode === 'iqtisodiy') {
+    return IQTISODIY_ARIZA_COURTS.filter((d) => d.regionCode === regionCode);
   }
   return JADVAL2_COURTS.filter(
     (d) => d.courtTypeCode === courtTypeCode && d.regionCode === regionCode,
