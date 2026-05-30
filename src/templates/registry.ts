@@ -1094,15 +1094,7 @@ const T_NUSHA: TemplateDef = {
       "Masalan: aliment undirish, nikohdan ajratish",
       'Например: взыскание алиментов, расторжение брака',
     )),
-    F.text('case_number', L(
-      '🔢 Иш рақами',
-      "🔢 Ish raqami",
-      '🔢 Номер дела',
-    ), L(
-      'Масалан: 2-1301-2X01/XXXX',
-      "Masalan: 2-1301-2X01/XXXX",
-      'Например: 2-1301-2X01/XXXX',
-    )),
+    // «Иш рақами» is not asked — rendered as a manual fill-in blank.
     F.choice('party_role', L(
       '👥 Иш бўйича Сиз кимсиз',
       "👥 Ish bo‘yicha Siz kimsiz",
@@ -1547,9 +1539,9 @@ const T_JIN_APPEAL: TemplateDef = {
   ),
   description: L('—', '—', '—'),
   instructions: L(
-    `📣 <b>Апелляция / Кассация шикояти</b>\n\n📋 <b>Қачон бериш:</b>\nТуман/шаҳар суди томонидан Сизга нисбатан маъмурий жазо қўлланди ва Сиз қарор адолатсиз деб ҳисоблайсиз — апелляция (10 кун ичида) ёки кассация инстанциясига шикоят беришингиз мумкин.\n\n🏛 <b>Қаерга:</b>\nВилоят судининг жиноят ишлари бўйича судлов ҳайъатига. <b>Битта суд танлаб қўйинг — областной</b>, чунки шикоят ҳудудий судга юборилади.\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → инстанция (апелляция/кассация) → қарор санаси → МЖтК моддаси → норозилик сабаблари → бошқа далиллар/гувоҳлар.`,
-    `📣 <b>Apellyatsiya / Kassatsiya shikoyati</b>\n\n📋 <b>Qachon berish:</b>\nTuman/shahar sudi tomonidan Sizga nisbatan ma'muriy jazo qo‘llanildi va Siz qaror adolatsiz deb hisoblaysiz — apellyatsiya (10 kun ichida) yoki kassatsiya instansiyasiga shikoyat berishingiz mumkin.\n\n🏛 <b>Qayerga:</b>\nViloyat sudining jinoyat ishlari bo‘yicha sudlov hay'atiga. <b>Sud tanlovida viloyat sudini tanlang.</b>\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → instansiya tanlovi → qaror sanasi → MJtK moddasi → norozilik sabablari → boshqa dalillar/guvohlar.`,
-    `📣 <b>Апелляционная / Кассационная жалоба</b>\n\n📋 <b>Когда подавать:</b>\nЕсли городской/районный уголовный суд назначил Вам административное наказание, а Вы считаете решение несправедливым — можете подать апелляционную (в течение 10 дней) или кассационную жалобу.\n\n🏛 <b>Куда:</b>\nВ судебную коллегию по уголовным делам областного суда. <b>В выборе суда укажите областной суд.</b>\n\n📝 <b>Бот спросит:</b>\nваши данные → выбор инстанции → дата решения → статья МЖтК → причины несогласия → дополнительные доказательства/свидетели.`,
+    `📣 <b>Апелляция / Кассация шикояти</b>\n\n📋 <b>Қачон бериш:</b>\nТуман/шаҳар суди томонидан Сизга нисбатан маъмурий жазо қўлланди ва Сиз қарор адолатсиз деб ҳисоблайсиз — апелляция (10 кун ичида) ёки кассация инстанциясига шикоят беришингиз мумкин.\n\n🏛 <b>Қаерга:</b>\nВилоят судининг жиноят ишлари бўйича судлов ҳайъатига (ҳудуд бўйича автоматик белгиланади). <b>Суд танлашда қарорни чиқарган (қуйи) судни танланг.</b>\n\n📝 <b>Бот сўрайди:</b>\nСизнинг маълумотларингиз → инстанция (апелляция/кассация) → қарор санаси → МЖтК моддаси → норозилик сабаблари → бошқа далиллар/гувоҳлар.`,
+    `📣 <b>Apellyatsiya / Kassatsiya shikoyati</b>\n\n📋 <b>Qachon berish:</b>\nTuman/shahar sudi tomonidan Sizga nisbatan ma'muriy jazo qo‘llanildi va Siz qaror adolatsiz deb hisoblaysiz — apellyatsiya (10 kun ichida) yoki kassatsiya instansiyasiga shikoyat berishingiz mumkin.\n\n🏛 <b>Qayerga:</b>\nViloyat sudining jinoyat ishlari bo‘yicha sudlov hay'atiga (hudud bo‘yicha avtomatik belgilanadi). <b>Sud tanlashda qarorni chiqargan (quyi) sudni tanlang.</b>\n\n📝 <b>Bot so‘raydi:</b>\nSizning ma'lumotlaringiz → instansiya tanlovi → qaror sanasi → MJtK moddasi → norozilik sabablari → boshqa dalillar/guvohlar.`,
+    `📣 <b>Апелляционная / Кассационная жалоба</b>\n\n📋 <b>Когда подавать:</b>\nЕсли городской/районный уголовный суд назначил Вам административное наказание, а Вы считаете решение несправедливым — можете подать апелляционную (в течение 10 дней) или кассационную жалобу.\n\n🏛 <b>Куда:</b>\nВ судебную коллегию по уголовным делам областного суда (определяется автоматически по региону). <b>При выборе суда укажите суд, вынесший решение.</b>\n\n📝 <b>Бот спросит:</b>\nваши данные → выбор инстанции → дата решения → статья МЖтК → причины несогласия → дополнительные доказательства/свидетели.`,
   ),
   fileNameBase: 'shikoyat-jinoyat-apellyatsiya',
   fields: [
@@ -1572,19 +1564,9 @@ const T_JIN_APPEAL: TemplateDef = {
         },
       ],
     ),
-    F.text(
-      'lower_court_name',
-      L(
-        '🏛 Қарор чиқарган суд',
-        '🏛 Qaror chiqargan sud',
-        '🏛 Суд, вынесший решение',
-      ),
-      L(
-        'Масалан: Жиноят ишлари бўйича Жиззах шаҳар суди',
-        "Masalan: Jinoyat ishlari bo‘yicha Jizzax shahar sudi",
-        'Например: Уголовный суд города Джизак',
-      ),
-    ),
+    // «Қарор чиқарган суд» (lower_court_name) is not asked — it carries
+    // the court the user picked (the appeal target is the regional panel,
+    // derived from the region).
     F.splitDate(
       'order_date',
       L(
@@ -2489,19 +2471,7 @@ const T_MAM_TOXTAT: TemplateDef = {
         '🏠 Почтовый адрес ответчика',
       ),
     ),
-    F.text(
-      'case_number',
-      L(
-        '🔢 Иш рақами',
-        '🔢 Ish raqami',
-        '🔢 Номер дела',
-      ),
-      L(
-        'Сиз томонидан берилган асосий ишнинг рақами',
-        "Siz tomondan berilgan asosiy ishning raqami",
-        'Номер вашего основного дела в суде',
-      ),
-    ),
+    // «Иш рақами» is not asked — rendered as a manual fill-in blank.
     F.text(
       'acted_act',
       L(
@@ -2897,32 +2867,8 @@ const T_IQT_IJRO_TIKLA: TemplateDef = {
         '🏠 Адрес должника',
       ),
     ),
-    F.text(
-      'issuing_court_name',
-      L(
-        '🏛 Иш қаралган суд номи',
-        "🏛 Ish qaralgan sud nomi",
-        '🏛 Название суда, вынесшего решение',
-      ),
-      L(
-        'Масалан: Жиззах туманлараро иқтисодий суди',
-        "Masalan: Jizzax tumanlararo iqtisodiy sudi",
-        'Например: Джизакский межрайонный экономический суд',
-      ),
-    ),
-    F.text(
-      'case_number',
-      L(
-        '🔢 Иш рақами',
-        '🔢 Ish raqami',
-        '🔢 Номер дела',
-      ),
-      L(
-        'Масалан: 1304-2301/1234',
-        "Masalan: 1304-2301/1234",
-        'Например: 1304-2301/1234',
-      ),
-    ),
+    // «Иш қаралган суд» (issuing_court_name) carries the picked court and
+    // «Иш рақами» (case_number) is a manual fill-in blank — neither asked.
     F.splitDate(
       'writ_date',
       L(
@@ -2988,9 +2934,9 @@ const T_IQT_APELL: TemplateDef = {
   ),
   description: L('—', '—', '—'),
   instructions: L(
-    `⚖️ <b>Апелляция шикояти — иқтисодий иш бўйича</b>\n\n📋 <b>Қачон бериш:</b>\nТуманлараро иқтисодий суди томонидан чиқарилган ҳал қилув қароридан рози бўлмасангиз — апелляция инстанциясига шикоят берасиз. Муддат — ҳал қилув қарори чиққан кундан 1 ой.\n\n📜 <b>Қонуний асос:</b>\nИқтисодий процессуал кодексининг 259-265-моддалари.\n\n🏛 <b>Қаерга:</b>\nҲал қилув қарорини чиқарган суднинг устидаги вилоят суди апелляция инстанциясига. <b>Суд танлашда вилоят судини танланг.</b>\n\n📝 <b>Бот сўрайди:</b>\nШикоят берувчи маълумотлари → жавобгар → ҳал қилув қарорини қабул қилган суд → иш рақами ва ҳал қилув санаси → низо предмети → норозилик асослари → шикоят талаблари → иловалар.`,
+    `⚖️ <b>Апелляция шикояти — иқтисодий иш бўйича</b>\n\n📋 <b>Қачон бериш:</b>\nТуманлараро иқтисодий суди томонидан чиқарилган ҳал қилув қароридан рози бўлмасангиз — апелляция инстанциясига шикоят берасиз. Муддат — ҳал қилув қарори чиққан кундан 1 ой.\n\n📜 <b>Қонуний асос:</b>\nИқтисодий процессуал кодексининг 259-265-моддалари.\n\n🏛 <b>Қаерга:</b>\nҲал қилув қарорини чиқарган суднинг устидаги вилоят суди апелляция инстанциясига. <b>Суд танлашда ҳал қилув қарорини чиқарган (қуйи) судни танланг.</b>\n\n📝 <b>Бот сўрайди:</b>\nШикоят берувчи маълумотлари → жавобгар → ҳал қилув қарорини қабул қилган суд → иш рақами ва ҳал қилув санаси → низо предмети → норозилик асослари → шикоят талаблари → иловалар.`,
     `⚖️ <b>Apellyatsiya shikoyati — iqtisodiy ish bo‘yicha</b>\n\n📋 <b>Qachon berish:</b>\nTumanlararo iqtisodiy sudi tomonidan chiqarilgan hal qilish qaroridan rozi bo‘lmasangiz — apellyatsiya instansiyasiga shikoyat berasiz.\n\n📜 <b>Qonuniy asos:</b>\nIqtisodiy protsessual kodeksining 259-265-moddalari.\n\n🏛 <b>Qayerga:</b>\nHal qilish qarorini chiqargan sudning ustidagi viloyat sudi apellyatsiya instansiyasiga.\n\n📝 <b>Bot so‘raydi:</b>\nShikoyat beruvchi ma'lumotlari → javobgar → hal qilish qarorini qabul qilgan sud → ish raqami va sana → nizo predmeti → norozilik asoslari → shikoyat talablari → ilovalar.`,
-    `⚖️ <b>Апелляционная жалоба — по экономическому делу</b>\n\n📋 <b>Когда подавать:</b>\nЕсли Вы не согласны с решением межрайонного экономического суда — подаёте жалобу в апелляционную инстанцию. Срок — 1 месяц со дня вынесения решения.\n\n📜 <b>Правовое основание:</b>\nст. 259-265 Экономического процессуального кодекса.\n\n🏛 <b>Куда:</b>\nВ апелляционную инстанцию областного суда. <b>В выборе суда укажите областной суд.</b>\n\n📝 <b>Бот спросит:</b>\nданные подателя жалобы → ответчик → суд, вынесший решение → номер дела и дата решения → предмет спора → основания несогласия → требования жалобы → приложения.`,
+    `⚖️ <b>Апелляционная жалоба — по экономическому делу</b>\n\n📋 <b>Когда подавать:</b>\nЕсли Вы не согласны с решением межрайонного экономического суда — подаёте жалобу в апелляционную инстанцию. Срок — 1 месяц со дня вынесения решения.\n\n📜 <b>Правовое основание:</b>\nст. 259-265 Экономического процессуального кодекса.\n\n🏛 <b>Куда:</b>\nВ апелляционную инстанцию областного суда (определяется автоматически по региону). <b>При выборе суда укажите суд, вынесший решение.</b>\n\n📝 <b>Бот спросит:</b>\nданные подателя жалобы → ответчик → суд, вынесший решение → номер дела и дата решения → предмет спора → основания несогласия → требования жалобы → приложения.`,
   ),
   fileNameBase: 'shikoyat-iqtisodiy-apellyatsiya',
   fields: [
@@ -3031,28 +2977,8 @@ const T_IQT_APELL: TemplateDef = {
         '🏠 Адрес ответчика',
       ),
     ),
-    F.text(
-      'lower_court_name',
-      L(
-        '🏛 Қарор чиқарган суд',
-        '🏛 Qaror chiqargan sud',
-        '🏛 Суд, вынесший решение',
-      ),
-      L(
-        'Масалан: Дўстлик туманлараро иқтисодий суди',
-        "Masalan: Doʻstlik tumanlararo iqtisodiy sudi",
-        'Например: Дустликский межрайонный экономический суд',
-      ),
-    ),
-    F.text(
-      'case_number',
-      L(
-        '🔢 Иш рақами',
-        '🔢 Ish raqami',
-        '🔢 Номер дела',
-      ),
-      L('Масалан: 1304-2301/1234', "Masalan: 1304-2301/1234", 'Например: 1304-2301/1234'),
-    ),
+    // «Қарор чиқарган суд» carries the picked court; «Иш рақами» is a
+    // manual fill-in blank — neither is asked.
     F.splitDate(
       'ruling_date',
       L(
@@ -3144,7 +3070,7 @@ const T_IQT_KASS: TemplateDef = {
   ),
   description: L('—', '—', '—'),
   instructions: L(
-    `⚖️ <b>Кассация шикояти — иқтисодий иш бўйича</b>\n\n📋 <b>Қачон бериш:</b>\nАпелляция инстанцияси чиқарган ҳал қилув қароридан рози бўлмасангиз, кассация шикоят берасиз. Шикоятга банк реквизитлари (х/р, МФО, СТИР) кўрсатилади.\n\n🏛 <b>Қаерга:</b>\nВилоят суди кассация инстанциясига. <b>Суд танлашда вилоят судини танланг.</b>\n\n📝 <b>Бот сўрайди:</b>\nДаъвогар (МЧЖ/ЯТТ) маълумотлари + банк реквизитлари → жавобгар + банк реквизитлари → қуйи суд номи → иш рақами ва ҳал қилув санаси → иш мазмуни (қисқача) → норозилик асослари → давлат божи ва почта харажати → раҳбар Ф.И.Ш.`,
+    `⚖️ <b>Кассация шикояти — иқтисодий иш бўйича</b>\n\n📋 <b>Қачон бериш:</b>\nАпелляция инстанцияси чиқарган ҳал қилув қароридан рози бўлмасангиз, кассация шикоят берасиз. Шикоятга банк реквизитлари (х/р, МФО, СТИР) кўрсатилади.\n\n🏛 <b>Қаерга:</b>\nВилоят суди кассация инстанциясига. <b>Суд танлашда ҳал қилув қарорини чиқарган (қуйи) судни танланг.</b>\n\n📝 <b>Бот сўрайди:</b>\nДаъвогар (МЧЖ/ЯТТ) маълумотлари + банк реквизитлари → жавобгар + банк реквизитлари → қуйи суд номи → иш рақами ва ҳал қилув санаси → иш мазмуни (қисқача) → норозилик асослари → давлат божи ва почта харажати → раҳбар Ф.И.Ш.`,
     `⚖️ <b>Kassatsiya shikoyati — iqtisodiy ish bo‘yicha</b>\n\n📋 <b>Qachon berish:</b>\nApellyatsiya instansiyasi chiqargan hal qilish qaroridan rozi bo‘lmasangiz, kassatsiya shikoyat berasiz.\n\n🏛 <b>Qayerga:</b>\nViloyat sudi kassatsiya instansiyasiga.\n\n📝 <b>Bot so‘raydi:</b>\nDa'vogar ma'lumotlari + bank rekvizitlari → javobgar → quyi sud nomi → ish raqami va sana → ish mazmuni → norozilik asoslari → davlat boji va pochta xarajati → rahbar F.I.SH.`,
     `⚖️ <b>Кассационная жалоба — по экономическому делу</b>\n\n📋 <b>Когда подавать:</b>\nЕсли Вы не согласны с решением апелляционной инстанции — подаёте кассационную жалобу. В жалобе указываются банковские реквизиты сторон (р/с, МФО, СТИР).\n\n🏛 <b>Куда:</b>\nВ кассационную инстанцию областного суда.\n\n📝 <b>Бот спросит:</b>\nданные истца (юр.лицо/ИП) + банк → данные ответчика + банк → нижестоящий суд → номер дела и дата решения → краткое содержание дела → основания несогласия → госпошлина и почтовые расходы → ФИО руководителя.`,
   ),
@@ -3241,28 +3167,8 @@ const T_IQT_KASS: TemplateDef = {
         '🔢 СТИР ответчика',
       ),
     ),
-    F.text(
-      'lower_court_name',
-      L(
-        '🏛 Қарор чиқарган суд',
-        '🏛 Qaror chiqargan sud',
-        '🏛 Суд, вынесший решение',
-      ),
-      L(
-        'Масалан: Дўстлик туманлараро иқтисодий суди',
-        "Masalan: Doʻstlik tumanlararo iqtisodiy sudi",
-        'Например: Дустликский межрайонный экономический суд',
-      ),
-    ),
-    F.text(
-      'case_number',
-      L(
-        '🔢 Иш рақами',
-        '🔢 Ish raqami',
-        '🔢 Номер дела',
-      ),
-      L('Масалан: 1304-2301/1234', "Masalan: 1304-2301/1234", 'Например: 1304-2301/1234'),
-    ),
+    // «Қарор чиқарган суд» carries the picked court; «Иш рақами» is a
+    // manual fill-in blank — neither is asked.
     F.splitDate(
       'ruling_date',
       L(

@@ -2072,25 +2072,30 @@ const iqtSudHeaderRU = (): BlockSpec[] => [
   { text: '' },
 ];
 
+// Appeal target is the region's economic appellate panel (derived from
+// {{court_name}} = region short name) — so the court the user PICKS is
+// the lower court that issued the ruling ({{lower_court_name}}).
 const iqtAppellateHeaderCY = (): BlockSpec[] => [
-  { text: [{ text: '{{district_court_name}} иқтисодий ишлар бўйича', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: '{{court_name}} вилоят судининг иқтисодий ишлар бўйича', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
   { text: [{ text: 'апелляция инстанциясига', bold: true, italics: true }], leftIndent: HEADER_INDENT },
   { text: '' },
 ];
 
 const iqtAppellateHeaderRU = (): BlockSpec[] => [
-  { text: [{ text: 'В апелляционную инстанцию по экономическим', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
-  { text: [{ text: 'делам {{district_court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: [{ text: 'В апелляционную инстанцию по экономическим делам', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'областного суда {{court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
   { text: '' },
 ];
 
 const iqtCassationHeaderCY = (): BlockSpec[] => [
-  { text: [{ text: '{{district_court_name}}га', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: [{ text: '{{court_name}} вилоят судининг иқтисодий ишлар бўйича', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'кассация инстанциясига', bold: true, italics: true }], leftIndent: HEADER_INDENT },
   { text: '' },
 ];
 
 const iqtCassationHeaderRU = (): BlockSpec[] => [
-  { text: [{ text: 'В {{district_court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
+  { text: [{ text: 'В кассационную инстанцию по экономическим делам', bold: true, italics: true }], leftIndent: HEADER_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'областного суда {{court_name}}', bold: true, italics: true }], leftIndent: HEADER_INDENT },
   { text: '' },
 ];
 

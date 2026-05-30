@@ -354,6 +354,19 @@ export class DocumentService {
       }
     }
 
+    // "Қарор чиқарган суд" / "Иш қаралган суд" (lower_court_name /
+    // issuing_court_name) is NEVER asked — it carries the court the user
+    // already picked. "Иш рақами" (case_number) is also not asked: it's
+    // rendered as a manual fill-in blank on the printed form. Set both
+    // here so the .docx placeholders resolve regardless of template.
+    const pickedCourt = input.values.district_court_name;
+    const COURT_BLANK = '______________________________';
+    const CASE_BLANK = '____________________';
+    data.lower_court_name =
+      pickedCourt && pickedCourt !== '____________' ? pickedCourt : COURT_BLANK;
+    data.issuing_court_name = data.lower_court_name;
+    data.case_number = CASE_BLANK;
+
     // Split each single-line address into two `_line1` / `_line2`
     // sub-keys so the .docx template can render the address on two
     // visual lines (matches the printable form layout). Split point is
