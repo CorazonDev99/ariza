@@ -1707,234 +1707,213 @@ const T_JIN_3243: TemplateDef = {
 };
 
 /* ============================================================
- * 14g². JINOYAT — applicant identity block branching org vs
- *       individual. Used by the jarima-kamaytirish / muddat-tiklash
- *       templates whose «from» header differs: a natural person lists
- *       address + FIO, an organisation lists its name + «раҳбари FIO».
- *       Mirrors the iltimosnoma-ishtiroksiz plaintiff_type pattern;
- *       document.service sets `applicant_is_org`/`applicant_is_individual`
- *       flags so the static .docx can render the right variant.
+ * 14i. JINOYAT — Шикоят ариза / Илтимоснома (жарима) шаблонлари.
+ *      Тўртта алоҳида шаблон: жисмоний шахс ва ташкилот учун,
+ *      ҳар бирида жарима камайтириш ёки муддат тиклаш.
+ *
+ * Shared field groups so the 4 templates stay DRY without any
+ * runtime branching: each template hard-codes its applicant type.
  * ============================================================ */
-function jinApplicantTypeBlock(withPhone: boolean): FieldDef[] {
-  const fields: FieldDef[] = [
-    F.choice(
-      'plaintiff_type',
-      L('🏷 Ариза берувчи тури', '🏷 Ariza beruvchi turi', '🏷 Тип заявителя'),
-      [
-        {
-          value: '2',
-          label: L('👤 Жисмоний шахс', '👤 Jismoniy shaxs', '👤 Физлицо'),
-        },
-        {
-          value: '1',
-          label: L(
-            '🏢 Корхона / ташкилот',
-            '🏢 Korxona / tashkilot',
-            '🏢 Организация',
-          ),
-        },
-      ],
+
+/** Жарима тафсилотлари (Шикоят ариза учун). */
+const JARIMA_DETAIL_FIELDS: FieldDef[] = [
+  F.text(
+    'penalty_org',
+    L('🏛 Жарима солган орган', '🏛 Jarima solgan organ', '🏛 Орган, наложивший штраф'),
+    L(
+      'Масалан: Давлат солиқ инспекцияси бошлиғи, Кадастр агентлиги бўлими бошлиғи',
+      "Masalan: Davlat soliq inspeksiyasi boshlig‘i, Kadastr agentligi bo‘limi boshlig‘i",
+      'Например: начальник Государственной налоговой инспекции, начальник отдела Кадастрового агентства',
     ),
-    {
-      ...F.text(
-        'plaintiff_org_name',
-        L('🏢 Ташкилот номи', '🏢 Tashkilot nomi', '🏢 Название организации'),
-        L(
-          'Масалан: «ХАЙРИЯТ» МЧЖ',
-          'Masalan: «XAYRIYAT» MCHJ',
-          'Например: ООО «ХАЙРИЯТ»',
-        ),
-      ),
-      skipIf: (v) => v.plaintiff_type !== '1',
-      skipValue: '—',
-    },
+  ),
+  F.splitDate(
+    'order_date',
+    L('📅 Қарор санаси', '📅 Qaror sanasi', '📅 Дата постановления'),
+    { yearKey: 'order_year', monthKey: 'order_month', dayKey: 'order_day' },
+  ),
+  F.text(
+    'mjtk_article',
+    L('📑 МЖтК моддаси', '📑 MJtK moddasi', '📑 Статья МЖтК'),
+    L('Масалан: 175', 'Masalan: 175', 'Например: 175'),
+  ),
+  F.text(
+    'mjtk_part',
+    L('📑 Модда қисми', '📑 Modda qismi', '📑 Часть статьи'),
+    L('Масалан: 2', 'Masalan: 2', 'Например: 2'),
+  ),
+  F.num(
+    'base_multiplier',
+    L(
+      '🔢 БҲМ баравари (неча баравар)',
+      "🔢 BHM baravari (necha barobar)",
+      '🔢 Кратность БРВ (во сколько раз)',
+    ),
+  ),
+  F.money(
+    'fine_amount',
+    L('💰 Жарима суммаси (сўмда)', "💰 Jarima summasi (so‘mda)", '💰 Сумма штрафа (в сумах)'),
+  ),
+  NARRATIVE(
+    'reason',
+    L('📝 Камайтириш сабаби', "📝 Kamaytirish sababi", '📝 Причина для снижения'),
+    L(
+      'Масалан: оилавий шароитим оғир, ҳозирда ишламайман, банк кредити бор.',
+      "Masalan: oilaviy sharoitim og‘ir, hozirda ishlamayman, bank krediti bor.",
+      'Например: тяжёлое семейное положение, сейчас не работаю, есть кредит в банке.',
+    ),
+  ),
+];
+
+/** Муддат тиклаш тафсилотлари (Илтимоснома учун). */
+const MUDDAT_DETAIL_FIELDS: FieldDef[] = [
+  F.text(
+    'penalty_org',
+    L('🏛 Жарима солган орган', '🏛 Jarima solgan organ', '🏛 Орган, наложивший штраф'),
+    L(
+      'Масалан: Давлат солиқ инспекцияси',
+      "Masalan: Davlat soliq inspeksiyasi",
+      'Например: Государственная налоговая инспекция',
+    ),
+  ),
+  F.splitDate(
+    'order_date',
+    L('📅 Қарор санаси', '📅 Qaror sanasi', '📅 Дата постановления'),
+    { yearKey: 'order_year', monthKey: 'order_month', dayKey: 'order_day' },
+  ),
+  F.money(
+    'fine_amount',
+    L('💰 Жарима суммаси (сўмда)', "💰 Jarima summasi (so‘mda)", '💰 Сумма штрафа (в сумах)'),
+  ),
+  NARRATIVE(
+    'late_reason',
+    L(
+      '📝 Ўз вақтида олмаганлик сабаби',
+      "📝 O‘z vaqtida olmaganlik sababi",
+      '📝 Причина несвоевременного получения',
+    ),
+    L(
+      'Масалан: қарор почта орқали кеч етиб келди, командировкада эдим.',
+      "Masalan: qaror pochta orqali kech yetib keldi, komandirovkada edim.",
+      'Например: постановление поздно пришло по почте, был в командировке.',
+    ),
+  ),
+  F.splitDate(
+    'learned_date',
+    L('📅 Қарорни олган санангиз', "📅 Qarorni olgan sanangiz", '📅 Дата получения постановления'),
+    { yearKey: 'learned_year', monthKey: 'learned_month', dayKey: 'learned_day' },
+  ),
+  F.text(
+    'learned_where',
+    L('📨 Қаердан/қандай олдингиз', '📨 Qayerdan/qanday oldingiz', '📨 Откуда/как получили'),
+    L(
+      'Масалан: почта орқали, идорадан шахсан',
+      "Masalan: pochta orqali, idoradan shaxsan",
+      'Например: по почте, лично в учреждении',
+    ),
+  ),
+];
+
+/** Жисмоний шахс маълумотлари. `withPhone` — Шикоятда Тел сатри бор. */
+function indvApplicantFields(withPhone: boolean): FieldDef[] {
+  const fields: FieldDef[] = [
     F.fio('plaintiff_fio', L('👤 Ф.И.Ш.', '👤 F.I.SH.', '👤 Ф.И.О.')),
-    {
-      ...F.address(
-        'plaintiff_address',
-        L('🏠 Яшаш манзили', '🏠 Yashash manzili', '🏠 Адрес проживания'),
-      ),
-      skipIf: (v) => v.plaintiff_type !== '2',
-      skipValue: '—',
-    },
+    F.address(
+      'plaintiff_address',
+      L('🏠 Яшаш манзили', '🏠 Yashash manzili', '🏠 Адрес проживания'),
+    ),
   ];
   if (withPhone) {
-    fields.push(
-      F.phone(
-        'plaintiff_phone',
-        L('📱 Телефон', '📱 Telefon', '📱 Телефон'),
-      ),
-    );
+    fields.push(F.phone('plaintiff_phone', L('📱 Телефон', '📱 Telefon', '📱 Телефон')));
   }
   return fields;
 }
 
-/* ============================================================
- * 14i. JINOYAT — Шикоят ариза: маъмурий жаримани камайтириш
- *      (complaint to the investigative judge asking to reduce an
- *      administrative fine because the person/organisation can't pay).
- * ============================================================ */
+/** Ташкилот маълумотлари. `withPhone` — Шикоятда Тел сатри бор. */
+function orgApplicantFields(withPhone: boolean): FieldDef[] {
+  const fields: FieldDef[] = [
+    F.text(
+      'plaintiff_org_name',
+      L('🏢 Ташкилот номи', '🏢 Tashkilot nomi', '🏢 Название организации'),
+      L('Масалан: «ХАЙРИЯТ» МЧЖ', 'Masalan: «XAYRIYAT» MCHJ', 'Например: ООО «ХАЙРИЯТ»'),
+    ),
+    F.fio('plaintiff_fio', L('👤 Раҳбар Ф.И.Ш.', '👤 Rahbar F.I.SH.', '👤 Ф.И.О. руководителя')),
+  ];
+  if (withPhone) {
+    fields.push(F.phone('plaintiff_phone', L('📱 Телефон', '📱 Telefon', '📱 Телефон')));
+  }
+  return fields;
+}
+
+const JARIMA_INSTRUCTIONS = L(
+  `💸 <b>Шикоят ариза — маъмурий жаримани камайтириш</b>\n\n📋 <b>Қачон бериш:</b>\nСизга (ёки ташкилотингизга) маъмурий жарима тайинланган, лекин уни тўлиқ тўлашга моддий имкониятингиз йўқ (оилавий шароит оғир, кредит қарзи ва ҳ.к.).\n\n🏛 <b>Қаерга:</b>\nЖиноят ишлари бўйича туман/шаҳар судининг тергов судьясига.\n\n📎 <b>Илова:</b>\nПаспорт, жарима тўғрисидаги қарор, оилавий шароит далолатномаси, иш ҳақи маълумотномаси ва камайтириш учун асос бўладиган бошқа ҳужжатлар.`,
+  `💸 <b>Shikoyat ariza — ma'muriy jarimani kamaytirish</b>\n\n📋 <b>Qachon berish:</b>\nSizga (yoki tashkilotingizga) ma'muriy jarima tayinlangan, lekin uni to‘liq to‘lashga moddiy imkoniyatingiz yo‘q (oilaviy sharoit og‘ir, kredit qarzi va h.k.).\n\n🏛 <b>Qayerga:</b>\nJinoyat ishlari bo‘yicha tuman/shahar sudining tergov sudyasiga.\n\n📎 <b>Ilova:</b>\nPasport, jarima to‘g‘risidagi qaror, oilaviy sharoit dalolatnomasi, ish haqi ma'lumotnomasi va kamaytirish uchun asos bo‘ladigan boshqa hujjatlar.`,
+  `💸 <b>Жалоба — уменьшение административного штрафа</b>\n\n📋 <b>Когда подавать:</b>\nВам (или вашей организации) назначен административный штраф, но нет материальной возможности оплатить его полностью (тяжёлое семейное положение, кредитная задолженность и т.п.).\n\n🏛 <b>Куда:</b>\nСледственному судье уголовного суда района/города.\n\n📎 <b>Приложение:</b>\nПаспорт, постановление о штрафе, справка о семейном положении, справка о доходах и иные документы — основание для снижения.`,
+);
+
+const MUDDAT_INSTRUCTIONS = L(
+  `⏳ <b>Илтимоснома — шикоят бериш муддатини тиклаш</b>\n\n📋 <b>Қачон бериш:</b>\nМаъмурий жарима қарори чиққанини кеч билдингиз ёки уни ўз вақтида олмадингиз, шу сабабли шикоят бериш муддати ўтиб кетган.\n\n🏛 <b>Қаерга:</b>\nЖиноят ишлари бўйича туман/шаҳар судининг тергов судьясига.\n\n📎 <b>Илова:</b>\nПаспорт, жарима тўғрисидаги қарор, муддат ўтиб кетганлиги сабабини тасдиқловчи маълумотнома.`,
+  `⏳ <b>Iltimosnoma — shikoyat berish muddatini tiklash</b>\n\n📋 <b>Qachon berish:</b>\nMa'muriy jarima qarori chiqqanini kech bildingiz yoki uni o‘z vaqtida olmadingiz, shu sababli shikoyat berish muddati o‘tib ketgan.\n\n🏛 <b>Qayerga:</b>\nJinoyat ishlari bo‘yicha tuman/shahar sudining tergov sudyasiga.\n\n📎 <b>Ilova:</b>\nPasport, jarima to‘g‘risidagi qaror, muddat o‘tib ketganligi sababini tasdiqlovchi ma'lumotnoma.`,
+  `⏳ <b>Ходатайство — восстановление срока подачи жалобы</b>\n\n📋 <b>Когда подавать:</b>\nВы поздно узнали о постановлении об административном штрафе или не получили его вовремя, из-за чего срок подачи жалобы истёк.\n\n🏛 <b>Куда:</b>\nСледственному судье уголовного суда района/города.\n\n📎 <b>Приложение:</b>\nПаспорт, постановление о штрафе, справка, подтверждающая причину пропуска срока.`,
+);
+
+/* 1. Шикоят ариза — жаримани камайтириш (жисмоний шахс) */
 const T_JIN_JARIMA: TemplateDef = {
   code: 'shikoyat-jinoyat-jarima',
   category: 'shikoyat',
   courtTypeCode: 'jinoyat',
-  title: L(
-    '💸 Жаримани камайтириш',
-    "💸 Jarimani kamaytirish",
-    '💸 Уменьшение штрафа',
-  ),
-  subtitle: L(
-    'қўлланилган маъмурий жаримани камайтириш',
-    "qo‘llanilgan ma'muriy jarimani kamaytirish",
-    'снижение наложенного административного штрафа',
-  ),
+  title: L('💸 Жаримани камайтириш', "💸 Jarimani kamaytirish", '💸 Уменьшение штрафа'),
+  subtitle: L('жисмоний шахс учун', "jismoniy shaxs uchun", 'для физлица'),
   description: L('—', '—', '—'),
-  instructions: L(
-    `💸 <b>Шикоят ариза — маъмурий жаримани камайтириш</b>\n\n📋 <b>Қачон бериш:</b>\nСизга (ёки ташкилотингизга) маъмурий жарима тайинланган, лекин уни тўлиқ тўлашга моддий имкониятингиз йўқ (оилавий шароит оғир, кредит қарзи ва ҳ.к.).\n\n🏛 <b>Қаерга:</b>\nЖиноят ишлари бўйича туман/шаҳар судининг тергов судьясига.\n\n📎 <b>Илова:</b>\nПаспорт, жарима тўғрисидаги қарор, оилавий шароит далолатномаси, иш ҳақи маълумотномаси ва камайтириш учун асос бўладиган бошқа ҳужжатлар.\n\n📝 <b>Бот сўрайди:</b>\nАриза берувчи тури → маълумотлар → жарима солган орган → қарор санаси → МЖтК моддаси/қисми → БҲМ баравари ва жарима суммаси → камайтириш сабаби.`,
-    `💸 <b>Shikoyat ariza — ma'muriy jarimani kamaytirish</b>\n\n📋 <b>Qachon berish:</b>\nSizga (yoki tashkilotingizga) ma'muriy jarima tayinlangan, lekin uni to‘liq to‘lashga moddiy imkoniyatingiz yo‘q (oilaviy sharoit og‘ir, kredit qarzi va h.k.).\n\n🏛 <b>Qayerga:</b>\nJinoyat ishlari bo‘yicha tuman/shahar sudining tergov sudyasiga.\n\n📎 <b>Ilova:</b>\nPasport, jarima to‘g‘risidagi qaror, oilaviy sharoit dalolatnomasi, ish haqi ma'lumotnomasi va kamaytirish uchun asos bo‘ladigan boshqa hujjatlar.\n\n📝 <b>Bot so‘raydi:</b>\nAriza beruvchi turi → ma'lumotlar → jarima solgan organ → qaror sanasi → MJtK moddasi/qismi → BHM baravari va jarima summasi → kamaytirish sababi.`,
-    `💸 <b>Жалоба — уменьшение административного штрафа</b>\n\n📋 <b>Когда подавать:</b>\nВам (или вашей организации) назначен административный штраф, но нет материальной возможности оплатить его полностью (тяжёлое семейное положение, кредитная задолженность и т.п.).\n\n🏛 <b>Куда:</b>\nСледственному судье уголовного суда района/города.\n\n📎 <b>Приложение:</b>\nПаспорт, постановление о штрафе, справка о семейном положении, справка о доходах и иные документы — основание для снижения.\n\n📝 <b>Бот спросит:</b>\nтип заявителя → данные → орган, наложивший штраф → дата постановления → статья/часть МЖтК → кратность БРВ и сумма штрафа → причина для снижения.`,
-  ),
+  instructions: JARIMA_INSTRUCTIONS,
   fileNameBase: 'shikoyat-jinoyat-jarima',
-  fields: [
-    ...jinApplicantTypeBlock(true),
-    F.text(
-      'penalty_org',
-      L(
-        '🏛 Жарима солган орган',
-        '🏛 Jarima solgan organ',
-        '🏛 Орган, наложивший штраф',
-      ),
-      L(
-        'Масалан: Давлат солиқ инспекцияси бошлиғи, Кадастр агентлиги бўлими бошлиғи',
-        "Masalan: Davlat soliq inspeksiyasi boshlig‘i, Kadastr agentligi bo‘limi boshlig‘i",
-        'Например: начальник Государственной налоговой инспекции, начальник отдела Кадастрового агентства',
-      ),
-    ),
-    F.splitDate(
-      'order_date',
-      L('📅 Қарор санаси', '📅 Qaror sanasi', '📅 Дата постановления'),
-      { yearKey: 'order_year', monthKey: 'order_month', dayKey: 'order_day' },
-    ),
-    F.text(
-      'mjtk_article',
-      L('📑 МЖтК моддаси', '📑 MJtK moddasi', '📑 Статья МЖтК'),
-      L('Масалан: 175', 'Masalan: 175', 'Например: 175'),
-    ),
-    F.text(
-      'mjtk_part',
-      L('📑 Модда қисми', '📑 Modda qismi', '📑 Часть статьи'),
-      L('Масалан: 2', 'Masalan: 2', 'Например: 2'),
-    ),
-    F.num(
-      'base_multiplier',
-      L(
-        '🔢 БҲМ баравари (неча баравар)',
-        "🔢 BHM baravari (necha barobar)",
-        '🔢 Кратность БРВ (во сколько раз)',
-      ),
-    ),
-    F.money(
-      'fine_amount',
-      L('💰 Жарима суммаси (сўмда)', "💰 Jarima summasi (so‘mda)", '💰 Сумма штрафа (в сумах)'),
-    ),
-    NARRATIVE(
-      'reason',
-      L(
-        '📝 Камайтириш сабаби',
-        "📝 Kamaytirish sababi",
-        '📝 Причина для снижения',
-      ),
-      L(
-        'Масалан: оилавий шароитим оғир, ҳозирда ишламайман, банк кредити бор.',
-        "Masalan: oilaviy sharoitim og‘ir, hozirda ishlamayman, bank krediti bor.",
-        'Например: тяжёлое семейное положение, сейчас не работаю, есть кредит в банке.',
-      ),
-    ),
-  ],
+  fields: [...indvApplicantFields(true), ...JARIMA_DETAIL_FIELDS],
 };
 
-/* ============================================================
- * 14j. JINOYAT — Илтимоснома: шикоят бериш муддатини тиклаш
- *      (petition to the investigative judge to restore the missed
- *      deadline for complaining against an administrative-fine order).
- * ============================================================ */
+/* 2. Шикоят ариза — жаримани камайтириш (ташкилот) */
+const T_JIN_JARIMA_ORG: TemplateDef = {
+  code: 'shikoyat-jinoyat-jarima-org',
+  category: 'shikoyat',
+  courtTypeCode: 'jinoyat',
+  title: L(
+    '💸 Жаримани камайтириш (ташкилот)',
+    "💸 Jarimani kamaytirish (tashkilot)",
+    '💸 Уменьшение штрафа (организация)',
+  ),
+  subtitle: L('корхона/ташкилот учун', "korxona/tashkilot uchun", 'для организации'),
+  description: L('—', '—', '—'),
+  instructions: JARIMA_INSTRUCTIONS,
+  fileNameBase: 'shikoyat-jinoyat-jarima-org',
+  fields: [...orgApplicantFields(true), ...JARIMA_DETAIL_FIELDS],
+};
+
+/* 3. Илтимоснома — шикоят муддатини тиклаш (жисмоний шахс) */
 const T_JIN_MUDDAT: TemplateDef = {
   code: 'iltimosnoma-jinoyat-muddat',
   category: 'iltimosnoma',
   courtTypeCode: 'jinoyat',
-  title: L(
-    '⏳ Шикоят муддатини тиклаш',
-    "⏳ Shikoyat muddatini tiklash",
-    '⏳ Восстановить срок жалобы',
-  ),
-  subtitle: L(
-    'жарима қарори устидан шикоят муддати',
-    "jarima qarori ustidan shikoyat muddati",
-    'срок жалобы на постановление о штрафе',
-  ),
+  title: L('⏳ Шикоят муддатини тиклаш', "⏳ Shikoyat muddatini tiklash", '⏳ Восстановить срок жалобы'),
+  subtitle: L('жисмоний шахс учун', "jismoniy shaxs uchun", 'для физлица'),
   description: L('—', '—', '—'),
-  instructions: L(
-    `⏳ <b>Илтимоснома — шикоят бериш муддатини тиклаш</b>\n\n📋 <b>Қачон бериш:</b>\nМаъмурий жарима қарори чиққанини кеч билдингиз ёки уни ўз вақтида олмадингиз, шу сабабли шикоят бериш муддати ўтиб кетган.\n\n🏛 <b>Қаерга:</b>\nЖиноят ишлари бўйича туман/шаҳар судининг тергов судьясига.\n\n📎 <b>Илова:</b>\nПаспорт, жарима тўғрисидаги қарор, муддат ўтиб кетганлиги сабабини тасдиқловчи маълумотнома.\n\n📝 <b>Бот сўрайди:</b>\nАриза берувчи тури → маълумотлар → жарима солган орган → қарор санаси → жарима суммаси → ўз вақтида олмаганлик сабаби → қарорни қачон ва қаердан олганлигингиз.`,
-    `⏳ <b>Iltimosnoma — shikoyat berish muddatini tiklash</b>\n\n📋 <b>Qachon berish:</b>\nMa'muriy jarima qarori chiqqanini kech bildingiz yoki uni o‘z vaqtida olmadingiz, shu sababli shikoyat berish muddati o‘tib ketgan.\n\n🏛 <b>Qayerga:</b>\nJinoyat ishlari bo‘yicha tuman/shahar sudining tergov sudyasiga.\n\n📎 <b>Ilova:</b>\nPasport, jarima to‘g‘risidagi qaror, muddat o‘tib ketganligi sababini tasdiqlovchi ma'lumotnoma.\n\n📝 <b>Bot so‘raydi:</b>\nAriza beruvchi turi → ma'lumotlar → jarima solgan organ → qaror sanasi → jarima summasi → o‘z vaqtida olmaganlik sababi → qarorni qachon va qayerdan olganligingiz.`,
-    `⏳ <b>Ходатайство — восстановление срока подачи жалобы</b>\n\n📋 <b>Когда подавать:</b>\nВы поздно узнали о постановлении об административном штрафе или не получили его вовремя, из-за чего срок подачи жалобы истёк.\n\n🏛 <b>Куда:</b>\nСледственному судье уголовного суда района/города.\n\n📎 <b>Приложение:</b>\nПаспорт, постановление о штрафе, справка, подтверждающая причину пропуска срока.\n\n📝 <b>Бот спросит:</b>\nтип заявителя → данные → орган, наложивший штраф → дата постановления → сумма штрафа → причина несвоевременного получения → когда и где получили постановление.`,
-  ),
+  instructions: MUDDAT_INSTRUCTIONS,
   fileNameBase: 'iltimosnoma-jinoyat-muddat',
-  fields: [
-    ...jinApplicantTypeBlock(false),
-    F.text(
-      'penalty_org',
-      L(
-        '🏛 Жарима солган орган',
-        '🏛 Jarima solgan organ',
-        '🏛 Орган, наложивший штраф',
-      ),
-      L(
-        'Масалан: Давлат солиқ инспекцияси',
-        "Masalan: Davlat soliq inspeksiyasi",
-        'Например: Государственная налоговая инспекция',
-      ),
-    ),
-    F.splitDate(
-      'order_date',
-      L('📅 Қарор санаси', '📅 Qaror sanasi', '📅 Дата постановления'),
-      { yearKey: 'order_year', monthKey: 'order_month', dayKey: 'order_day' },
-    ),
-    F.money(
-      'fine_amount',
-      L('💰 Жарима суммаси (сўмда)', "💰 Jarima summasi (so‘mda)", '💰 Сумма штрафа (в сумах)'),
-    ),
-    NARRATIVE(
-      'late_reason',
-      L(
-        '📝 Ўз вақтида олмаганлик сабаби',
-        "📝 O‘z vaqtida olmaganlik sababi",
-        '📝 Причина несвоевременного получения',
-      ),
-      L(
-        'Масалан: қарор почта орқали кеч етиб келди, командировкада эдим.',
-        "Masalan: qaror pochta orqali kech yetib keldi, komandirovkada edim.",
-        'Например: постановление поздно пришло по почте, был в командировке.',
-      ),
-    ),
-    F.splitDate(
-      'learned_date',
-      L('📅 Қарорни олган санангиз', "📅 Qarorni olgan sanangiz", '📅 Дата получения постановления'),
-      { yearKey: 'learned_year', monthKey: 'learned_month', dayKey: 'learned_day' },
-    ),
-    F.text(
-      'learned_where',
-      L(
-        '📨 Қаердан/қандай олдингиз',
-        '📨 Qayerdan/qanday oldingiz',
-        '📨 Откуда/как получили',
-      ),
-      L(
-        'Масалан: почта орқали, идорадан шахсан',
-        "Masalan: pochta orqali, idoradan shaxsan",
-        'Например: по почте, лично в учреждении',
-      ),
-    ),
-  ],
+  fields: [...indvApplicantFields(false), ...MUDDAT_DETAIL_FIELDS],
+};
+
+/* 4. Илтимоснома — шикоят муддатини тиклаш (ташкилот) */
+const T_JIN_MUDDAT_ORG: TemplateDef = {
+  code: 'iltimosnoma-jinoyat-muddat-org',
+  category: 'iltimosnoma',
+  courtTypeCode: 'jinoyat',
+  title: L(
+    '⏳ Шикоят муддатини тиклаш (ташкилот)',
+    "⏳ Shikoyat muddatini tiklash (tashkilot)",
+    '⏳ Восстановить срок жалобы (организация)',
+  ),
+  subtitle: L('корхона/ташкилот учун', "korxona/tashkilot uchun", 'для организации'),
+  description: L('—', '—', '—'),
+  instructions: MUDDAT_INSTRUCTIONS,
+  fileNameBase: 'iltimosnoma-jinoyat-muddat-org',
+  fields: [...orgApplicantFields(false), ...MUDDAT_DETAIL_FIELDS],
 };
 
 /* ============================================================
@@ -3682,7 +3661,9 @@ export const TEMPLATES: TemplateDef[] = [
   T_JIN_APPEAL,
   T_JIN_3243,
   T_JIN_JARIMA,
+  T_JIN_JARIMA_ORG,
   T_JIN_MUDDAT,
+  T_JIN_MUDDAT_ORG,
   T_MAM_MANSABDOR,
   T_MAM_QAROR_BEKOR,
   T_MAM_GOSHLINA,

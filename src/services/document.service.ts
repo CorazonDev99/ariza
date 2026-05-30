@@ -383,19 +383,6 @@ export class DocumentService {
       enrichIltimosnomaData(data, input.values, input.locale);
     }
 
-    // Jinoyat jarima-kamaytirish / muddat-tiklash: the «from» header and
-    // the signature differ for an organisation vs a natural person. Set
-    // boolean flags so the static .docx renders the right variant via
-    // `{{#applicant_is_org}}` / `{{#applicant_is_individual}}` blocks.
-    if (
-      input.templateCode === 'shikoyat-jinoyat-jarima' ||
-      input.templateCode === 'iltimosnoma-jinoyat-muddat'
-    ) {
-      const isOrg = input.values.plaintiff_type === '1';
-      data.applicant_is_org = isOrg ? 'yes' : '';
-      data.applicant_is_individual = isOrg ? '' : 'yes';
-    }
-
     // Jinoyat (criminal-court) templates: translate the `case_type`
     // choice ('jinoyat' / 'mamuriy') into a localized noun phrase so
     // the body sentence reads naturally regardless of selection.

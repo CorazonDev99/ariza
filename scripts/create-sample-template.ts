@@ -2658,55 +2658,55 @@ const T_JIN_3243_RU: BlockSpec[] = [
  * Template — Жиноят: Шикоят ариза (жаримани камайтириш) &
  *            Илтимоснома (шикоят муддатини тиклаш)
  *
- * Both address the tergov-sudya and have an applicant «from» block that
- * branches org vs individual. document.service sets
- * `applicant_is_org` / `applicant_is_individual`; the standalone
- * `{{#…}}` / `{{/…}}` paragraphs are stripped by paragraphLoop:true so
- * only the matching variant survives.
+ * Тўртта алоҳида статик шаблон: жисмоний шахс / ташкилот учун.
+ * Ҳеч қандай runtime шартланиш йўқ — ҳар бир шаблон ўз «from»
+ * блоки ва имзосини тўғридан-тўғри ёзади.
  * ============================================================ */
 
-/** Applicant «from» block (right column) with org/individual variants.
- *  `withPhone` adds a «Тел:» line (Шикоят has it, Илтимоснома does not). */
-const jinApplicantPartyBlockCY = (withPhone: boolean): BlockSpec[] => [
-  { text: '{{#applicant_is_individual}}' },
+/** Жисмоний шахс «from» блоки (ўнг устун). `withPhone` — Тел сатри. */
+const indvPartyBlockCY = (withPhone: boolean): BlockSpec[] => [
   { text: [{ text: '{{plaintiff_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
   { text: [{ text: '{{plaintiff_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
   { text: [{ text: '{{plaintiff_fio}}', bold: true, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
   { text: [{ text: 'томонидан', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
-  { text: '{{/applicant_is_individual}}' },
-  { text: '{{#applicant_is_org}}' },
-  { text: [{ text: '{{plaintiff_org_name}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
-  { text: [{ text: 'раҳбари {{plaintiff_fio}}', bold: true, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
-  { text: [{ text: 'томонидан', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
-  { text: '{{/applicant_is_org}}' },
   ...(withPhone
     ? [{ text: [{ text: 'Тел: {{plaintiff_phone}}', bold: true, italics: true }], leftIndent: PARTY_INDENT } as BlockSpec]
     : []),
   { text: '' },
 ];
 
-const jinApplicantPartyBlockRU = (withPhone: boolean): BlockSpec[] => [
-  { text: '{{#applicant_is_individual}}' },
+const indvPartyBlockRU = (withPhone: boolean): BlockSpec[] => [
   { text: [{ text: '{{plaintiff_address_line1}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
   { text: [{ text: '{{plaintiff_address_line2}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
   { text: [{ text: 'от {{plaintiff_fio}}', bold: true, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
-  { text: '{{/applicant_is_individual}}' },
-  { text: '{{#applicant_is_org}}' },
-  { text: [{ text: '{{plaintiff_org_name}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
-  { text: [{ text: 'в лице руководителя {{plaintiff_fio}}', bold: true, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
-  { text: '{{/applicant_is_org}}' },
   ...(withPhone
     ? [{ text: [{ text: 'Тел: {{plaintiff_phone}}', bold: true, italics: true }], leftIndent: PARTY_INDENT } as BlockSpec]
     : []),
   { text: '' },
 ];
 
-/** Signature block branching org («Раҳбар: … муҳр») vs individual. */
-const jinApplicantSignatureCY = (): BlockSpec[] => [
-  { text: '{{#applicant_is_individual}}' },
-  ...signatureBlock('Аризачи:'),
-  { text: '{{/applicant_is_individual}}' },
-  { text: '{{#applicant_is_org}}' },
+/** Ташкилот «from» блоки: ном + раҳбари ФИШ. */
+const orgPartyBlockCY = (withPhone: boolean): BlockSpec[] => [
+  { text: [{ text: '{{plaintiff_org_name}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'раҳбари {{plaintiff_fio}}', bold: true, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'томонидан', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  ...(withPhone
+    ? [{ text: [{ text: 'Тел: {{plaintiff_phone}}', bold: true, italics: true }], leftIndent: PARTY_INDENT } as BlockSpec]
+    : []),
+  { text: '' },
+];
+
+const orgPartyBlockRU = (withPhone: boolean): BlockSpec[] => [
+  { text: [{ text: '{{plaintiff_org_name}}', italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  { text: [{ text: 'в лице руководителя {{plaintiff_fio}}', bold: true, italics: true }], leftIndent: PARTY_INDENT, spaceAfter: TIGHT },
+  ...(withPhone
+    ? [{ text: [{ text: 'Тел: {{plaintiff_phone}}', bold: true, italics: true }], leftIndent: PARTY_INDENT } as BlockSpec]
+    : []),
+  { text: '' },
+];
+
+/** Ташкилот имзоси: «Раҳбар: … (имзо ва муҳр) ФИШ». */
+const orgSignatureBlockCY = (): BlockSpec[] => [
   { text: '' },
   { text: '' },
   { text: [
@@ -2714,14 +2714,9 @@ const jinApplicantSignatureCY = (): BlockSpec[] => [
     { text: `${SIGNATURE_GAP}(имзо ва муҳр)${BLOCK_GAP}` },
     { text: '{{plaintiff_fio}}', bold: true },
   ] },
-  { text: '{{/applicant_is_org}}' },
 ];
 
-const jinApplicantSignatureRU = (): BlockSpec[] => [
-  { text: '{{#applicant_is_individual}}' },
-  ...signatureBlockRU('Заявитель:'),
-  { text: '{{/applicant_is_individual}}' },
-  { text: '{{#applicant_is_org}}' },
+const orgSignatureBlockRU = (): BlockSpec[] => [
   { text: '' },
   { text: '' },
   { text: [
@@ -2729,12 +2724,10 @@ const jinApplicantSignatureRU = (): BlockSpec[] => [
     { text: `${SIGNATURE_GAP}(подпись и печать)${BLOCK_GAP}` },
     { text: '{{plaintiff_fio}}', bold: true },
   ] },
-  { text: '{{/applicant_is_org}}' },
 ];
 
-const T_JIN_JARIMA_CY: BlockSpec[] = [
-  ...jinTergovHeaderCY(),
-  ...jinApplicantPartyBlockCY(true),
+/** Шикоят ариза (жарима) — гавда: сарлавҳа + матн + илова (party/имзо'сиз). */
+const jarimaBodyCY = (): BlockSpec[] => [
   ...titleBlock('Ш И К О Я Т   А Р И З А', 'қўлланилган маъмурий жаримани камайтириш тўғрисида'),
   body('Мазмуни шундан иборатки, {{penalty_org}} томонидан {{order_day}}.{{order_month}}.{{order_year}} йил куни Ўзбекистон Республикаси МЖтКнинг {{mjtk_article}}-моддаси {{mjtk_part}}-қисми билан базавий ҳисоблаш миқдорининг {{base_multiplier}} баравари миқдорида {{fine_amount}} сўм жарима тайинланган.'),
   body('Ушбу жаримани тўлашга имкониятим йўқ, сабаби: {{reason}}'),
@@ -2749,12 +2742,9 @@ const T_JIN_JARIMA_CY: BlockSpec[] = [
     'Маҳалладан оилавий шароит ҳақида далолатнома;',
     'Жаримани камайтириш учун асос бўладиган бошқа ҳужжатлар.',
   ]),
-  ...jinApplicantSignatureCY(),
 ];
 
-const T_JIN_JARIMA_RU: BlockSpec[] = [
-  ...jinTergovHeaderRU(),
-  ...jinApplicantPartyBlockRU(true),
+const jarimaBodyRU = (): BlockSpec[] => [
   ...titleBlock('Ж А Л О Б А', 'об уменьшении наложенного административного штрафа'),
   body('Настоящим сообщаю, что {{penalty_org}} {{order_day}}.{{order_month}}.{{order_year}} в отношении меня вынесено постановление о наложении штрафа по статье {{mjtk_article}} части {{mjtk_part}} МЖтК Республики Узбекистан в размере {{base_multiplier}}-кратной базовой расчётной величины, что составляет {{fine_amount}} сум.'),
   body('У меня нет возможности оплатить данный штраф, причина: {{reason}}'),
@@ -2769,12 +2759,10 @@ const T_JIN_JARIMA_RU: BlockSpec[] = [
     'Справка из махалли о семейном положении;',
     'Иные документы — основание для снижения штрафа.',
   ]),
-  ...jinApplicantSignatureRU(),
 ];
 
-const T_JIN_MUDDAT_CY: BlockSpec[] = [
-  ...jinTergovHeaderCY(),
-  ...jinApplicantPartyBlockCY(false),
+/** Илтимоснома (муддат тиклаш) — гавда. */
+const muddatBodyCY = (): BlockSpec[] => [
   ...titleBlock('И Л Т И М О С Н О М А', 'шикоят бериш муддатини тиклаш тўғрисида'),
   body('Мазмуни шундан иборатки, {{penalty_org}} томонидан {{order_day}}.{{order_month}}.{{order_year}} йил куни менга нисбатан {{fine_amount}} сўм маъмурий жарима қўллаш тўғрисида қарор қабул қилинган.'),
   body('Ушбу қарорни {{late_reason}} шу сабабли ўз вақтида олмаганман.'),
@@ -2786,12 +2774,9 @@ const T_JIN_MUDDAT_CY: BlockSpec[] = [
     'Жарима солиш тўғрисидаги қарор;',
     'Нима сабабдан шикоят бериш муддати ўтиб кетганлиги ҳақида маълумотнома.',
   ]),
-  ...jinApplicantSignatureCY(),
 ];
 
-const T_JIN_MUDDAT_RU: BlockSpec[] = [
-  ...jinTergovHeaderRU(),
-  ...jinApplicantPartyBlockRU(false),
+const muddatBodyRU = (): BlockSpec[] => [
   ...titleBlock('Х О Д А Т А Й С Т В О', 'о восстановлении срока подачи жалобы'),
   body('Настоящим сообщаю, что {{penalty_org}} {{order_day}}.{{order_month}}.{{order_year}} в отношении меня вынесено постановление о наложении административного штрафа в размере {{fine_amount}} сум.'),
   body('Данное постановление я не получил(а) вовремя по причине: {{late_reason}}'),
@@ -2803,7 +2788,62 @@ const T_JIN_MUDDAT_RU: BlockSpec[] = [
     'Постановление о наложении штрафа;',
     'Справка о причине пропуска срока подачи жалобы.',
   ]),
-  ...jinApplicantSignatureRU(),
+];
+
+// 1. Шикоят ариза — жарима (жисмоний шахс)
+const T_JIN_JARIMA_CY: BlockSpec[] = [
+  ...jinTergovHeaderCY(),
+  ...indvPartyBlockCY(true),
+  ...jarimaBodyCY(),
+  ...signatureBlock('Аризачи:'),
+];
+const T_JIN_JARIMA_RU: BlockSpec[] = [
+  ...jinTergovHeaderRU(),
+  ...indvPartyBlockRU(true),
+  ...jarimaBodyRU(),
+  ...signatureBlockRU('Заявитель:'),
+];
+
+// 2. Шикоят ариза — жарима (ташкилот)
+const T_JIN_JARIMA_ORG_CY: BlockSpec[] = [
+  ...jinTergovHeaderCY(),
+  ...orgPartyBlockCY(true),
+  ...jarimaBodyCY(),
+  ...orgSignatureBlockCY(),
+];
+const T_JIN_JARIMA_ORG_RU: BlockSpec[] = [
+  ...jinTergovHeaderRU(),
+  ...orgPartyBlockRU(true),
+  ...jarimaBodyRU(),
+  ...orgSignatureBlockRU(),
+];
+
+// 3. Илтимоснома — муддат тиклаш (жисмоний шахс)
+const T_JIN_MUDDAT_CY: BlockSpec[] = [
+  ...jinTergovHeaderCY(),
+  ...indvPartyBlockCY(false),
+  ...muddatBodyCY(),
+  ...signatureBlock('Аризачи:'),
+];
+const T_JIN_MUDDAT_RU: BlockSpec[] = [
+  ...jinTergovHeaderRU(),
+  ...indvPartyBlockRU(false),
+  ...muddatBodyRU(),
+  ...signatureBlockRU('Заявитель:'),
+];
+
+// 4. Илтимоснома — муддат тиклаш (ташкилот)
+const T_JIN_MUDDAT_ORG_CY: BlockSpec[] = [
+  ...jinTergovHeaderCY(),
+  ...orgPartyBlockCY(false),
+  ...muddatBodyCY(),
+  ...orgSignatureBlockCY(),
+];
+const T_JIN_MUDDAT_ORG_RU: BlockSpec[] = [
+  ...jinTergovHeaderRU(),
+  ...orgPartyBlockRU(false),
+  ...muddatBodyRU(),
+  ...orgSignatureBlockRU(),
 ];
 
 /* ============================================================ */
@@ -2918,10 +2958,20 @@ const BUILDERS: Record<string, Record<Locale, BlockSpec[]>> = {
     uz_latin: deriveLatin(T_JIN_JARIMA_CY),
     ru: T_JIN_JARIMA_RU,
   },
+  'shikoyat-jinoyat-jarima-org': {
+    uz_cyrillic: T_JIN_JARIMA_ORG_CY,
+    uz_latin: deriveLatin(T_JIN_JARIMA_ORG_CY),
+    ru: T_JIN_JARIMA_ORG_RU,
+  },
   'iltimosnoma-jinoyat-muddat': {
     uz_cyrillic: T_JIN_MUDDAT_CY,
     uz_latin: deriveLatin(T_JIN_MUDDAT_CY),
     ru: T_JIN_MUDDAT_RU,
+  },
+  'iltimosnoma-jinoyat-muddat-org': {
+    uz_cyrillic: T_JIN_MUDDAT_ORG_CY,
+    uz_latin: deriveLatin(T_JIN_MUDDAT_ORG_CY),
+    ru: T_JIN_MUDDAT_ORG_RU,
   },
   'ariza-mamuriy-mansabdor': {
     uz_cyrillic: T_MAM_MANSABDOR_CY,
