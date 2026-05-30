@@ -6,7 +6,7 @@ import { api, type CourtType } from '../api';
 import { useBackTo, type PageCtx } from '../App';
 import { Page } from '../components/Page';
 import { List, ListItem } from '../components/List';
-import { Loader, ErrorBox } from '../components/Loader';
+import { SkeletonList, ErrorBox } from '../components/Loader';
 
 export function ArizaTypePage(ctx: PageCtx) {
   const nav = useNavigate();
@@ -30,7 +30,7 @@ export function ArizaTypePage(ctx: PageCtx) {
   return (
     <Page title={t(ctx.locale, 'home.action.new')} subtitle={t(ctx.locale, 'wiz.pick-court-type')}>
       {error && <ErrorBox message={error} />}
-      {!types && !error && <Loader label={t(ctx.locale, 'loading')} />}
+      {!types && !error && <SkeletonList />}
       {types && (
         <List>
           {types.map((c) => (

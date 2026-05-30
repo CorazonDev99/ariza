@@ -6,7 +6,7 @@ import { api, type TemplateSummary } from '../api';
 import { useBackTo, type PageCtx } from '../App';
 import { Page } from '../components/Page';
 import { List, ListItem } from '../components/List';
-import { Loader, ErrorBox } from '../components/Loader';
+import { SkeletonList, ErrorBox } from '../components/Loader';
 
 export function GuideTemplatePage(ctx: PageCtx) {
   const nav = useNavigate();
@@ -34,7 +34,7 @@ export function GuideTemplatePage(ctx: PageCtx) {
   return (
     <Page title={t(ctx.locale, 'guide.title')} subtitle={t(ctx.locale, 'guide.pick-tpl')}>
       {error && <ErrorBox message={error} />}
-      {!tpls && !error && <Loader label={t(ctx.locale, 'loading')} />}
+      {!tpls && !error && <SkeletonList />}
       {tpls && (
         <List>
           {tpls.map((tpl) => (

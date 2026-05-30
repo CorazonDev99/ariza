@@ -6,7 +6,7 @@ import { api, type Region } from '../api';
 import { useBackTo, type PageCtx } from '../App';
 import { Page } from '../components/Page';
 import { List, ListItem } from '../components/List';
-import { Loader, ErrorBox } from '../components/Loader';
+import { SkeletonList, ErrorBox } from '../components/Loader';
 
 export function ArizaRegionPage(ctx: PageCtx) {
   const nav = useNavigate();
@@ -34,7 +34,7 @@ export function ArizaRegionPage(ctx: PageCtx) {
   return (
     <Page title={t(ctx.locale, 'wiz.pick-region')}>
       {error && <ErrorBox message={error} />}
-      {!regions && !error && <Loader label={t(ctx.locale, 'loading')} />}
+      {!regions && !error && <SkeletonList />}
       {regions && (
         <List>
           {regions.map((r) => (

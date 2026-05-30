@@ -6,7 +6,7 @@ import { api, type CourtType } from '../api';
 import { useBackTo, type PageCtx } from '../App';
 import { Page } from '../components/Page';
 import { List, ListItem } from '../components/List';
-import { Loader, ErrorBox } from '../components/Loader';
+import { SkeletonList, ErrorBox } from '../components/Loader';
 
 export function GuideTypePage(ctx: PageCtx) {
   const nav = useNavigate();
@@ -28,7 +28,7 @@ export function GuideTypePage(ctx: PageCtx) {
   return (
     <Page title={t(ctx.locale, 'guide.title')} subtitle={t(ctx.locale, 'guide.pick-type')}>
       {error && <ErrorBox message={error} />}
-      {!types && !error && <Loader label={t(ctx.locale, 'loading')} />}
+      {!types && !error && <SkeletonList />}
       {types && (
         <List>
           {types.map((c) => (

@@ -7,7 +7,7 @@ import { api, type CourtType } from '../api';
 import { useBackTo, type InfoState } from '../App';
 import { Page } from '../components/Page';
 import { List, ListItem } from '../components/List';
-import { Loader, ErrorBox } from '../components/Loader';
+import { SkeletonList, ErrorBox } from '../components/Loader';
 
 interface Props {
   locale: Locale;
@@ -35,7 +35,7 @@ export function InfoTypePage({ locale, setState }: Props) {
   return (
     <Page title={t(locale, 'ci.title.types')}>
       {error && <ErrorBox message={error} />}
-      {!types && !error && <Loader label={t(locale, 'loading')} />}
+      {!types && !error && <SkeletonList />}
       {types && (
         <List>
           {types.map((c) => (

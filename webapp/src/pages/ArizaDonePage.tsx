@@ -19,6 +19,12 @@ export function ArizaDonePage(ctx: PageCtx) {
       return;
     }
     setDoc(JSON.parse(raw) as GenerateResponse);
+    // Celebrate success with a haptic tap.
+    try {
+      getTg().HapticFeedback.notificationOccurred('success');
+    } catch {
+      /* haptics unsupported on some clients */
+    }
     // Clear wizard draft so a "new ariza" tap starts fresh.
     sessionStorage.removeItem('ariza:values');
     sessionStorage.removeItem('ariza:fieldIndex');

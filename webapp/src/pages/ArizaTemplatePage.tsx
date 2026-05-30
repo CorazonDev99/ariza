@@ -6,7 +6,7 @@ import { api, type TemplateSummary } from '../api';
 import { useBackTo, type PageCtx } from '../App';
 import { Page } from '../components/Page';
 import { List, ListItem } from '../components/List';
-import { Loader, ErrorBox } from '../components/Loader';
+import { SkeletonList, ErrorBox } from '../components/Loader';
 
 export function ArizaTemplatePage(ctx: PageCtx) {
   const nav = useNavigate();
@@ -37,7 +37,7 @@ export function ArizaTemplatePage(ctx: PageCtx) {
   return (
     <Page title={t(ctx.locale, 'wiz.pick-template')}>
       {error && <ErrorBox message={error} />}
-      {!tpls && !error && <Loader label={t(ctx.locale, 'loading')} />}
+      {!tpls && !error && <SkeletonList />}
       {tpls && tpls.length === 0 && (
         <div className="text-center py-10 text-tg-subtitle">—</div>
       )}

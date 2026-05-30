@@ -172,7 +172,14 @@ export function useBackTo(target: string) {
   const nav = useNavigate();
   useEffect(() => {
     const tg = getTg();
-    const handler = () => nav(target);
+    const handler = () => {
+      try {
+        tg.HapticFeedback.impactOccurred('light');
+      } catch {
+        /* haptics unsupported on some clients */
+      }
+      nav(target);
+    };
     tg.BackButton.show();
     tg.BackButton.onClick(handler);
     return () => {

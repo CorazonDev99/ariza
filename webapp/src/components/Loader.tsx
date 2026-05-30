@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+import { getTg } from '../tg';
+
 interface LoaderProps {
   label?: string;
 }
@@ -46,8 +49,15 @@ export function ErrorBox({
   message: string;
   onRetry?: () => void;
 }) {
+  useEffect(() => {
+    try {
+      getTg().HapticFeedback.notificationOccurred('error');
+    } catch {
+      /* haptics unsupported on some clients */
+    }
+  }, []);
   return (
-    <div className="card rounded-[20px] p-6 text-center">
+    <div className="pop card rounded-[20px] p-6 text-center">
       <div className="mx-auto mb-3 w-12 h-12 rounded-full grid place-items-center text-[22px] bg-tg-destructive/10">
         ⚠️
       </div>

@@ -7,7 +7,7 @@ import { api, type Region } from '../api';
 import { useBackTo, type JadvalState } from '../App';
 import { Page } from '../components/Page';
 import { List, ListItem } from '../components/List';
-import { Loader, ErrorBox } from '../components/Loader';
+import { SkeletonList, ErrorBox } from '../components/Loader';
 
 interface Props {
   locale: Locale;
@@ -39,7 +39,7 @@ export function RegionPage({ locale, state, setState }: Props) {
   return (
     <Page title={t(locale, 'title.regions')}>
       {error && <ErrorBox message={error} />}
-      {!regions && !error && <Loader label={t(locale, 'loading')} />}
+      {!regions && !error && <SkeletonList />}
       {regions && (
         <List>
           {regions.map((r) => (

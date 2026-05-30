@@ -7,7 +7,7 @@ import { api, type CourtType } from '../api';
 import { useBackTo, type JadvalState } from '../App';
 import { Page } from '../components/Page';
 import { List, ListItem } from '../components/List';
-import { Loader, ErrorBox } from '../components/Loader';
+import { SkeletonList, ErrorBox } from '../components/Loader';
 
 interface Props {
   locale: Locale;
@@ -36,7 +36,7 @@ export function TypePage({ locale, setState }: Props) {
         setError(null);
         api.scheduleCategories().then(setTypes).catch((e) => setError(String(e.message ?? e)));
       }} />}
-      {!types && !error && <Loader label={t(locale, 'loading')} />}
+      {!types && !error && <SkeletonList />}
       {types && (
         <List>
           {types.map((ct) => (

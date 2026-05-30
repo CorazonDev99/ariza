@@ -7,7 +7,7 @@ import { api, type DistrictCourt } from '../api';
 import { useBackTo, type JadvalState } from '../App';
 import { Page } from '../components/Page';
 import { List, ListItem } from '../components/List';
-import { Loader, ErrorBox } from '../components/Loader';
+import { SkeletonList, ErrorBox } from '../components/Loader';
 
 interface Props {
   locale: Locale;
@@ -41,7 +41,7 @@ export function CourtPage({ locale, state, setState }: Props) {
   return (
     <Page title={t(locale, 'title.courts')}>
       {error && <ErrorBox message={error} />}
-      {!courts && !error && <Loader label={t(locale, 'loading')} />}
+      {!courts && !error && <SkeletonList />}
       {courts && courts.length === 0 && (
         <div className="text-center text-tg-subtitle py-6">—</div>
       )}
