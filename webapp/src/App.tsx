@@ -20,7 +20,6 @@ import { GuideTypePage } from './pages/GuideTypePage';
 import { GuideTemplatePage } from './pages/GuideTemplatePage';
 import { GuideDetailPage } from './pages/GuideDetailPage';
 import { SettingsPage } from './pages/SettingsPage';
-import { AboutPage } from './pages/AboutPage';
 import { InfoRegionPage } from './pages/InfoRegionPage';
 import { InfoTypePage } from './pages/InfoTypePage';
 import { InfoCourtPage } from './pages/InfoCourtPage';
@@ -158,9 +157,6 @@ export function App() {
         <Route path="/info/region" element={<InfoRegionPage locale={locale} state={info} setState={setInfo} />} />
         <Route path="/info/court" element={<InfoCourtPage locale={locale} state={info} setState={setInfo} />} />
         <Route path="/info/detail" element={<InfoDetailPage locale={locale} state={info} />} />
-
-        {/* About — public, no auth needed */}
-        <Route path="/about" element={<AboutPage {...ctx} />} />
 
         {/* Settings — needs auth (writes User.language) */}
         <Route path="/settings" element={<AuthGuard><SettingsPage {...ctx} /></AuthGuard>} />

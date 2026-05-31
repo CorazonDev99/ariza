@@ -47,13 +47,6 @@ export function HomePage(ctx: PageCtx) {
       to: '/info',
       color: '#0ea5e9',
     },
-    {
-      icon: 'ℹ️',
-      title: t(ctx.locale, 'home.action.about'),
-      sub: t(ctx.locale, 'home.action.about.sub'),
-      to: '/about',
-      color: '#8b5cf6',
-    },
   ];
 
   function go(to: string) {
