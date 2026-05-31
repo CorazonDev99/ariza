@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm run *)",
       "Bash(rm -rf video/_work)",
-      "Bash(printf \"\\\\n# video build intermediates\\\\nvideo/_work/\\\\n\")"
+      "Bash(printf \"\\\\n# video build intermediates\\\\nvideo/_work/\\\\n\")",
+      "Bash(python -c \"import asyncio, edge_tts; vs=asyncio.run\\(edge_tts.list_voices\\(\\)\\); print\\('\\\\n'.join\\(v['ShortName'] for v in vs if v['Locale'].startswith\\('uz'\\)\\)\\)\")",
+      "Bash(python video/_make_video_uz.py)"
     ]
   }
 }
