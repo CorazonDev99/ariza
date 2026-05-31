@@ -124,48 +124,74 @@ def build_muqova():
 ANNOTATION_PARAS = [
     # vazifasi
     "Ushbu dasturiy ta'minot O'zbekiston Respublikasi fuqarolari uchun "
-    "sud arizalarini avtomatik tarzda shakllantirish maqsadida ishlab "
-    "chiqilgan bo'lib, foydalanuvchi Telegram messenjerida bot bilan "
-    "muloqot qilish orqali aliment undirish, 3 yoshgacha ta'minot ta'minlash, "
-    "sud buyrug'iga e'tiroz bildirish va aliment miqdorini kamaytirish "
-    "to'g'risidagi rasmiy ariza loyihasini tayyor PDF holida oladi.",
+    "sud hujjatlarini (arizalar, shikoyatlar, iltimosnomalar va "
+    "e'tiroznomalar) avtomatik tarzda shakllantirish maqsadida ishlab "
+    "chiqilgan. Foydalanuvchi Telegram bot yoki Telegram Mini App "
+    "(web-ilova) orqali savol-javob shaklida ma'lumot kiritadi va to'rt "
+    "turdagi sud — fuqarolik, jinoyat, ma'muriy hamda iqtisodiy ishlar "
+    "bo'yicha 30 dan ortiq tayyor andoza asosida rasmiy hujjat loyihasini "
+    "tayyor PDF yoki DOCX holida oladi.",
 
     # qo'llanilish sohasi
-    "Dasturning qo'llanilish sohasi — fuqarolik-huquqiy munosabatlar "
-    "doirasidagi sud hujjatlarini elektron tarzda tayyorlash. Avvallari "
-    "fuqarolar bunday hujjatlarni mustaqil tuza olmas, advokat yoki "
-    "yuristga murojaat qilishga majbur edilar. ArizaPro buni 60 soniyaga "
-    "qisqartiradi va xarajatni o'n barobardan ko'p kamaytiradi. Asosiy "
-    "iste'molchilar — past va o'rta daromadli fuqarolar, mehnat migrantlari, "
-    "yagona ona-otalar.",
+    "Dasturning qo'llanilish sohasi — sud-huquqiy munosabatlar doirasidagi "
+    "hujjatlarni elektron tarzda tayyorlash va sud jarayoni to'g'risidagi "
+    "ma'lumotlarga ommaviy kirishni ta'minlash. Avvallari fuqarolar bunday "
+    "hujjatlarni mustaqil tuza olmas, advokat yoki yuristga murojaat "
+    "qilishga majbur edilar. ArizaPro buni bir necha daqiqaga qisqartiradi "
+    "va xarajatni o'n barobardan ko'p kamaytiradi. Asosiy iste'molchilar — "
+    "past va o'rta daromadli fuqarolar, mehnat migrantlari, yagona "
+    "ota-onalar, shuningdek tadbirkorlik subyektlari.",
 
     # funksional imkoniyatlari (header)
     "Taklif etilayotgan dasturiy mahsulotning funksional imkoniyatlari:",
 
     "— foydalanuvchidan kerakli ma'lumotlarni bosqichma-bosqich (savol-javob "
     "shaklida) yig'ish; har bir maydon real vaqtda tasdiqlanadi (FISH, "
-    "telefon raqami, sana, manzil, pul summasi va shu kabilar);",
+    "telefon raqami, sana, manzil, pul summasi, STIR/JSHSHIR va shu "
+    "kabilar); shartli maydonlar oldingi javoblarga qarab ko'rsatiladi yoki "
+    "yashiriladi;",
+
+    "— bot bilan bir xil funksionalga ega zamonaviy Telegram Mini App "
+    "(React asosidagi web-ilova): kim xohlasa bot orqali, kim xohlasa "
+    "grafik interfeys orqali ishlaydi; initData HMAC-imzosi orqali "
+    "foydalanuvchi autentifikatsiyasi amalga oshiriladi;",
+
+    "— jadval2.sud.uz axborot tizimi bilan integratsiya: sud majlislariga "
+    "tayinlangan ishlar ro'yxatini hudud va sud kesimida (jinoyat ishlari "
+    "hamda ma'muriy huquqbuzarliklar bo'yicha) ko'rish va F.I.SH. yoki ish "
+    "raqami bo'yicha qidirish (\"Ishimni tekshirish\");",
+
+    "— O'zbekiston sudlari bo'yicha ma'lumotnoma: har bir sudning yuridik "
+    "manzili, telefon raqami, elektron pochtasi va xaritadagi joylashuvi "
+    "(\"Sudlar ma'lumoti\");",
 
     "— Telegram profilining ma'lumotlari asosida F.I.SH.ni avtomatik "
-    "to'ldirish, shuningdek hujjat tilini foydalanuvchining til afzalligiga "
-    "qarab tanlash (o'zbek kirill, o'zbek lotin yoki rus tilida);",
+    "to'ldirish, tanlangan sud va hududga qarab sud nomi va sudya "
+    "ma'lumotlarini avtomatik kiritish; hujjat tilini foydalanuvchining til "
+    "afzalligiga qarab tanlash (o'zbek kirill, o'zbek lotin yoki rus tilida);",
 
     "— belgilangan andoza asosida DOCX hujjatini shakllantirish "
     "(docxtemplater texnologiyasi orqali) va undan keyin LibreOffice "
     "vositasida PDF formatga avtomatik o'tkazish;",
 
-    "— Click UZ va Payme (Paycom) to'lov tizimlari bilan integratsiya: "
-    "har bir tayyor hujjat uchun belgilangan summada to'lov qabul qilish "
-    "(JSON-RPC, MD5 imzo tekshiruvi, webhook orqali ma'lumotni "
-    "qaytarish);",
-
-    "— Telegram chati orqali QR-kod va deep-link orqali hujjatni qayta "
-    "yuklab olish imkoniyati (har bir hujjatga noyob downloadToken "
-    "biriktiriladi);",
+    "— erkin matnli maydonlarni ovozli xabar orqali to'ldirish: ovoz "
+    "matnga aylantiriladi (Whisper/Groq nutqni tanish xizmati);",
 
     "— sun'iy intellekt yordamida foydalanuvchining erkin matnli "
     "javoblarini (masalan, e'tiroz sabablarini) rasmiy-yuridik uslubda "
     "qayta yozish (Anthropic Claude API integratsiyasi);",
+
+    "— Click UZ va Payme (Paycom) to'lov tizimlari bilan integratsiya: "
+    "har bir tayyor hujjat uchun belgilangan summada to'lov qabul qilish "
+    "(JSON-RPC, MD5 imzo tekshiruvi, webhook orqali ma'lumotni qaytarish);",
+
+    "— Telegram chati orqali QR-kod va deep-link orqali hujjatni qayta "
+    "yuklab olish imkoniyati (har bir hujjatga noyob downloadToken "
+    "biriktiriladi; eskirgan fayllar avtomatik tozalanib turiladi);",
+
+    "— foydalanuvchilardan arizalar tuzilishi yuzasidan takliflar va "
+    "shikoyatlarni qabul qilib, ularni xizmat ko'rsatuvchi guruhga "
+    "yo'naltirish;",
 
     "— admin paneli orqali statistika, to'lov hisobotlari (Excel formatda) "
     "va barcha foydalanuvchilarga ommaviy xabar tarqatish;",
@@ -174,12 +200,13 @@ ANNOTATION_PARAS = [
     "foydalanuvchi botni qayta ishga tushirsa, to'ldirilgan ma'lumotlar "
     "yo'qolmasligini ta'minlaydi.",
 
-    "Dastur Node.js 20 platformasi, TypeScript dasturlash tili va Telegraf "
-    "freymvorki asosida ishlab chiqilgan. Ma'lumotlar bazasi sifatida "
-    "PostgreSQL 17 va Prisma ORM ishlatiladi. Hujjat shakllantirish uchun "
-    "docxtemplater + PizZip, PDF konvertatsiyasi uchun LibreOffice headless "
-    "rejimi qo'llaniladi. Foydalanuvchi interfeysi 3 tilda: o'zbek (kirill "
-    "va lotin) va rus tilida.",
+    "Dastur server qismi Node.js 20 platformasi, TypeScript dasturlash tili "
+    "va Telegraf freymvorki asosida ishlab chiqilgan. Telegram Mini App "
+    "(web-ilova) React 19, Vite va Tailwind CSS asosida tuzilgan. Ma'lumotlar "
+    "bazasi sifatida PostgreSQL 17 va Prisma ORM ishlatiladi. Hujjat "
+    "shakllantirish uchun docxtemplater + PizZip, PDF konvertatsiyasi uchun "
+    "LibreOffice headless rejimi qo'llaniladi. Foydalanuvchi interfeysi "
+    "3 tilda: o'zbek (kirill va lotin) va rus tilida.",
 ]
 
 
@@ -212,16 +239,23 @@ def build_referat():
     p(doc, "")
     p(doc, "EHM turi: Intel Core i3 (1.6 GGs) va undan yuqori; "
       "operativ xotira: 2 GB va undan yuqori")
-    p(doc, "Dastur tili: TypeScript 5 (Node.js 20 LTS platformasi)")
-    p(doc, "Ishlatilgan kutubxonalar: Telegraf 4.16, Prisma 5, "
-      "docxtemplater, PizZip, ExcelJS, Sharp, libphonenumber-js, "
-      "Pino, Zod, @anthropic-ai/sdk")
+    p(doc, "Dastur tili: TypeScript 5 (server — Node.js 20 LTS; "
+      "web-ilova — React 19)")
+    p(doc, "Server kutubxonalari: Telegraf 4.16, Prisma 5, docxtemplater, "
+      "PizZip, ExcelJS, Sharp, qrcode, libphonenumber-js, Pino, Zod, "
+      "@anthropic-ai/sdk")
+    p(doc, "Telegram Mini App (web-ilova): React 19, Vite 6, "
+      "Tailwind CSS 4, React Router 7")
     p(doc, "Ma'lumotlar bazasi: PostgreSQL 17")
+    p(doc, "Tashqi xizmatlar va integratsiyalar: jadval2.sud.uz "
+      "(sud majlislari jadvali), Click UZ va Payme to'lov tizimlari, "
+      "Anthropic Claude API (matnni qayta yozish), Whisper/Groq "
+      "(nutqni matnga aylantirish)")
     p(doc, "Operatsiya tizimi: Linux (Ubuntu 22.04+ tavsiya etiladi), "
       "Windows 10/11, macOS 12+")
     p(doc, "Tashqi vositalar: LibreOffice (DOCX → PDF konvertatsiyasi uchun)")
-    p(doc, "Dastur hajmi (kompilyatsiyadan oldingi manba kod): ~350 KB "
-      "(~12 000 satr)")
+    p(doc, "Dastur hajmi (kompilyatsiyadan oldingi manba kod): ~700 KB "
+      "(~20 000 satr)")
 
     out = OUT / "4.Referat_ArizaPro.docx"
     doc.save(out)
@@ -231,18 +265,36 @@ def build_referat():
 # ---------- 3. Model (source listing) ----------
 
 LISTING_FILES = [
+    # ── Bot core ──
     "src/main.ts",
     "src/bot/index.ts",
     "src/bot/commands.ts",
+    "src/bot/actions.ts",
     "src/bot/keyboards.ts",
     "src/scenes/ariza-wizard.scene.ts",
+    # ── Document generation ──
     "src/services/document.service.ts",
     "src/services/docx.service.ts",
     "src/services/pdf.service.ts",
-    "src/services/payment.service.ts",
+    # ── Court schedule (jadval2) + court directory ──
+    "src/services/jadval2.service.ts",
+    "src/templates/court-info.ts",
+    # ── AI rewrite + voice-to-text ──
     "src/services/ai-assist.service.ts",
+    "src/services/transcription.service.ts",
+    # ── Payments + Telegram Mini App backend ──
+    "src/services/payment.service.ts",
+    "src/services/webapp-api.ts",
+    "src/services/telegram-auth.ts",
+    # ── Maintenance ──
+    "src/services/cleanup.service.ts",
+    # ── Templates registry + data model ──
     "src/templates/registry.ts",
     "prisma/schema.prisma",
+    # ── Telegram Mini App (React front-end) ──
+    "webapp/src/App.tsx",
+    "webapp/src/api.ts",
+    "webapp/src/components/FieldEditor.tsx",
 ]
 
 
