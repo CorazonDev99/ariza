@@ -72,6 +72,10 @@ const envSchema = z.object({
   //   https://t.me/<username>
   SUPPORT_CONTACT: z.string().default(''),
 
+  // Public Telegram channel URL. Shown as the "Каналга ўтиш" inline
+  // button next to the support button under "Bot haqida". Empty hides it.
+  CHANNEL_URL: z.string().default('https://t.me/ArizaPro'),
+
   // Comma-separated Telegram user IDs allowed into the /admin panel.
   // Example: ADMIN_CHAT_IDS=123456789,987654321
   ADMIN_CHAT_IDS: z.string().default(''),

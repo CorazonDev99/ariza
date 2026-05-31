@@ -31,19 +31,28 @@ export function mainMenu(locale: Locale) {
 
 /**
  * Inline keyboard shown under the "Bot haqida" message.
- * Links the support button to https://t.me/<supportContact> when the
- * env var is set; otherwise the keyboard has no button.
+ * Renders the support button (https://t.me/<supportContact>) and/or the
+ * "Каналга ўтиш" channel button side by side, depending on which env
+ * vars are set. Returns an empty keyboard when neither is configured.
  */
-export function aboutInline(locale: Locale, supportContact: string) {
-  if (!supportContact) return Markup.inlineKeyboard([]);
-  return Markup.inlineKeyboard([
-    [
+export function aboutInline(
+  locale: Locale,
+  supportContact: string,
+  channelUrl = '',
+) {
+  const row = [];
+  if (supportContact) {
+    row.push(
       Markup.button.url(
         t(locale, 'about.support_btn'),
         `https://t.me/${supportContact}`,
       ),
-    ],
-  ]);
+    );
+  }
+  if (channelUrl) {
+    row.push(Markup.button.url(t(locale, 'about.channel_btn'), channelUrl));
+  }
+  return Markup.inlineKeyboard(row.length ? [row] : []);
 }
 
 export function wizardMenu(locale: Locale) {

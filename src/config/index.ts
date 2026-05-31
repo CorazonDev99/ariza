@@ -43,6 +43,8 @@ export interface AppConfig {
   botDisplayName: string;
   /** Telegram username for the support button (no leading "@"), or "". */
   supportContact: string;
+  /** Public Telegram channel URL for the "Каналга ўтиш" button, or "". */
+  channelUrl: string;
   /** Telegram user IDs allowed into the admin panel. */
   adminChatIds: number[];
   /** Chat ID of the group that receives feedback / suggestions. Empty
@@ -93,6 +95,7 @@ export const config: AppConfig = {
   webappUrl: env.WEBAPP_URL.replace(/\/+$/, ''),
   botDisplayName: env.BOT_DISPLAY_NAME,
   supportContact: env.SUPPORT_CONTACT.trim().replace(/^@/, ''),
+  channelUrl: env.CHANNEL_URL.trim(),
   adminChatIds: env.ADMIN_CHAT_IDS.split(',')
     .map((s) => s.trim())
     .filter((s) => /^\d+$/.test(s))

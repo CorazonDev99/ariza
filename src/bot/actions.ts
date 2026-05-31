@@ -64,11 +64,11 @@ export const actions = {
       ? `\n\n${t(ctx.locale, 'about.stats', stats)}`
       : '';
     const aboutText = `${t(ctx.locale, 'cmd.about')}${statsLine}`;
-    if (config.supportContact) {
+    if (config.supportContact || config.channelUrl) {
       await ctx.reply(aboutText, {
         parse_mode: 'HTML',
         link_preview_options: { is_disabled: true },
-        ...aboutInline(ctx.locale, config.supportContact),
+        ...aboutInline(ctx.locale, config.supportContact, config.channelUrl),
       });
     } else {
       await ctx.reply(
