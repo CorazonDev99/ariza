@@ -7,6 +7,9 @@ export interface AppConfig {
   logLevel: string;
   templatesDir: string;
   outputDir: string;
+  /** Hours to keep files in outputDir before the hourly cleanup deletes
+   *  them. 0 disables cleanup. */
+  generatedRetentionHours: number;
   libreofficeBin: string;
   payment: {
     /** When false, the wizard skips the provider picker and pay
@@ -65,6 +68,7 @@ export const config: AppConfig = {
   logLevel: env.LOG_LEVEL,
   templatesDir: path.resolve(env.TEMPLATES_DIR),
   outputDir: path.resolve(env.OUTPUT_DIR),
+  generatedRetentionHours: env.GENERATED_RETENTION_HOURS,
   libreofficeBin: env.LIBREOFFICE_BIN,
   payment: {
     enabled: env.PAYMENT_ENABLED,

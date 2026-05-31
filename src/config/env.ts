@@ -12,6 +12,10 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   TEMPLATES_DIR: z.string().default('./templates'),
   OUTPUT_DIR: z.string().default('./generated'),
+  // How long generated documents are kept on disk before the hourly
+  // cleanup deletes them (the file is already delivered in chat; this
+  // only backs the temporary QR / download link). 0 disables cleanup.
+  GENERATED_RETENTION_HOURS: z.coerce.number().min(0).default(24),
   LIBREOFFICE_BIN: z.string().default('libreoffice'),
 
   // Payment.

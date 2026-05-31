@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { config } from '../config';
 import type { DocumentRepository } from '../repositories/document.repository';
@@ -476,6 +477,13 @@ export class DocumentService {
     let finalPath = docxPath;
     if (input.format === 'pdf') {
       finalPath = await this.pdf.convert(docxPath, config.outputDir);
+      // The .docx was only an intermediate for LibreOffice — drop it so
+      // the output dir doesn't keep two files per generated PDF.
+      if (finalPath !== docxPath) {
+        await fs.unlink(docxPath).catch(() => {
+          /* non-fatal — periodic cleanup will catch it */
+        });
+      }
     }
 
     const doc = await this.documents.create({

@@ -4,6 +4,7 @@ import { ensureDir } from './utils/fs';
 import { createBot } from './bot';
 import { disconnectPrisma, prisma } from './repositories/prisma';
 import { SeedService } from './services/seed.service';
+import { startGeneratedCleanup } from './services/cleanup.service';
 import { TemplateRepository } from './repositories/template.repository';
 import { DocumentRepository } from './repositories/document.repository';
 import { startHttpServer } from './bot/webhook';
@@ -17,6 +18,12 @@ async function main(): Promise<void> {
 
   await ensureDir(config.outputDir);
   await ensureDir(config.templatesDir);
+
+  // Keep the generated-documents dir from growing without bound.
+  startGeneratedCleanup({
+    dir: config.outputDir,
+    retentionMs: config.generatedRetentionHours * 3_600_000,
+  });
 
   await prisma.$queryRaw`SELECT 1`;
   await new SeedService(new TemplateRepository(prisma)).run();
