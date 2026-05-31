@@ -209,9 +209,9 @@ export const uz_latin: Dict = {
   'cal.wd.7': 'Ya',
 
   'bot.short_description':
-    "⚖️ O‘zbekiston uchun 60 soniyada tayyor sud arizalari. Aliment, e‘tiroznoma, kamaytirish.",
+    "⚖️ O‘zbekiston sudlari uchun rasmiy hujjatlar bir daqiqada. Ariza, sud jadvali, sudlar ma‘lumoti — bepul.",
   'bot.description':
-    "⚖️ O‘zbekiston qonunchiligi bo‘yicha tayyor sud arizalari.\n\n📄 Ariza turlari:\n• Aliment undirish\n• 3 yoshgacha ta‘minot\n• E‘tiroznoma (sud buyrug‘ini bekor qilish)\n• Aliment miqdorini kamaytirish\n\n✨ Savollarga javob bering — 60 soniyada tayyor PDF oling.\n\n{price_line}\n🌐 Kirill / Lotin / Ruscha\n\n👇 «START» tugmasini bosing",
+    "⚖️ ArizaPro — O‘zbekiston sudlari uchun yordamchi. Advokatsiz, mustaqil ravishda.\n\n🤖 Nima qila oladi:\n📄 Rasmiy ariza tayyorlash — fuqarolik, jinoyat, ma‘muriy, iqtisodiy ishlar bo‘yicha\n📋 Sud majlislari jadvalini tekshirish va o‘z ishingizni topish\n🏛 Barcha sudlar ma‘lumotnomasi: manzil, telefon, xarita\n\n✨ Savollarga javob bering — tayyor hujjat PDF yoki Word shaklida, 3 tilda.\n🎙 Ovozli xabar ham qabul qilinadi.\n\n{price_line}\n🌐 Kirill / Lotin / Ruscha\n\n👇 «START» tugmasini bosing",
   'bot.price_line.paid': "💳 Bir hujjat: {amount} so‘m",
   'bot.price_line.free': '🎁 Hozircha — BEPUL',
 
