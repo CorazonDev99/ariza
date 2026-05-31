@@ -19,3 +19,6 @@ coverage/
 # scripts/build-court-info.ts can regenerate court-info.generated.ts.
 info sud/*.jpg
 info sud/_ocr/
+
+# video build intermediates
+video/_work/

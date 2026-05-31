@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(rm -rf video/_work)",
+      "Bash(printf \"\\\\n# video build intermediates\\\\nvideo/_work/\\\\n\")"
     ]
   }
 }
