@@ -98,14 +98,17 @@ async function main(): Promise<void> {
  * "missing_init_data" 401's on every authenticated API call.
  */
 async function registerChatMenuButton(bot: Telegraf<BotContext>): Promise<void> {
+  // NOTE: this overwrites any title/URL set manually via BotFather on every
+  // startup — the bot is the single source of truth for the menu button.
+  // Title is "Ochish" (Uzbek "Open"); URL is always the current WEBAPP_URL.
   await bot.telegram.callApi('setChatMenuButton', {
     menu_button: {
       type: 'web_app',
-      text: 'Mini App',
+      text: 'Ochish',
       web_app: { url: config.webappUrl },
     },
   } as never);
-  logger.info({ url: config.webappUrl }, 'Chat menu button set to Mini App');
+  logger.info({ url: config.webappUrl }, 'Chat menu button set (Ochish)');
 }
 
 /**
