@@ -16,7 +16,15 @@ Group=root
 # default QUIC (UDP:7844), which many VPS firewalls block — the symptom is
 # "tunnel prints a URL but the page never loads / not found". --edge-ip-version 4
 # avoids IPv6-only egress issues.
-ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel --protocol http2 --edge-ip-version 4 --url http://localhost:3000
+#
+# --config /dev/null is CRITICAL on a shared host: cloudflared otherwise
+# auto-loads /etc/cloudflared/config.yml, and if another project's NAMED
+# tunnel config lives there (hostname-based ingress + http_status:404
+# catch-all), every request to THIS quick tunnel's *.trycloudflare.com host
+# falls through to that 404 — the app is reachable on localhost but returns
+# 404 through the tunnel. An empty config keeps this quick tunnel isolated
+# so it only does --url → localhost:3000.
+ExecStart=/usr/bin/cloudflared --no-autoupdate --config /dev/null tunnel --protocol http2 --edge-ip-version 4 --url http://localhost:3000
 Restart=on-failure
 RestartSec=5s
 TimeoutStopSec=30s
