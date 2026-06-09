@@ -11,7 +11,12 @@ Group=root
 # Quick mode: no login, no config file, ephemeral *.trycloudflare.com URL
 # that changes every restart. setup-quick-tunnel.sh installs a sibling
 # .timer / oneshot that captures the URL from journal and updates .env.
-ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel --url http://localhost:3000
+#
+# --protocol http2 forces the edge connection over TCP:7844 instead of the
+# default QUIC (UDP:7844), which many VPS firewalls block — the symptom is
+# "tunnel prints a URL but the page never loads / not found". --edge-ip-version 4
+# avoids IPv6-only egress issues.
+ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel --protocol http2 --edge-ip-version 4 --url http://localhost:3000
 Restart=on-failure
 RestartSec=5s
 TimeoutStopSec=30s
