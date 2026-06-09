@@ -81,6 +81,20 @@ echo "    WEBAPP_URL=${WEBAPP}"
 systemctl restart ariza-bot.service
 sleep 1
 
+echo "==> [5/5] Install auto-sync (timer keeps WEBAPP_URL fresh on reboots)"
+# Quick-tunnel URLs rotate on every cloudflared restart / reboot. This
+# timer re-discovers the URL and updates .env + restarts the bot
+# automatically, so the Mini App never breaks after a reboot again.
+install -m 0755 "${APP_DIR}/deploy/cloudflared-url-sync.sh" \
+        /usr/local/bin/ariza-tunnel-sync
+install -m 0644 "${APP_DIR}/deploy/cloudflared-url-sync.service" \
+        /etc/systemd/system/cloudflared-url-sync.service
+install -m 0644 "${APP_DIR}/deploy/cloudflared-url-sync.timer" \
+        /etc/systemd/system/cloudflared-url-sync.timer
+systemctl daemon-reload
+systemctl enable --now cloudflared-url-sync.timer
+echo "    Auto-sync timer enabled (runs at boot + every 2 min)."
+
 echo
 echo "==> Done."
 echo

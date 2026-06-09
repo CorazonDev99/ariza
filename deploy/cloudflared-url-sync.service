@@ -1,0 +1,8 @@
+[Unit]
+Description=Sync the rotating quick-tunnel URL into ariza-bot .env
+After=cloudflared-quick.service ariza-bot.service
+Wants=cloudflared-quick.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/ariza-tunnel-sync

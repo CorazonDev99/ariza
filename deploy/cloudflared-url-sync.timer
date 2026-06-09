@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodically sync the quick-tunnel URL into ariza-bot .env
+
+[Timer]
+# Give cloudflared a moment to print its URL after boot, then re-check
+# every 2 minutes so a rotated URL is picked up automatically.
+OnBootSec=30s
+OnUnitActiveSec=2min
+Unit=cloudflared-url-sync.service
+
+[Install]
+WantedBy=timers.target
