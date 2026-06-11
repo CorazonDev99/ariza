@@ -23,8 +23,11 @@ export function mainMenu(locale: Locale) {
     [t(locale, 'menu.new'), t(locale, 'menu.jadval')],
     [t(locale, 'menu.instructions'), t(locale, 'menu.courtinfo')],
   ];
-  // AI-Yurist (full-width, prominent) only when an Anthropic key is set.
-  if (config.ai.apiKey) rows.push([t(locale, 'menu.aiyurist')]);
+  // AI-Yurist (full-width, prominent) — shown when either AI backend
+  // (Groq/OpenAI-compatible or Anthropic) is configured.
+  if (config.ai.openaiKey || config.ai.apiKey) {
+    rows.push([t(locale, 'menu.aiyurist')]);
+  }
   // Feedback button only when a destination group is configured.
   if (config.feedbackGroupId) rows.push([t(locale, 'menu.feedback')]);
   rows.push([t(locale, 'menu.about'), t(locale, 'menu.lang')]);

@@ -51,9 +51,15 @@ export interface AppConfig {
    *  string disables the feedback button. */
   feedbackGroupId: string;
   ai: {
-    /** When empty, AI-assist UI is disabled. */
+    /** Anthropic key. When empty, the Anthropic backend is disabled. */
     apiKey: string;
     model: string;
+    /** OpenAI-compatible chat backend (e.g. Groq) for «AI-Yurist».
+     *  Reuses the transcription key/baseUrl. When openaiKey is set,
+     *  AI-Yurist prefers it over Anthropic. */
+    openaiKey: string;
+    openaiBaseUrl: string;
+    openaiModel: string;
   };
   transcribe: {
     /** When empty, voice messages in the wizard are silently ignored. */
@@ -104,6 +110,9 @@ export const config: AppConfig = {
   ai: {
     apiKey: env.ANTHROPIC_API_KEY,
     model: env.ANTHROPIC_MODEL,
+    openaiKey: env.OPENAI_API_KEY,
+    openaiBaseUrl: env.OPENAI_BASE_URL,
+    openaiModel: env.OPENAI_CHAT_MODEL,
   },
   transcribe: {
     apiKey: env.OPENAI_API_KEY,

@@ -119,6 +119,12 @@ const envSchema = z.object({
     .default('https://api.openai.com/v1')
     .transform((s) => s.replace(/\/+$/, '')),
   OPENAI_TRANSCRIBE_MODEL: z.string().default('whisper-1'),
+
+  // Chat model for the «AI-Yurist» legal assistant via the SAME
+  // OpenAI-compatible endpoint as transcription (OPENAI_API_KEY +
+  // OPENAI_BASE_URL). On Groq use e.g. llama-3.3-70b-versatile (free).
+  // When OPENAI_API_KEY is set, AI-Yurist prefers this over Anthropic.
+  OPENAI_CHAT_MODEL: z.string().default('llama-3.3-70b-versatile'),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -61,7 +61,13 @@ export function createBot(): BotBundle {
   );
   const paymentService = new PaymentService(paymentRepo);
   const adminRepo = new AdminRepository(prisma);
-  const aiAssist = new AiAssistService(config.ai.apiKey, config.ai.model);
+  const aiAssist = new AiAssistService(
+    config.ai.apiKey,
+    config.ai.model,
+    config.ai.openaiKey,
+    config.ai.openaiBaseUrl,
+    config.ai.openaiModel,
+  );
   if (aiAssist.isEnabled()) {
     logger.info({ model: config.ai.model }, 'AI-assist enabled');
   }

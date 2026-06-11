@@ -981,7 +981,7 @@ async function answerLegalQuestion(
   aiAssist: AiAssistService,
 ): Promise<void> {
   if (text.trim().length === 0) return;
-  if (!aiAssist.isEnabled()) {
+  if (!aiAssist.canAnswerQuestions()) {
     ctx.session.aiYuristPending = false;
     await ctx.reply(t(ctx.locale, 'aiyurist.disabled'), mainMenu(ctx.locale));
     return;

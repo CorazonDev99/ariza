@@ -32,14 +32,33 @@ const YURIST_SYSTEM_PROMPT = `Ты — «AI-Yurist», юридический п�
 export class AiAssistService {
   private client: Anthropic | null;
   private model: string;
+  private openaiKey: string;
+  private openaiBaseUrl: string;
+  private openaiModel: string;
 
-  constructor(apiKey: string, model: string) {
+  constructor(
+    apiKey: string,
+    model: string,
+    openaiKey = '',
+    openaiBaseUrl = '',
+    openaiModel = '',
+  ) {
     this.client = apiKey ? new Anthropic({ apiKey }) : null;
     this.model = model;
+    this.openaiKey = openaiKey;
+    this.openaiBaseUrl = openaiBaseUrl.replace(/\/+$/, '');
+    this.openaiModel = openaiModel;
   }
 
+  /** Anthropic-backed features (the in-wizard rewrite button). */
   isEnabled(): boolean {
     return this.client !== null;
+  }
+
+  /** AI-Yurist works on either backend — OpenAI-compatible (Groq) or
+   *  Anthropic. Preference is given to the OpenAI-compatible one. */
+  canAnswerQuestions(): boolean {
+    return Boolean(this.openaiKey) || this.client !== null;
   }
 
   async rewriteLegalText(original: string, locale: Locale): Promise<string> {
@@ -78,30 +97,66 @@ export class AiAssistService {
    * Telegram message sent WITHOUT parse_mode.
    */
   async askLegalQuestion(question: string, locale: Locale): Promise<string> {
-    if (!this.client) throw new Error('AI assist is not configured');
-
     const trimmed = question.trim();
     const bounded = trimmed.length > 1500 ? trimmed.slice(0, 1500) : trimmed;
-
     const userMsg =
       `Язык ответа: ${LOCALE_LABEL[locale]}.\n\n` +
       `Вопрос пользователя:\n"""\n${bounded}\n"""`;
 
     try {
-      const resp = await this.client.messages.create({
-        model: this.model,
-        max_tokens: 1024,
-        system: YURIST_SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: userMsg }],
-      });
-      const block = resp.content.find((c) => c.type === 'text');
-      const text = block && block.type === 'text' ? block.text.trim() : '';
-      if (!text) throw new Error('empty response');
-      return text;
+      // Prefer the OpenAI-compatible backend (Groq) — free and reachable.
+      if (this.openaiKey) return await this.askViaOpenAI(userMsg);
+      if (this.client) return await this.askViaAnthropic(userMsg);
+      throw new Error('AI assist is not configured');
     } catch (err) {
       logger.error({ err }, 'AI-Yurist question failed');
       throw err instanceof Error ? err : new Error('AI-Yurist failed');
     }
+  }
+
+  private async askViaAnthropic(userMsg: string): Promise<string> {
+    const resp = await this.client!.messages.create({
+      model: this.model,
+      max_tokens: 1024,
+      system: YURIST_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: userMsg }],
+    });
+    const block = resp.content.find((c) => c.type === 'text');
+    const text = block && block.type === 'text' ? block.text.trim() : '';
+    if (!text) throw new Error('empty response');
+    return text;
+  }
+
+  /** OpenAI-compatible /chat/completions (Groq, OpenAI, DeepInfra, …).
+   *  Uses native fetch — no SDK, same approach as the transcription
+   *  service. */
+  private async askViaOpenAI(userMsg: string): Promise<string> {
+    const resp = await fetch(`${this.openaiBaseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.openaiKey}`,
+      },
+      body: JSON.stringify({
+        model: this.openaiModel,
+        max_tokens: 1024,
+        temperature: 0.3,
+        messages: [
+          { role: 'system', content: YURIST_SYSTEM_PROMPT },
+          { role: 'user', content: userMsg },
+        ],
+      }),
+    });
+    if (!resp.ok) {
+      const body = await resp.text().catch(() => '');
+      throw new Error(`chat ${resp.status}: ${body.slice(0, 300)}`);
+    }
+    const data = (await resp.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const text = data.choices?.[0]?.message?.content?.trim() ?? '';
+    if (!text) throw new Error('empty response');
+    return text;
   }
 }
 

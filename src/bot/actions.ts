@@ -134,7 +134,7 @@ export const actions = {
   },
 
   async aiYurist(ctx: BotContext): Promise<void> {
-    if (!config.ai.apiKey) {
+    if (!config.ai.openaiKey && !config.ai.apiKey) {
       await ctx.reply(t(ctx.locale, 'aiyurist.disabled'), mainMenu(ctx.locale));
       return;
     }
