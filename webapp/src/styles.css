@@ -183,6 +183,22 @@ body {
 }
 .ring-accent { box-shadow: var(--shadow-accent); }
 
+/* AI-Yurist "typing" indicator. */
+.typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--tg-text) 42%, transparent);
+  animation: typing 1.2s infinite ease-in-out both;
+}
+@keyframes typing {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .typing-dot { animation: none; opacity: 0.5; }
+}
+
 /* Hairline divider that adapts to theme. */
 .divider {
   background-color: color-mix(in srgb, var(--tg-text) 9%, transparent);

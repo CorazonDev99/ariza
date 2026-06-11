@@ -1,14 +1,25 @@
+import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTg } from '../tg';
 import { t } from '../i18n';
 import type { PageCtx } from '../App';
+import {
+  IconBook,
+  IconCaseCheck,
+  IconChevron,
+  IconFile,
+  IconLandmark,
+  IconScale,
+  IconSettings,
+  IconSparkles,
+} from '../components/icons';
 
 interface Tile {
-  icon: string;
+  icon: ReactNode;
   title: string;
   sub: string;
   to: string;
-  /** Accent color used for the icon chip + ambient glow. */
+  /** Accent color for the icon chip + ambient glow. */
   color: string;
 }
 
@@ -20,28 +31,28 @@ export function HomePage(ctx: PageCtx) {
 
   const tiles: Tile[] = [
     {
-      icon: '📄',
+      icon: <IconFile className="w-[26px] h-[26px]" />,
       title: t(ctx.locale, 'home.action.new'),
       sub: t(ctx.locale, 'home.action.new.sub'),
       to: '/ariza',
       color: '#3b82f6',
     },
     {
-      icon: '📋',
+      icon: <IconCaseCheck className="w-[26px] h-[26px]" />,
       title: t(ctx.locale, 'home.action.jadval'),
       sub: t(ctx.locale, 'home.action.jadval.sub'),
       to: '/jadval',
       color: '#10b981',
     },
     {
-      icon: '📖',
+      icon: <IconBook className="w-[26px] h-[26px]" />,
       title: t(ctx.locale, 'home.action.guide'),
       sub: t(ctx.locale, 'home.action.guide.sub'),
       to: '/guide',
       color: '#f59e0b',
     },
     {
-      icon: '🏛',
+      icon: <IconLandmark className="w-[26px] h-[26px]" />,
       title: t(ctx.locale, 'home.action.courtinfo'),
       sub: t(ctx.locale, 'home.action.courtinfo.sub'),
       to: '/info',
@@ -62,10 +73,10 @@ export function HomePage(ctx: PageCtx) {
       {/* ── Hero ───────────────────────────────────────────────── */}
       <header className="flex items-center gap-3.5 px-1 mb-5">
         <div
-          className="pop relative shrink-0 w-14 h-14 rounded-[18px] brand-bg grid place-items-center text-[26px] ring-accent"
+          className="pop relative shrink-0 w-14 h-14 rounded-[18px] brand-bg grid place-items-center text-white ring-accent"
           style={{ animationDelay: '20ms' }}
         >
-          ⚖️
+          <IconScale className="w-7 h-7" />
         </div>
         <div>
           <h1
@@ -95,11 +106,14 @@ export function HomePage(ctx: PageCtx) {
             {/* ambient corner glow in the tile's accent color */}
             <div
               className="pointer-events-none absolute -right-8 -top-8 w-24 h-24 rounded-full blur-2xl"
-              style={{ background: tl.color, opacity: 0.18 }}
+              style={{ background: tl.color, opacity: 0.16 }}
             />
             <div
-              className="relative w-12 h-12 rounded-2xl grid place-items-center text-[24px]"
-              style={{ background: `color-mix(in srgb, ${tl.color} 16%, transparent)` }}
+              className="relative w-12 h-12 rounded-2xl grid place-items-center"
+              style={{
+                background: `color-mix(in srgb, ${tl.color} 14%, transparent)`,
+                color: tl.color,
+              }}
             >
               {tl.icon}
             </div>
@@ -115,17 +129,46 @@ export function HomePage(ctx: PageCtx) {
         ))}
       </div>
 
+      {/* ── AI-Yurist (full-width, brand accent — above Settings) ── */}
+      <button
+        onClick={() => {
+          getTg().HapticFeedback.impactOccurred('medium');
+          nav('/ai-yurist');
+        }}
+        className="press reveal mt-3 w-full rounded-[22px] p-4 text-left card card-float relative overflow-hidden flex items-center gap-3.5"
+        style={{ animationDelay: `${140 + tiles.length * 55}ms` }}
+      >
+        <div className="pointer-events-none absolute -right-10 -top-10 w-32 h-32 rounded-full brand-bg opacity-[0.14] blur-2xl" />
+        <div className="relative shrink-0 w-12 h-12 rounded-2xl brand-bg grid place-items-center text-white ring-accent">
+          <IconSparkles className="w-[26px] h-[26px]" />
+        </div>
+        <div className="relative flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-[15px] font-bold text-tg-text">
+              {t(ctx.locale, 'home.action.aiyurist')}
+            </span>
+            <span className="shrink-0 text-[10px] font-extrabold tracking-wide px-1.5 py-0.5 rounded-md brand-bg text-white">
+              AI
+            </span>
+          </div>
+          <div className="text-[12px] text-tg-subtitle mt-0.5 truncate">
+            {t(ctx.locale, 'home.action.aiyurist.sub')}
+          </div>
+        </div>
+        <IconChevron className="relative shrink-0 w-5 h-5 text-tg-hint" />
+      </button>
+
       {/* ── Settings ───────────────────────────────────────────── */}
       <button
         onClick={() => {
           getTg().HapticFeedback.impactOccurred('light');
           nav('/settings');
         }}
-        className="press reveal mt-3 w-full rounded-[22px] p-4 text-left card flex items-center gap-3"
-        style={{ animationDelay: `${140 + tiles.length * 55}ms` }}
+        className="press reveal mt-3 w-full rounded-[22px] p-4 text-left card flex items-center gap-3.5"
+        style={{ animationDelay: `${195 + tiles.length * 55}ms` }}
       >
-        <div className="shrink-0 w-11 h-11 rounded-2xl grid place-items-center text-[22px] bg-tg-text/[0.05]">
-          ⚙️
+        <div className="shrink-0 w-11 h-11 rounded-2xl grid place-items-center bg-tg-text/[0.05] text-tg-subtitle">
+          <IconSettings className="w-[22px] h-[22px]" />
         </div>
         <div className="flex-1">
           <div className="text-[15px] font-bold text-tg-text">
@@ -135,17 +178,16 @@ export function HomePage(ctx: PageCtx) {
             {t(ctx.locale, 'home.action.settings.sub')}
           </div>
         </div>
-        <span className="shrink-0 w-6 h-6 grid place-items-center rounded-full text-tg-hint text-[16px] bg-tg-text/[0.04]">
-          ›
-        </span>
+        <IconChevron className="shrink-0 w-5 h-5 text-tg-hint" />
       </button>
 
       <div className="flex-1" />
       <div
-        className="reveal text-center text-[11px] text-tg-hint/70 pt-6 pb-2"
+        className="reveal flex items-center justify-center gap-1.5 text-center text-[11px] text-tg-hint/70 pt-6 pb-2"
         style={{ animationDelay: '460ms' }}
       >
-        ⚖️ Adolat · Oʻzbekiston sudlari
+        <IconScale className="w-3.5 h-3.5" />
+        Adolat · Oʻzbekiston sudlari
       </div>
     </div>
   );

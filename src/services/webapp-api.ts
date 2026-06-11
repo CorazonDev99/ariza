@@ -263,6 +263,13 @@ export async function handleApi(ctx: ApiContext): Promise<boolean> {
     return true;
   }
 
+  if (m === 'POST' && p === '/ai-yurist') {
+    const auth = await requireUser(ctx);
+    if (!auth) return true;
+    await handleAiYurist(ctx, auth.user);
+    return true;
+  }
+
   if (m === 'POST' && p === '/transcribe') {
     const auth = await requireUser(ctx);
     if (!auth) return true;
@@ -480,6 +487,34 @@ async function handleAiRewrite(ctx: ApiContext, _user: User): Promise<void> {
     sendJson(ctx.res, 200, { text: out });
   } catch (err) {
     logger.warn({ err }, 'Mini App AI rewrite failed');
+    sendJson(ctx.res, 502, { error: 'ai_failed' });
+  }
+}
+
+// =====================================================================
+// /ai-yurist — answer a free-form legal question (AI legal assistant)
+// =====================================================================
+
+async function handleAiYurist(ctx: ApiContext, _user: User): Promise<void> {
+  void _user;
+  if (!ctx.services.aiAssist.canAnswerQuestions()) {
+    sendJson(ctx.res, 503, { error: 'ai_disabled' });
+    return;
+  }
+  const body = await readJson<{ question?: string; locale?: string }>(ctx);
+  if (!body || typeof body.question !== 'string' || !body.question.trim()) {
+    sendJson(ctx.res, 400, { error: 'bad_request' });
+    return;
+  }
+  const locale: Locale = isLocale(body.locale) ? body.locale : 'uz_cyrillic';
+  try {
+    const answer = await ctx.services.aiAssist.askLegalQuestion(
+      body.question,
+      locale,
+    );
+    sendJson(ctx.res, 200, { answer });
+  } catch (err) {
+    logger.warn({ err }, 'Mini App AI-Yurist failed');
     sendJson(ctx.res, 502, { error: 'ai_failed' });
   }
 }

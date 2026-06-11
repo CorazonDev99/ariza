@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import { detectLocale, getTg, type Locale } from './tg';
 import { api, type MeResponse } from './api';
 import { HomePage } from './pages/HomePage';
+import { AiYuristPage } from './pages/AiYuristPage';
 import { TypePage } from './pages/TypePage';
 import { JadvalSubPage } from './pages/JadvalSubPage';
 import { RegionPage } from './pages/RegionPage';
@@ -157,6 +158,9 @@ export function App() {
         <Route path="/info/region" element={<InfoRegionPage locale={locale} state={info} setState={setInfo} />} />
         <Route path="/info/court" element={<InfoCourtPage locale={locale} state={info} setState={setInfo} />} />
         <Route path="/info/detail" element={<InfoDetailPage locale={locale} state={info} />} />
+
+        {/* AI-Yurist — legal assistant chat (needs auth for the AI call) */}
+        <Route path="/ai-yurist" element={<AuthGuard><AiYuristPage {...ctx} /></AuthGuard>} />
 
         {/* Settings — needs auth (writes User.language) */}
         <Route path="/settings" element={<AuthGuard><SettingsPage {...ctx} /></AuthGuard>} />

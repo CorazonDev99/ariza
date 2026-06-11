@@ -208,6 +208,12 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, locale }),
     }),
+  aiYurist: (question: string, locale: string) =>
+    request<{ answer: string }>('/ai-yurist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, locale }),
+    }),
   transcribe: async (
     audio: Blob,
     locale: string,
