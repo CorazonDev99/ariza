@@ -9,6 +9,7 @@ import {
 import { getInfoTypeCodes } from '../templates/court-info';
 import {
   aboutInline,
+  aiYuristExitInline,
   courtInfoTypesInline,
   feedbackCancelInline,
   guideCourtTypesInline,
@@ -129,6 +130,19 @@ export const actions = {
     await ctx.reply(t(ctx.locale, 'feedback.prompt'), {
       parse_mode: 'HTML',
       ...feedbackCancelInline(ctx.locale),
+    });
+  },
+
+  async aiYurist(ctx: BotContext): Promise<void> {
+    if (!config.ai.apiKey) {
+      await ctx.reply(t(ctx.locale, 'aiyurist.disabled'), mainMenu(ctx.locale));
+      return;
+    }
+    ctx.session.feedbackPending = false;
+    ctx.session.aiYuristPending = true;
+    await ctx.reply(t(ctx.locale, 'aiyurist.intro'), {
+      parse_mode: 'HTML',
+      ...aiYuristExitInline(ctx.locale),
     });
   },
 

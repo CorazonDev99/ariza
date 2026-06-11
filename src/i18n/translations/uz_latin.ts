@@ -18,6 +18,7 @@ export const uz_latin: Dict = {
   'menu.instructions': "📖 Yo‘riqnoma",
   'menu.jadval': '📋 Ishimni tekshirish',
   'menu.courtinfo': '🏛 Sudlar maʼlumoti',
+  'menu.aiyurist': '🤖 AI-Yurist',
   'menu.feedback': '📝 Ariza boʻyicha shikoyat va takliflar',
   'menu.webapp': '🌐 Mini App da ochish',
   'menu.about': 'ℹ️ Bot haqida',
@@ -71,6 +72,17 @@ export const uz_latin: Dict = {
   'feedback.btn.cancel': '❌ Bekor qilish',
   'feedback.cancelled': '❌ Bekor qilindi.',
   'feedback.cmd.desc': '📝 Shikoyat va takliflar',
+  'aiyurist.cmd.desc': '🤖 AI-Yurist — huquqiy maslahat',
+  'aiyurist.intro':
+    "🤖 <b>AI-Yurist</b>\n\nHuquqiy savolingizni yozing — masalan:\n• «Ish haqi to'lanmayapti, nima qilay?»\n• «Alimentni qanday undiraman?»\n• «Qo'shnim meni sudga berdi, nima qilishim kerak?»\n\nMen huquqlaringizni tushuntiraman, qaysi hujjat kerakligini va qayerga murojaat qilishni aytaman. Savollarni ketma-ket yozishingiz mumkin.",
+  'aiyurist.thinking': "⏳ O'ylayapman...",
+  'aiyurist.disclaimer':
+    "ℹ️ Bu — umumiy huquqiy maʼlumot, advokat o'rnini bosmaydi. Muhim va jiddiy ishlarda mutaxassisga murojaat qiling.",
+  'aiyurist.error':
+    "⚠️ Hozir javob berib bo'lmadi. Birozdan so'ng qayta urinib ko'ring.",
+  'aiyurist.disabled': 'ℹ️ AI-Yurist hozircha mavjud emas.',
+  'aiyurist.exit': '✅ AI-Yurist yakunlandi. Menyudan davom eting.',
+  'aiyurist.btn.exit': '✖️ Yakunlash',
 
   'cmd.new.desc': "Yangi ariza tayyorlash",
   'cmd.guide.desc': "Arizalar bo‘yicha yo‘riqnoma",

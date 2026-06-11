@@ -20,6 +20,7 @@ import {
   courtInfoTypesInline,
   courtInfoCourtsInline,
   courtInfoCardInline,
+  aiYuristExitInline,
   mainMenu,
 } from './keyboards';
 import {
@@ -57,12 +58,14 @@ import type { BotContext } from './context';
 import type { DocumentRepository } from '../repositories/document.repository';
 import type { DraftRepository } from '../repositories/draft.repository';
 import type { UserRepository } from '../repositories/user.repository';
+import type { AiAssistService } from '../services/ai-assist.service';
 import { actions, type ActionDeps } from './actions';
 
 export interface CommandDeps {
   documents: DocumentRepository;
   drafts: DraftRepository;
   users: UserRepository;
+  aiAssist: AiAssistService;
 }
 
 export function registerCommands(
@@ -113,6 +116,7 @@ export function registerCommands(
   bot.command('jadval', (ctx) => actions.jadval(ctx));
   bot.command('sudinfo', (ctx) => actions.courtInfo(ctx));
   bot.command('feedback', (ctx) => actions.feedback(ctx));
+  bot.command('yurist', (ctx) => actions.aiYurist(ctx));
   bot.command('lang', (ctx) => actions.lang(ctx));
   bot.command('cancel', (ctx) => actions.cancel(ctx, actionDeps));
 
@@ -144,14 +148,35 @@ export function registerCommands(
     }
     if (ctx.session.feedbackPending) ctx.session.feedbackPending = false;
 
+    // AI-Yurist chat mode: every non-menu message is a legal question
+    // answered by the AI. Tapping a menu button leaves the mode and is
+    // handled normally below.
+    if (ctx.session.aiYuristPending && !action) {
+      await answerLegalQuestion(ctx, text, deps.aiAssist);
+      return;
+    }
+    if (ctx.session.aiYuristPending) ctx.session.aiYuristPending = false;
+
     if (action === 'new') return actions.newDocument(ctx);
     if (action === 'instructions') return actions.guide(ctx);
     if (action === 'jadval') return actions.jadval(ctx);
     if (action === 'courtinfo') return actions.courtInfo(ctx);
+    if (action === 'aiyurist') return actions.aiYurist(ctx);
     if (action === 'feedback') return actions.feedback(ctx);
     if (action === 'about') return actions.about(ctx, actionDeps);
     if (action === 'lang') return actions.lang(ctx);
     return next();
+  });
+
+  bot.action('ai-exit', async (ctx) => {
+    ctx.session.aiYuristPending = false;
+    await ctx.answerCbQuery();
+    try {
+      await ctx.editMessageReplyMarkup(undefined);
+    } catch {
+      /* message too old — ignore */
+    }
+    await ctx.reply(t(ctx.locale, 'aiyurist.exit'), mainMenu(ctx.locale));
   });
 
   bot.action('fb-cancel', async (ctx) => {
@@ -940,6 +965,55 @@ async function submitFeedback(ctx: BotContext, text: string): Promise<void> {
   } catch (err) {
     logger.warn({ err, groupId: config.feedbackGroupId }, 'feedback send failed');
     await ctx.reply(t(ctx.locale, 'feedback.error'), mainMenu(ctx.locale));
+  }
+}
+
+/**
+ * AI-Yurist: answer one legal question. Shows a "thinking" placeholder,
+ * then replaces it with the AI answer + a plain-text disclaimer and the
+ * "Yakunlash" exit button. The user stays in chat mode (aiYuristPending)
+ * so they can keep asking until they exit or tap a menu button.
+ * Sent WITHOUT parse_mode — the model returns plain text, so no escaping.
+ */
+async function answerLegalQuestion(
+  ctx: BotContext,
+  text: string,
+  aiAssist: AiAssistService,
+): Promise<void> {
+  if (text.trim().length === 0) return;
+  if (!aiAssist.isEnabled()) {
+    ctx.session.aiYuristPending = false;
+    await ctx.reply(t(ctx.locale, 'aiyurist.disabled'), mainMenu(ctx.locale));
+    return;
+  }
+
+  const chatId = ctx.chat?.id;
+  const placeholder = await ctx.reply(t(ctx.locale, 'aiyurist.thinking'));
+  try {
+    const answer = await aiAssist.askLegalQuestion(text, ctx.locale);
+    const body = `${answer}\n\n${t(ctx.locale, 'aiyurist.disclaimer')}`;
+    if (chatId) {
+      await ctx.telegram.editMessageText(
+        chatId,
+        placeholder.message_id,
+        undefined,
+        body,
+        aiYuristExitInline(ctx.locale),
+      );
+    }
+  } catch (err) {
+    logger.warn({ err }, 'AI-Yurist answer failed');
+    if (chatId) {
+      await ctx.telegram
+        .editMessageText(
+          chatId,
+          placeholder.message_id,
+          undefined,
+          t(ctx.locale, 'aiyurist.error'),
+          aiYuristExitInline(ctx.locale),
+        )
+        .catch(() => undefined);
+    }
   }
 }
 

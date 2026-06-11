@@ -18,6 +18,17 @@ const SYSTEM_PROMPT = `Ты — помощник по составлению о�
 — верни ТОЛЬКО переписанный текст, без вступления, без markdown, без кавычек.
 ВАЖНО: пиши на том же языке, что и черновик. Если язык непонятен — пиши на языке, указанном пользователем.`;
 
+const YURIST_SYSTEM_PROMPT = `Ты — «AI-Yurist», юридический помощник для граждан Узбекистана. Отвечаешь на бытовые правовые вопросы простым, понятным языком, опираясь на законодательство Республики Узбекистан.
+
+Правила ответа:
+— Пиши на языке, указанном пользователем (узбекский кириллица / o'zbek lotin / русский).
+— Структура: 1) коротко — какие у человека права в этой ситуации; 2) что делать по шагам; 3) какой документ нужен и куда обращаться (суд / орган / организация).
+— Если ситуации подходит готовый документ (ариза, жалоба, иск, возражение, ходатайство) — отдельной строкой подскажи, что его можно сразу сформировать в этом боте через кнопку «📄 Ariza topshirish».
+— Не выдумывай номера статей и точные нормы, если не уверен — объясняй общими принципами.
+— Без markdown, без **жирного**: обычный текст, можно «•» и эмодзи. Коротко и по делу, без воды, максимум ~250 слов.
+— Не давай гарантий исхода. По сложным или уголовным делам советуй обратиться к адвокату.
+— Если вопрос не юридический — мягко скажи, что помогаешь только с правовыми вопросами.`;
+
 export class AiAssistService {
   private client: Anthropic | null;
   private model: string;
@@ -58,6 +69,38 @@ export class AiAssistService {
     } catch (err) {
       logger.error({ err }, 'AI rewrite failed');
       throw err instanceof Error ? err : new Error('AI rewrite failed');
+    }
+  }
+
+  /**
+   * AI-Yurist: answer a free-form legal question from a citizen, in the
+   * user's locale. Returns plain text (no markdown) suitable for a
+   * Telegram message sent WITHOUT parse_mode.
+   */
+  async askLegalQuestion(question: string, locale: Locale): Promise<string> {
+    if (!this.client) throw new Error('AI assist is not configured');
+
+    const trimmed = question.trim();
+    const bounded = trimmed.length > 1500 ? trimmed.slice(0, 1500) : trimmed;
+
+    const userMsg =
+      `Язык ответа: ${LOCALE_LABEL[locale]}.\n\n` +
+      `Вопрос пользователя:\n"""\n${bounded}\n"""`;
+
+    try {
+      const resp = await this.client.messages.create({
+        model: this.model,
+        max_tokens: 1024,
+        system: YURIST_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userMsg }],
+      });
+      const block = resp.content.find((c) => c.type === 'text');
+      const text = block && block.type === 'text' ? block.text.trim() : '';
+      if (!text) throw new Error('empty response');
+      return text;
+    } catch (err) {
+      logger.error({ err }, 'AI-Yurist question failed');
+      throw err instanceof Error ? err : new Error('AI-Yurist failed');
     }
   }
 }

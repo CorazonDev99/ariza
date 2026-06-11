@@ -21,6 +21,7 @@ export const uz_cyrillic: Dict = {
   'menu.instructions': '📖 Қўлланма',
   'menu.jadval': '📋 Ишимни текшириш',
   'menu.courtinfo': '🏛 Судлар маълумоти',
+  'menu.aiyurist': '🤖 AI-Yurist',
   'menu.feedback': '📝 Ариза бўйича шикоят ва таклифлар',
   'menu.webapp': '🌐 Mini App да очиш',
   'menu.about': 'ℹ️ Бот ҳақида',
@@ -75,6 +76,17 @@ export const uz_cyrillic: Dict = {
   'feedback.btn.cancel': '❌ Бекор қилиш',
   'feedback.cancelled': '❌ Бекор қилинди.',
   'feedback.cmd.desc': '📝 Шикоят ва таклифлар',
+  'aiyurist.cmd.desc': '🤖 AI-Yurist — ҳуқуқий маслаҳат',
+  'aiyurist.intro':
+    '🤖 <b>AI-Yurist</b>\n\nҲуқуқий саволингизни ёзинг — масалан:\n• «Иш ҳақи тўланмаяпти, нима қилай?»\n• «Алиментни қандай ундираман?»\n• «Қўшним мени судга берди, нима қилишим керак?»\n\nМен ҳуқуқларингизни тушунтираман, қайси ҳужжат кераклиги ва қаерга мурожаат қилишни айтаман. Саволларни кетма-кет ёзишингиз мумкин.',
+  'aiyurist.thinking': '⏳ Ўйлаяпман...',
+  'aiyurist.disclaimer':
+    'ℹ️ Бу — умумий ҳуқуқий маълумот, адвокат ўрнини босмайди. Муҳим ва жиддий ишларда мутахассисга мурожаат қилинг.',
+  'aiyurist.error':
+    '⚠️ Ҳозир жавоб бериб бўлмади. Бироздан сўнг яна уриниб кўринг.',
+  'aiyurist.disabled': 'ℹ️ AI-Yurist ҳозирча мавжуд эмас.',
+  'aiyurist.exit': '✅ AI-Yurist якунланди. Менюдан давом этинг.',
+  'aiyurist.btn.exit': '✖️ Якунлаш',
 
   // /-menu descriptions (Telegram client shows next to command name)
   'cmd.new.desc': 'Янги ариза тайёрлаш',

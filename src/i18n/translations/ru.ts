@@ -18,6 +18,7 @@ export const ru: Dict = {
   'menu.instructions': '📖 Инструкция',
   'menu.jadval': '📋 Проверить дело',
   'menu.courtinfo': '🏛 Информация о судах',
+  'menu.aiyurist': '🤖 AI-Yurist',
   'menu.feedback': '📝 Жалобы и предложения по заявлениям',
   'menu.webapp': '🌐 Открыть в Mini App',
   'menu.about': 'ℹ️ О боте',
@@ -71,6 +72,17 @@ export const ru: Dict = {
   'feedback.btn.cancel': '❌ Отмена',
   'feedback.cancelled': '❌ Отменено.',
   'feedback.cmd.desc': '📝 Жалобы и предложения',
+  'aiyurist.cmd.desc': '🤖 AI-Yurist — юридическая консультация',
+  'aiyurist.intro':
+    '🤖 <b>AI-Yurist</b>\n\nНапишите свой юридический вопрос — например:\n• «Не платят зарплату, что делать?»\n• «Как взыскать алименты?»\n• «Сосед подал на меня в суд, что делать?»\n\nЯ объясню ваши права, какой документ нужен и куда обращаться. Вопросы можно задавать подряд.',
+  'aiyurist.thinking': '⏳ Думаю...',
+  'aiyurist.disclaimer':
+    'ℹ️ Это — общая юридическая информация, она не заменяет адвоката. По важным и сложным делам обратитесь к специалисту.',
+  'aiyurist.error':
+    '⚠️ Сейчас не удалось ответить. Попробуйте ещё раз чуть позже.',
+  'aiyurist.disabled': 'ℹ️ AI-Yurist пока недоступен.',
+  'aiyurist.exit': '✅ AI-Yurist завершён. Продолжайте из меню.',
+  'aiyurist.btn.exit': '✖️ Завершить',
 
   'cmd.new.desc': 'Новое заявление',
   'cmd.guide.desc': 'Инструкция по заявлениям',

@@ -107,6 +107,7 @@ export function createBot(): BotBundle {
     documents: documentRepo,
     drafts: draftRepo,
     users: userRepo,
+    aiAssist,
   });
   registerAdmin(bot, { admin: adminRepo });
 

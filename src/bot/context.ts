@@ -51,6 +51,10 @@ export interface SessionData extends Scenes.SceneSession<SceneSessionData> {
   /** True between the "📝 Шикоят ва таклифлар" tap and the user's next
    *  message — that message is forwarded to the feedback group. */
   feedbackPending?: boolean;
+  /** True while the user is in "🤖 AI-Yurist" chat mode — every text
+   *  message is answered by the AI until they tap another menu button
+   *  or the inline "Yakunlash" button. */
+  aiYuristPending?: boolean;
 }
 
 export interface SceneSessionData extends Scenes.SceneSessionData {

@@ -23,6 +23,8 @@ export function mainMenu(locale: Locale) {
     [t(locale, 'menu.new'), t(locale, 'menu.jadval')],
     [t(locale, 'menu.instructions'), t(locale, 'menu.courtinfo')],
   ];
+  // AI-Yurist (full-width, prominent) only when an Anthropic key is set.
+  if (config.ai.apiKey) rows.push([t(locale, 'menu.aiyurist')]);
   // Feedback button only when a destination group is configured.
   if (config.feedbackGroupId) rows.push([t(locale, 'menu.feedback')]);
   rows.push([t(locale, 'menu.about'), t(locale, 'menu.lang')]);
@@ -444,6 +446,7 @@ export type MenuAction =
   | 'instructions'
   | 'jadval'
   | 'courtinfo'
+  | 'aiyurist'
   | 'feedback'
   | 'about'
   | 'lang'
@@ -456,6 +459,7 @@ export function detectMenuAction(text: string): MenuAction | null {
     if (text === t(locale, 'menu.instructions')) return 'instructions';
     if (text === t(locale, 'menu.jadval')) return 'jadval';
     if (text === t(locale, 'menu.courtinfo')) return 'courtinfo';
+    if (text === t(locale, 'menu.aiyurist')) return 'aiyurist';
     if (text === t(locale, 'menu.feedback')) return 'feedback';
     if (text === t(locale, 'menu.about')) return 'about';
     if (text === t(locale, 'menu.lang')) return 'lang';
@@ -653,6 +657,13 @@ export function courtInfoCardInline(locale: Locale, mapUrl: string) {
   return Markup.inlineKeyboard([
     [Markup.button.url(t(locale, 'courtinfo.map'), mapUrl)],
     [Markup.button.callback(t(locale, 'courtinfo.back-courts'), 'ci-back-courts')],
+  ]);
+}
+
+/** Shown under AI-Yurist messages — lets the user leave the chat mode. */
+export function aiYuristExitInline(locale: Locale) {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(t(locale, 'aiyurist.btn.exit'), 'ai-exit')],
   ]);
 }
 
