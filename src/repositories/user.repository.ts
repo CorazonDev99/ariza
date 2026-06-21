@@ -47,4 +47,9 @@ export class UserRepository {
       data: { language },
     });
   }
+
+  /** Total registered users (= bot subscribers). */
+  count(): Promise<number> {
+    return this.prisma.user.count();
+  }
 }

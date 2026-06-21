@@ -146,6 +146,7 @@ export const api = {
   /** Entry categories for the schedule flow: criminal + admin-offences. */
   scheduleCategories: () => request<CourtType[]>('/schedule-categories'),
   regions: () => request<Region[]>('/regions'),
+  stats: () => request<{ users: number; documents: number }>('/stats'),
   courts: (type: string, region: string) =>
     request<DistrictCourt[]>(`/courts/${encodeURIComponent(type)}/${encodeURIComponent(region)}`),
   /** Courts for the ariza wizard — same as `courts()` for most types

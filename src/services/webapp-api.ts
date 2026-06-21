@@ -79,6 +79,15 @@ export async function handleApi(ctx: ApiContext): Promise<boolean> {
     sendJson(ctx.res, 200, REGIONS);
     return true;
   }
+  // Public usage stats — subscribers (users) + generated documents.
+  if (m === 'GET' && p === '/stats') {
+    const [users, documents] = await Promise.all([
+      ctx.services.users.count(),
+      ctx.services.documents.countTotal(),
+    ]);
+    sendJson(ctx.res, 200, { users, documents });
+    return true;
+  }
   // Schedule-flow entry categories: criminal (api4) + admin-offences (api5).
   if (m === 'GET' && p === '/schedule-categories') {
     sendJson(ctx.res, 200, SCHEDULE_CATEGORIES.filter((c) => c.active));

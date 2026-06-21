@@ -1,8 +1,11 @@
+import { useEffect, useState } from 'react';
 import { getTg } from '../tg';
 import type { Locale } from '../tg';
 import { t } from '../i18n';
+import { api } from '../api';
 import { useBackTo, type PageCtx } from '../App';
 import { Page } from '../components/Page';
+import { IconUsers } from '../components/icons';
 
 interface LangOpt {
   code: Locale;
@@ -18,6 +21,14 @@ const LANGS: LangOpt[] = [
 
 export function SettingsPage(ctx: PageCtx) {
   useBackTo('/');
+
+  const [subs, setSubs] = useState<number | null>(null);
+  useEffect(() => {
+    api
+      .stats()
+      .then((s) => setSubs(s.users))
+      .catch(() => undefined);
+  }, []);
 
   async function pick(code: Locale) {
     getTg().HapticFeedback.impactOccurred('medium');
@@ -57,10 +68,27 @@ export function SettingsPage(ctx: PageCtx) {
       <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-tg-subtitle px-1 mt-6 mb-1.5">
         {t(ctx.locale, 'settings.about')}
       </div>
-      <div
-        className="card rounded-[20px] p-5 text-[14px] leading-relaxed text-tg-text/90"
-        dangerouslySetInnerHTML={{ __html: t(ctx.locale, 'settings.about.text') }}
-      />
+      <div className="card rounded-[20px] p-5">
+        <div
+          className="text-[14px] leading-relaxed text-tg-text/90"
+          dangerouslySetInnerHTML={{ __html: t(ctx.locale, 'settings.about.text') }}
+        />
+        {subs !== null && (
+          <div className="reveal mt-4 pt-4 border-t border-tg-text/[0.07] flex items-center gap-2.5">
+            <div className="shrink-0 w-9 h-9 rounded-xl grid place-items-center brand-bg text-white">
+              <IconUsers className="w-[18px] h-[18px]" />
+            </div>
+            <div className="leading-tight">
+              <div className="text-[17px] font-extrabold text-tg-text tabular-nums">
+                {new Intl.NumberFormat('ru-RU').format(subs)}
+              </div>
+              <div className="text-[12px] text-tg-subtitle">
+                {t(ctx.locale, 'settings.subscribers')}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </Page>
   );
 }

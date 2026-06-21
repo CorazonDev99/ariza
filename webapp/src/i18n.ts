@@ -131,7 +131,9 @@ const DICT = {
     'settings.title': 'Созламалар',
     'settings.language': '🌐 Тил',
     'settings.about': 'ℹ️ Бот ҳақида',
-    'settings.about.text': '<b>ArizaPro</b> — Ўзбекистон судлари учун расмий ариза тайёрловчи бепул бот. Жадвал2.sud.uz орқали суд мажлисларини текшириш. Манба: github.com/CorazonDev99/ariza',
+    'settings.about.text':
+      '<b>ArizaPro</b> — Ўзбекистон судлари учун расмий ариза тайёрловчи бепул бот. <a href="https://jadval2.sud.uz/" target="_blank" rel="noopener" style="color:var(--tg-link);font-weight:600">jadval2.sud.uz</a> орқали суд мажлисларини текшириш.',
+    'settings.subscribers': 'обуначи',
 
     'about.title': 'Бот ҳақида',
     'about.tagline': 'Ўзбекистон судлари учун ариза боти',
@@ -271,7 +273,9 @@ const DICT = {
     'settings.title': 'Sozlamalar',
     'settings.language': '🌐 Til',
     'settings.about': 'ℹ️ Bot haqida',
-    'settings.about.text': "<b>ArizaPro</b> — O‘zbekiston sudlari uchun rasmiy ariza tayyorlovchi bepul bot. Jadval2.sud.uz orqali sud majlislarini tekshirish. Manba: github.com/CorazonDev99/ariza",
+    'settings.about.text':
+      '<b>ArizaPro</b> — O‘zbekiston sudlari uchun rasmiy ariza tayyorlovchi bepul bot. <a href="https://jadval2.sud.uz/" target="_blank" rel="noopener" style="color:var(--tg-link);font-weight:600">jadval2.sud.uz</a> orqali sud majlislarini tekshirish.',
+    'settings.subscribers': 'obunachi',
 
     'about.title': 'Bot haqida',
     'about.tagline': "O‘zbekiston sudlari uchun ariza boti",
@@ -411,7 +415,9 @@ const DICT = {
     'settings.title': 'Настройки',
     'settings.language': '🌐 Язык',
     'settings.about': 'ℹ️ О боте',
-    'settings.about.text': '<b>ArizaPro</b> — бесплатный бот для подготовки официальных судебных заявлений в Узбекистане. Проверка расписания через jadval2.sud.uz. Источник: github.com/CorazonDev99/ariza',
+    'settings.about.text':
+      '<b>ArizaPro</b> — бесплатный бот для подготовки официальных судебных заявлений в Узбекистане. Проверка расписания через <a href="https://jadval2.sud.uz/" target="_blank" rel="noopener" style="color:var(--tg-link);font-weight:600">jadval2.sud.uz</a>.',
+    'settings.subscribers': 'подписчиков',
 
     'about.title': 'О боте',
     'about.tagline': 'Бот для судов Узбекистана',
