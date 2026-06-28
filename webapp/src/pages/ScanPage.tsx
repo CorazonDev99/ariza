@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../api';
 import { getTg } from '../tg';
 import { t } from '../i18n';
@@ -306,33 +307,36 @@ export function ScanPage(ctx: PageCtx) {
         </div>
       )}
 
-      {/* ── Live camera overlay ────────────────────────────────── */}
-      {cameraOpen && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col">
-          <video
-            ref={fullVideoRef}
-            playsInline
-            muted
-            className="flex-1 w-full object-cover"
-          />
-          <button
-            onClick={closeCamera}
-            aria-label="Close"
-            className="absolute top-4 right-4 w-11 h-11 rounded-full grid place-items-center bg-black/50 text-white backdrop-blur"
-          >
-            <IconX className="w-6 h-6" />
-          </button>
-          <div className="absolute inset-x-0 bottom-0 pb-8 pt-6 flex items-center justify-center safe-bottom bg-gradient-to-t from-black/70 to-transparent">
+      {/* ── Live camera overlay — portalled to <body> so `fixed` is
+          relative to the viewport, not the animated (transformed) page ── */}
+      {cameraOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[100] bg-black">
+            <video
+              ref={fullVideoRef}
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover"
+            />
             <button
-              onClick={shoot}
-              aria-label="Shoot"
-              className="press w-[74px] h-[74px] rounded-full bg-white grid place-items-center ring-4 ring-white/30 active:scale-95"
+              onClick={closeCamera}
+              aria-label="Close"
+              className="absolute top-4 right-4 w-11 h-11 rounded-full grid place-items-center bg-black/50 text-white backdrop-blur safe-top"
             >
-              <span className="w-[60px] h-[60px] rounded-full border-[3px] border-black/15" />
+              <IconX className="w-6 h-6" />
             </button>
-          </div>
-        </div>
-      )}
+            <div className="absolute inset-x-0 bottom-0 pb-10 pt-8 flex items-center justify-center safe-bottom bg-gradient-to-t from-black/80 to-transparent">
+              <button
+                onClick={shoot}
+                aria-label="Shoot"
+                className="press w-[78px] h-[78px] rounded-full bg-white grid place-items-center ring-4 ring-white/30 active:scale-95"
+              >
+                <span className="w-[64px] h-[64px] rounded-full border-[3px] border-black/15" />
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )}
     </Page>
   );
 }
