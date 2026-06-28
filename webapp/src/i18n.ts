@@ -40,6 +40,7 @@ const DICT = {
       'Суд хабарномаси, қарор, жарима, шартнома, тилхат… Яхши ёруғликда, матн тўлиқ кўринсин.',
     'scan.thinking': 'Ҳужжат ўқилмоқда…',
     'scan.again': 'Яна сканерлаш',
+    'scan.gallery': 'Галереядан танлаш',
     'scan.error':
       'Расмни таҳлил қилиб бўлмади. Аниқроқ суратга олиб қайта уриниб кўринг.',
     'scan.disclaimer':
@@ -200,6 +201,7 @@ const DICT = {
       'Sud xabarnomasi, qaror, jarima, shartnoma, tilxat… Yaxshi yorug‘likda, matn to‘liq ko‘rinsin.',
     'scan.thinking': 'Hujjat o‘qilmoqda…',
     'scan.again': 'Yana skanerlash',
+    'scan.gallery': 'Galereyadan tanlash',
     'scan.error':
       "Rasmni tahlil qilib bo‘lmadi. Aniqroq suratga olib qayta urinib ko‘ring.",
     'scan.disclaimer':
@@ -355,6 +357,7 @@ const DICT = {
       'Повестка, решение суда, штраф, договор, расписка… Снимайте при хорошем свете, чтобы текст был виден.',
     'scan.thinking': 'Читаю документ…',
     'scan.again': 'Сканировать ещё',
+    'scan.gallery': 'Выбрать из галереи',
     'scan.error':
       'Не удалось разобрать фото. Снимите чётче и попробуйте снова.',
     'scan.disclaimer':

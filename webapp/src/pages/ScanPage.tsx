@@ -4,7 +4,7 @@ import { getTg } from '../tg';
 import { t } from '../i18n';
 import { useBackTo, type PageCtx } from '../App';
 import { Page } from '../components/Page';
-import { IconCamera } from '../components/icons';
+import { IconCamera, IconImage } from '../components/icons';
 
 /** Downscale + re-encode a picked image to keep the upload small and fast. */
 function fileToDataUrl(file: File, maxSize = 1400, quality = 0.62): Promise<string> {
@@ -40,7 +40,12 @@ export function ScanPage(ctx: PageCtx) {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  // Two separate inputs: the camera one carries `capture`, which forces
+  // the device camera on mobile; the gallery one omits it so the user can
+  // pick an existing photo. Splitting them gives an explicit "take photo"
+  // option even on clients that otherwise default the picker to gallery.
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -74,7 +79,16 @@ export function ScanPage(ctx: PageCtx) {
     setPreview(null);
     setResult(null);
     setError(false);
-    inputRef.current?.click();
+  }
+
+  function openCamera() {
+    getTg().HapticFeedback.impactOccurred('medium');
+    cameraRef.current?.click();
+  }
+
+  function openGallery() {
+    getTg().HapticFeedback.impactOccurred('light');
+    galleryRef.current?.click();
   }
 
   return (
@@ -82,34 +96,48 @@ export function ScanPage(ctx: PageCtx) {
       title={t(ctx.locale, 'scan.title')}
       subtitle={t(ctx.locale, 'scan.subtitle')}
     >
+      {/* Camera (forces device camera on mobile) + gallery inputs. */}
       <input
-        ref={inputRef}
+        ref={cameraRef}
         type="file"
         accept="image/*"
         capture="environment"
         onChange={onPick}
         className="hidden"
       />
+      <input
+        ref={galleryRef}
+        type="file"
+        accept="image/*"
+        onChange={onPick}
+        className="hidden"
+      />
 
-      {/* ── Empty state: big tappable capture card ─────────────── */}
+      {/* ── Empty state: camera card + gallery option ──────────── */}
       {!preview && (
-        <button
-          onClick={() => {
-            getTg().HapticFeedback.impactOccurred('medium');
-            inputRef.current?.click();
-          }}
-          className="press reveal w-full rounded-[24px] card card-float p-7 flex flex-col items-center text-center"
-        >
-          <div className="w-20 h-20 rounded-3xl brand-bg grid place-items-center text-white ring-accent">
-            <IconCamera className="w-10 h-10" />
-          </div>
-          <div className="mt-4 text-[17px] font-bold text-tg-text">
-            {t(ctx.locale, 'scan.cta')}
-          </div>
-          <div className="mt-1.5 text-[13px] leading-snug text-tg-subtitle max-w-[280px]">
-            {t(ctx.locale, 'scan.hint')}
-          </div>
-        </button>
+        <div className="reveal">
+          <button
+            onClick={openCamera}
+            className="press w-full rounded-[24px] card card-float p-7 flex flex-col items-center text-center"
+          >
+            <div className="w-20 h-20 rounded-3xl brand-bg grid place-items-center text-white ring-accent">
+              <IconCamera className="w-10 h-10" />
+            </div>
+            <div className="mt-4 text-[17px] font-bold text-tg-text">
+              {t(ctx.locale, 'scan.cta')}
+            </div>
+            <div className="mt-1.5 text-[13px] leading-snug text-tg-subtitle max-w-[280px]">
+              {t(ctx.locale, 'scan.hint')}
+            </div>
+          </button>
+          <button
+            onClick={openGallery}
+            className="press mt-3 w-full rounded-2xl py-3.5 card flex items-center justify-center gap-2 text-[15px] font-semibold text-tg-text"
+          >
+            <IconImage className="w-5 h-5 text-tg-subtitle" />
+            {t(ctx.locale, 'scan.gallery')}
+          </button>
+        </div>
       )}
 
       {/* ── Result state: preview + analysis ───────────────────── */}
