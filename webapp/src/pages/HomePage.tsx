@@ -5,6 +5,7 @@ import { t } from '../i18n';
 import type { PageCtx } from '../App';
 import {
   IconBook,
+  IconCamera,
   IconCaseCheck,
   IconChevron,
   IconFile,
@@ -129,34 +130,51 @@ export function HomePage(ctx: PageCtx) {
         ))}
       </div>
 
-      {/* ── AI-Yurist (full-width, brand accent — above Settings) ── */}
-      <button
-        onClick={() => {
-          getTg().HapticFeedback.impactOccurred('medium');
-          nav('/ai-yurist');
-        }}
-        className="press reveal mt-3 w-full rounded-[22px] p-4 text-left card card-float relative overflow-hidden flex items-center gap-3.5"
-        style={{ animationDelay: `${140 + tiles.length * 55}ms` }}
-      >
-        <div className="pointer-events-none absolute -right-10 -top-10 w-32 h-32 rounded-full brand-bg opacity-[0.14] blur-2xl" />
-        <div className="relative shrink-0 w-12 h-12 rounded-2xl brand-bg grid place-items-center text-white ring-accent">
-          <IconSparkles className="w-[26px] h-[26px]" />
-        </div>
-        <div className="relative flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[15px] font-bold text-tg-text">
-              {t(ctx.locale, 'home.action.aiyurist')}
-            </span>
-            <span className="shrink-0 text-[10px] font-extrabold tracking-wide px-1.5 py-0.5 rounded-md brand-bg text-white">
-              AI
-            </span>
-          </div>
-          <div className="text-[12px] text-tg-subtitle mt-0.5 truncate">
-            {t(ctx.locale, 'home.action.aiyurist.sub')}
-          </div>
-        </div>
-        <IconChevron className="relative shrink-0 w-5 h-5 text-tg-hint" />
-      </button>
+      {/* ── AI features: 📸 Scanner + 🤖 AI-Yurist (brand accent) ── */}
+      <div className="grid grid-cols-2 gap-3 mt-3">
+        {[
+          {
+            icon: <IconCamera className="w-[26px] h-[26px]" />,
+            title: t(ctx.locale, 'home.action.scan'),
+            sub: t(ctx.locale, 'home.action.scan.sub'),
+            to: '/scan',
+          },
+          {
+            icon: <IconSparkles className="w-[26px] h-[26px]" />,
+            title: t(ctx.locale, 'home.action.aiyurist'),
+            sub: t(ctx.locale, 'home.action.aiyurist.sub'),
+            to: '/ai-yurist',
+          },
+        ].map((a, i) => (
+          <button
+            key={a.to}
+            onClick={() => {
+              getTg().HapticFeedback.impactOccurred('medium');
+              nav(a.to);
+            }}
+            className="press reveal relative overflow-hidden rounded-[22px] p-4 text-left card card-float min-h-[128px] flex flex-col justify-between"
+            style={{ animationDelay: `${140 + (tiles.length + i) * 55}ms` }}
+          >
+            <div className="pointer-events-none absolute -right-8 -top-8 w-24 h-24 rounded-full brand-bg opacity-[0.16] blur-2xl" />
+            <div className="relative flex items-center justify-between">
+              <div className="w-12 h-12 rounded-2xl brand-bg grid place-items-center text-white ring-accent">
+                {a.icon}
+              </div>
+              <span className="text-[10px] font-extrabold tracking-wide px-1.5 py-0.5 rounded-md brand-bg text-white">
+                AI
+              </span>
+            </div>
+            <div className="relative">
+              <div className="text-[15px] font-bold text-tg-text leading-tight">
+                {a.title}
+              </div>
+              <div className="text-[12px] text-tg-subtitle mt-1 leading-snug">
+                {a.sub}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
 
       {/* ── Settings ───────────────────────────────────────────── */}
       <button

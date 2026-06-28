@@ -67,6 +67,7 @@ export function createBot(): BotBundle {
     config.ai.openaiKey,
     config.ai.openaiBaseUrl,
     config.ai.openaiModel,
+    config.ai.openaiVisionModel,
   );
   if (aiAssist.isEnabled()) {
     logger.info({ model: config.ai.model }, 'AI-assist enabled');

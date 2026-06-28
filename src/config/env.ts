@@ -125,6 +125,13 @@ const envSchema = z.object({
   // OPENAI_BASE_URL). On Groq use e.g. llama-3.3-70b-versatile (free).
   // When OPENAI_API_KEY is set, AI-Yurist prefers this over Anthropic.
   OPENAI_CHAT_MODEL: z.string().default('llama-3.3-70b-versatile'),
+
+  // Multimodal (vision) model for the 📸 document camera-scanner, same
+  // OpenAI-compatible endpoint. On Groq use a Llama-4 multimodal model.
+  // Empty disables the scanner.
+  OPENAI_VISION_MODEL: z
+    .string()
+    .default('meta-llama/llama-4-scout-17b-16e-instruct'),
 });
 
 export type Env = z.infer<typeof envSchema>;

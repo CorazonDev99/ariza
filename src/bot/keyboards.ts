@@ -23,11 +23,16 @@ export function mainMenu(locale: Locale) {
     [t(locale, 'menu.new'), t(locale, 'menu.jadval')],
     [t(locale, 'menu.instructions'), t(locale, 'menu.courtinfo')],
   ];
-  // AI-Yurist (full-width, prominent) — shown when either AI backend
-  // (Groq/OpenAI-compatible or Anthropic) is configured.
-  if (config.ai.openaiKey || config.ai.apiKey) {
-    rows.push([t(locale, 'menu.aiyurist')]);
+  // AI features row: 📸 scanner (needs a vision model) + 🤖 AI-Yurist
+  // (needs any chat backend). Shown together when both are available.
+  const aiRow: string[] = [];
+  if (config.ai.openaiKey && config.ai.openaiVisionModel) {
+    aiRow.push(t(locale, 'menu.scan'));
   }
+  if (config.ai.openaiKey || config.ai.apiKey) {
+    aiRow.push(t(locale, 'menu.aiyurist'));
+  }
+  if (aiRow.length) rows.push(aiRow);
   // Feedback button only when a destination group is configured.
   if (config.feedbackGroupId) rows.push([t(locale, 'menu.feedback')]);
   rows.push([t(locale, 'menu.about'), t(locale, 'menu.lang')]);
@@ -449,6 +454,7 @@ export type MenuAction =
   | 'instructions'
   | 'jadval'
   | 'courtinfo'
+  | 'scan'
   | 'aiyurist'
   | 'feedback'
   | 'about'
@@ -462,6 +468,7 @@ export function detectMenuAction(text: string): MenuAction | null {
     if (text === t(locale, 'menu.instructions')) return 'instructions';
     if (text === t(locale, 'menu.jadval')) return 'jadval';
     if (text === t(locale, 'menu.courtinfo')) return 'courtinfo';
+    if (text === t(locale, 'menu.scan')) return 'scan';
     if (text === t(locale, 'menu.aiyurist')) return 'aiyurist';
     if (text === t(locale, 'menu.feedback')) return 'feedback';
     if (text === t(locale, 'menu.about')) return 'about';

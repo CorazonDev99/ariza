@@ -1389,6 +1389,10 @@ export function buildArizaWizardScene(
       await ctx.scene.leave();
       return actions.aiYurist(ctx);
     }
+    if (menuAction === 'scan') {
+      await ctx.scene.leave();
+      return actions.scanDoc(ctx);
+    }
     if (menuAction === 'feedback') {
       await ctx.scene.leave();
       return actions.feedback(ctx);

@@ -215,6 +215,12 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question, locale }),
     }),
+  scan: (image: string, locale: string) =>
+    request<{ analysis: string }>('/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image, locale }),
+    }),
   transcribe: async (
     audio: Blob,
     locale: string,

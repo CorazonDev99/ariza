@@ -117,7 +117,17 @@ export function registerCommands(
   bot.command('sudinfo', (ctx) => actions.courtInfo(ctx));
   bot.command('feedback', (ctx) => actions.feedback(ctx));
   bot.command('yurist', (ctx) => actions.aiYurist(ctx));
+  bot.command('scan', (ctx) => actions.scanDoc(ctx));
   bot.command('lang', (ctx) => actions.lang(ctx));
+
+  // 📸 Camera-scanner: any photo sent to the bot is read & explained.
+  bot.on('photo', async (ctx) => {
+    if (!deps.aiAssist.canScanDocuments()) return;
+    const photos = ctx.message.photo;
+    const fileId = photos[photos.length - 1]?.file_id;
+    if (!fileId) return;
+    await analyzeDocumentPhoto(ctx, fileId, deps.aiAssist);
+  });
   bot.command('cancel', (ctx) => actions.cancel(ctx, actionDeps));
 
   // Localized main-menu buttons (reply keyboard) → translate to actions.
@@ -161,6 +171,7 @@ export function registerCommands(
     if (action === 'instructions') return actions.guide(ctx);
     if (action === 'jadval') return actions.jadval(ctx);
     if (action === 'courtinfo') return actions.courtInfo(ctx);
+    if (action === 'scan') return actions.scanDoc(ctx);
     if (action === 'aiyurist') return actions.aiYurist(ctx);
     if (action === 'feedback') return actions.feedback(ctx);
     if (action === 'about') return actions.about(ctx, actionDeps);
@@ -1011,6 +1022,49 @@ async function answerLegalQuestion(
           undefined,
           t(ctx.locale, 'aiyurist.error'),
           aiYuristExitInline(ctx.locale),
+        )
+        .catch(() => undefined);
+    }
+  }
+}
+
+/**
+ * 📸 Camera-scanner: download a Telegram photo, send it to the vision
+ * model and replace the "reading…" placeholder with the analysis +
+ * disclaimer. Sent WITHOUT parse_mode (plain model text → no escaping).
+ */
+async function analyzeDocumentPhoto(
+  ctx: BotContext,
+  fileId: string,
+  aiAssist: AiAssistService,
+): Promise<void> {
+  const chatId = ctx.chat?.id;
+  const placeholder = await ctx.reply(t(ctx.locale, 'scan.thinking'));
+  try {
+    const link = await ctx.telegram.getFileLink(fileId);
+    const resp = await fetch(link.toString());
+    if (!resp.ok) throw new Error(`telegram_file_${resp.status}`);
+    const buf = Buffer.from(await resp.arrayBuffer());
+    const dataUrl = `data:image/jpeg;base64,${buf.toString('base64')}`;
+    const analysis = await aiAssist.analyzeDocument(dataUrl, ctx.locale);
+    const body = `${analysis}\n\n${t(ctx.locale, 'aiyurist.disclaimer')}`;
+    if (chatId) {
+      await ctx.telegram.editMessageText(
+        chatId,
+        placeholder.message_id,
+        undefined,
+        body,
+      );
+    }
+  } catch (err) {
+    logger.warn({ err }, 'Document scan failed');
+    if (chatId) {
+      await ctx.telegram
+        .editMessageText(
+          chatId,
+          placeholder.message_id,
+          undefined,
+          t(ctx.locale, 'scan.error'),
         )
         .catch(() => undefined);
     }

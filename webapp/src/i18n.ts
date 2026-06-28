@@ -31,6 +31,19 @@ const DICT = {
     'aiyurist.error': 'Жавоб бериб бўлмади. Қайта уриниб кўринг.',
     'aiyurist.disclaimer':
       'Бу — умумий ҳуқуқий маълумот, адвокат ўрнини босмайди.',
+    'home.action.scan': 'Ҳужжат сканери',
+    'home.action.scan.sub': 'Расмга олиб таҳлил қилиш',
+    'scan.title': 'Ҳужжат сканери',
+    'scan.subtitle': 'Ҳужжатни расмга олинг — AI уни ўқиб тушунтиради',
+    'scan.cta': 'Ҳужжатни суратга олиш',
+    'scan.hint':
+      'Суд хабарномаси, қарор, жарима, шартнома, тилхат… Яхши ёруғликда, матн тўлиқ кўринсин.',
+    'scan.thinking': 'Ҳужжат ўқилмоқда…',
+    'scan.again': 'Яна сканерлаш',
+    'scan.error':
+      'Расмни таҳлил қилиб бўлмади. Аниқроқ суратга олиб қайта уриниб кўринг.',
+    'scan.disclaimer':
+      'Бу — умумий ҳуқуқий маълумот, адвокат ўрнини босмайди.',
     'ci.title.regions': 'Ҳудудни танланг',
     'ci.title.types': 'Суд турини танланг',
     'ci.title.courts': 'Судни танланг',
@@ -178,6 +191,19 @@ const DICT = {
     'aiyurist.error': "Javob berib bo‘lmadi. Qayta urinib ko‘ring.",
     'aiyurist.disclaimer':
       "Bu — umumiy huquqiy maʼlumot, advokat o‘rnini bosmaydi.",
+    'home.action.scan': 'Hujjat skaneri',
+    'home.action.scan.sub': 'Rasmga olib tahlil qilish',
+    'scan.title': 'Hujjat skaneri',
+    'scan.subtitle': 'Hujjatni suratga oling — AI uni o‘qib tushuntiradi',
+    'scan.cta': 'Hujjatni suratga olish',
+    'scan.hint':
+      'Sud xabarnomasi, qaror, jarima, shartnoma, tilxat… Yaxshi yorug‘likda, matn to‘liq ko‘rinsin.',
+    'scan.thinking': 'Hujjat o‘qilmoqda…',
+    'scan.again': 'Yana skanerlash',
+    'scan.error':
+      "Rasmni tahlil qilib bo‘lmadi. Aniqroq suratga olib qayta urinib ko‘ring.",
+    'scan.disclaimer':
+      "Bu — umumiy huquqiy maʼlumot, advokat o‘rnini bosmaydi.",
     'ci.title.regions': 'Hududni tanlang',
     'ci.title.types': 'Sud turini tanlang',
     'ci.title.courts': 'Sudni tanlang',
@@ -319,6 +345,19 @@ const DICT = {
     'aiyurist.thinking': 'Печатает…',
     'aiyurist.error': 'Не удалось ответить. Попробуйте ещё раз.',
     'aiyurist.disclaimer':
+      'Это — общая юридическая информация, не заменяет адвоката.',
+    'home.action.scan': 'Сканер документа',
+    'home.action.scan.sub': 'Сфотографировать и разобрать',
+    'scan.title': 'Сканер документа',
+    'scan.subtitle': 'Сфотографируйте документ — AI прочитает и объяснит',
+    'scan.cta': 'Сфотографировать документ',
+    'scan.hint':
+      'Повестка, решение суда, штраф, договор, расписка… Снимайте при хорошем свете, чтобы текст был виден.',
+    'scan.thinking': 'Читаю документ…',
+    'scan.again': 'Сканировать ещё',
+    'scan.error':
+      'Не удалось разобрать фото. Снимите чётче и попробуйте снова.',
+    'scan.disclaimer':
       'Это — общая юридическая информация, не заменяет адвоката.',
     'ci.title.regions': 'Выберите регион',
     'ci.title.types': 'Выберите тип суда',

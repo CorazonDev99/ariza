@@ -29,12 +29,28 @@ const YURIST_SYSTEM_PROMPT = `Ты — «AI-Yurist», юридический п�
 — Не давай гарантий исхода. По сложным или уголовным делам советуй обратиться к адвокату.
 — Если вопрос не юридический — мягко скажи, что помогаешь только с правовыми вопросами.`;
 
+const SCAN_SYSTEM_PROMPT = `Ты — «AI-Yurist», юридический помощник для граждан Узбекистана. Пользователь прислал ФОТО документа (это может быть: повестка в суд, судебное решение, штраф, договор, расписка, претензия, уведомление и т.п.).
+
+Твоя задача — внимательно прочитать документ на фото и ответить по структуре:
+1) ЧТО ЭТО — тип документа простыми словами.
+2) СУТЬ — о чём он, ключевые факты (кто, кому, сколько, по какому поводу).
+3) ВАЖНЫЕ ДАТЫ И СРОКИ — если есть (заседание, обжалование, оплата) — выпиши явно.
+4) ЧТО ДЕЛАТЬ — пошагово, конкретно.
+5) Если по ситуации нужен ответный документ (возражение, жалоба, ходатайство, ариза) — скажи это и упомяни, что его можно сразу сделать в этом боте через «Ariza topshirish».
+
+Правила:
+— Отвечай на языке, указанном пользователем.
+— Без markdown и **жирного**: обычный текст, можно «•» и эмодзи, до ~280 слов.
+— Если на фото НЕ документ, или текст нечитаемый/обрезан — вежливо попроси переснять чётче при хорошем свете.
+— Не выдумывай номера статей; не уверен — общими принципами. По сложным/уголовным делам советуй адвоката. Без гарантий исхода.`;
+
 export class AiAssistService {
   private client: Anthropic | null;
   private model: string;
   private openaiKey: string;
   private openaiBaseUrl: string;
   private openaiModel: string;
+  private visionModel: string;
 
   constructor(
     apiKey: string,
@@ -42,12 +58,14 @@ export class AiAssistService {
     openaiKey = '',
     openaiBaseUrl = '',
     openaiModel = '',
+    visionModel = '',
   ) {
     this.client = apiKey ? new Anthropic({ apiKey }) : null;
     this.model = model;
     this.openaiKey = openaiKey;
     this.openaiBaseUrl = openaiBaseUrl.replace(/\/+$/, '');
     this.openaiModel = openaiModel;
+    this.visionModel = visionModel;
   }
 
   /** Anthropic-backed features (the in-wizard rewrite button). */
@@ -59,6 +77,64 @@ export class AiAssistService {
    *  Anthropic. Preference is given to the OpenAI-compatible one. */
   canAnswerQuestions(): boolean {
     return Boolean(this.openaiKey) || this.client !== null;
+  }
+
+  /** Document camera-scanner needs a multimodal (vision) model on the
+   *  OpenAI-compatible backend. */
+  canScanDocuments(): boolean {
+    return Boolean(this.openaiKey && this.visionModel);
+  }
+
+  /**
+   * 📸 Camera-scanner: analyze a photo of a legal document and explain it
+   * (type, gist, deadlines, next steps) in the user's language. `imageUrl`
+   * is a data URL (`data:image/jpeg;base64,...`) or public URL. Returns
+   * plain text (no markdown) for a Telegram message without parse_mode.
+   */
+  async analyzeDocument(imageUrl: string, locale: Locale): Promise<string> {
+    if (!this.openaiKey || !this.visionModel) {
+      throw new Error('vision backend is not configured');
+    }
+    const userText =
+      `Язык ответа: ${LOCALE_LABEL[locale]}.\n` +
+      `Проанализируй документ на фото по структуре из системного промпта.`;
+    try {
+      const resp = await fetch(`${this.openaiBaseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.openaiKey}`,
+        },
+        body: JSON.stringify({
+          model: this.visionModel,
+          max_tokens: 1024,
+          temperature: 0.2,
+          messages: [
+            { role: 'system', content: SCAN_SYSTEM_PROMPT },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: userText },
+                { type: 'image_url', image_url: { url: imageUrl } },
+              ],
+            },
+          ],
+        }),
+      });
+      if (!resp.ok) {
+        const body = await resp.text().catch(() => '');
+        throw new Error(`vision ${resp.status}: ${body.slice(0, 300)}`);
+      }
+      const data = (await resp.json()) as {
+        choices?: Array<{ message?: { content?: string } }>;
+      };
+      const text = data.choices?.[0]?.message?.content?.trim() ?? '';
+      if (!text) throw new Error('empty response');
+      return text;
+    } catch (err) {
+      logger.error({ err }, 'Document scan failed');
+      throw err instanceof Error ? err : new Error('Document scan failed');
+    }
   }
 
   async rewriteLegalText(original: string, locale: Locale): Promise<string> {

@@ -146,6 +146,18 @@ export const actions = {
     });
   },
 
+  async scanDoc(ctx: BotContext): Promise<void> {
+    if (!config.ai.openaiKey || !config.ai.openaiVisionModel) {
+      await ctx.reply(t(ctx.locale, 'scan.disabled'), mainMenu(ctx.locale));
+      return;
+    }
+    // No persistent flag: any photo sent to the bot is analyzed (see the
+    // photo handler in commands.ts). This just explains the feature.
+    ctx.session.aiYuristPending = false;
+    ctx.session.feedbackPending = false;
+    await ctx.reply(t(ctx.locale, 'scan.intro'), { parse_mode: 'HTML' });
+  },
+
   async cancel(ctx: BotContext, deps: ActionDeps): Promise<void> {
     if (ctx.dbUser) await deps.drafts.reset(ctx.dbUser.id);
     await ctx.reply(t(ctx.locale, 'cmd.cancelled'), mainMenu(ctx.locale));

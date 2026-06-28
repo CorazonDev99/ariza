@@ -4,6 +4,7 @@ import { detectLocale, getTg, type Locale } from './tg';
 import { api, type MeResponse } from './api';
 import { HomePage } from './pages/HomePage';
 import { AiYuristPage } from './pages/AiYuristPage';
+import { ScanPage } from './pages/ScanPage';
 import { TypePage } from './pages/TypePage';
 import { JadvalSubPage } from './pages/JadvalSubPage';
 import { RegionPage } from './pages/RegionPage';
@@ -161,6 +162,9 @@ export function App() {
 
         {/* AI-Yurist — legal assistant chat (needs auth for the AI call) */}
         <Route path="/ai-yurist" element={<AuthGuard><AiYuristPage {...ctx} /></AuthGuard>} />
+
+        {/* 📸 Camera-scanner — photo of a document → AI analysis */}
+        <Route path="/scan" element={<AuthGuard><ScanPage {...ctx} /></AuthGuard>} />
 
         {/* Settings — needs auth (writes User.language) */}
         <Route path="/settings" element={<AuthGuard><SettingsPage {...ctx} /></AuthGuard>} />

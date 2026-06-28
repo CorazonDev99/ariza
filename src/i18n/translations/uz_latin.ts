@@ -83,6 +83,14 @@ export const uz_latin: Dict = {
   'aiyurist.disabled': 'ℹ️ AI-Yurist hozircha mavjud emas.',
   'aiyurist.exit': '✅ AI-Yurist yakunlandi. Menyudan davom eting.',
   'aiyurist.btn.exit': '✖️ Yakunlash',
+  'menu.scan': '📸 Hujjat skaneri',
+  'scan.cmd.desc': '📸 Hujjatni rasmga olib tahlil qilish',
+  'scan.intro':
+    "📸 <b>Hujjat skaneri</b>\n\nIxtiyoriy hujjatni (sud xabarnomasi, qaror, jarima, shartnoma, tilxat…) <b>rasmga olib yuboring</b> — men uni o‘qiyman va tushuntiraman: bu nima, muddatlar qancha, nima qilish kerak.\n\n💡 Yaxshi yorug‘likda, matn to‘liq ko‘rinadigan qilib suratga oling.",
+  'scan.thinking': '📸 Hujjatni o‘qiyapman…',
+  'scan.error':
+    "⚠️ Rasmni tahlil qilib bo‘lmadi. Yorug‘roq va aniqroq suratga olib qayta yuboring.",
+  'scan.disabled': 'ℹ️ Hujjat skaneri hozircha mavjud emas.',
 
   'cmd.new.desc': "Yangi ariza tayyorlash",
   'cmd.guide.desc': "Arizalar bo‘yicha yo‘riqnoma",

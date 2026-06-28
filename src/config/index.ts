@@ -60,6 +60,8 @@ export interface AppConfig {
     openaiKey: string;
     openaiBaseUrl: string;
     openaiModel: string;
+    /** Multimodal model for the 📸 document scanner. Empty disables it. */
+    openaiVisionModel: string;
   };
   transcribe: {
     /** When empty, voice messages in the wizard are silently ignored. */
@@ -113,6 +115,7 @@ export const config: AppConfig = {
     openaiKey: env.OPENAI_API_KEY,
     openaiBaseUrl: env.OPENAI_BASE_URL,
     openaiModel: env.OPENAI_CHAT_MODEL,
+    openaiVisionModel: env.OPENAI_VISION_MODEL,
   },
   transcribe: {
     apiKey: env.OPENAI_API_KEY,

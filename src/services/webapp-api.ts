@@ -279,6 +279,13 @@ export async function handleApi(ctx: ApiContext): Promise<boolean> {
     return true;
   }
 
+  if (m === 'POST' && p === '/scan') {
+    const auth = await requireUser(ctx);
+    if (!auth) return true;
+    await handleScan(ctx, auth.user);
+    return true;
+  }
+
   if (m === 'POST' && p === '/transcribe') {
     const auth = await requireUser(ctx);
     if (!auth) return true;
@@ -524,6 +531,33 @@ async function handleAiYurist(ctx: ApiContext, _user: User): Promise<void> {
     sendJson(ctx.res, 200, { answer });
   } catch (err) {
     logger.warn({ err }, 'Mini App AI-Yurist failed');
+    sendJson(ctx.res, 502, { error: 'ai_failed' });
+  }
+}
+
+// =====================================================================
+// /scan — 📸 analyze a photo of a legal document (vision model)
+// =====================================================================
+
+async function handleScan(ctx: ApiContext, _user: User): Promise<void> {
+  void _user;
+  if (!ctx.services.aiAssist.canScanDocuments()) {
+    sendJson(ctx.res, 503, { error: 'scan_disabled' });
+    return;
+  }
+  const body = await readJson<{ image?: string; locale?: string }>(ctx);
+  const image = body?.image;
+  // Expect a data URL like "data:image/jpeg;base64,...".
+  if (typeof image !== 'string' || !image.startsWith('data:image/')) {
+    sendJson(ctx.res, 400, { error: 'bad_request' });
+    return;
+  }
+  const locale: Locale = isLocale(body?.locale) ? body!.locale! : 'uz_cyrillic';
+  try {
+    const analysis = await ctx.services.aiAssist.analyzeDocument(image, locale);
+    sendJson(ctx.res, 200, { analysis });
+  } catch (err) {
+    logger.warn({ err }, 'Mini App document scan failed');
     sendJson(ctx.res, 502, { error: 'ai_failed' });
   }
 }

@@ -133,6 +133,7 @@ async function registerBotCommands(
     { command: 'jadval', description: t(locale, 'jadval.cmd.desc') },
     { command: 'sudinfo', description: t(locale, 'courtinfo.cmd.desc') },
     { command: 'yurist', description: t(locale, 'aiyurist.cmd.desc') },
+    { command: 'scan', description: t(locale, 'scan.cmd.desc') },
     { command: 'feedback', description: t(locale, 'feedback.cmd.desc') },
     { command: 'guide', description: t(locale, 'cmd.guide.desc') },
     { command: 'lang', description: t(locale, 'cmd.lang.desc') },
