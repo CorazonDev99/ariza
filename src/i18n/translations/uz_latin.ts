@@ -1,7 +1,9 @@
 import type { Dict } from '../index';
 
 export const uz_latin: Dict = {
-  'cmd.start.greeting': "👋 Assalomu alaykum, <b>{name}</b>!\n\n📄 Bu bot sud uchun rasmiy arizalarni 1 daqiqada tayyorlab beradi — bosma shaklda, imzo va sanaga tayyor.\n\n🧭 <b>Qanday ishlaydi:</b>\n1️⃣ Sud turini tanlang (hozircha — fuqarolik)\n2️⃣ Viloyat va tumanlararo sudni tanlang\n3️⃣ Ariza turini tanlang\n4️⃣ Bir nechta savolga javob bering — tayyor!\n\n🎙 Ism, manzil va boshqa erkin maydonlarni <b>ovozli xabar</b> bilan ham yuborsangiz bo‘ladi — bot o‘zi matnga aylantiradi.\n\n📖 Birinchi marta foydalanyapsizmi? <b>Qo‘llanma</b> bo‘limini oching — har bir ariza qachon, qaerga va qanday topshirilishi tushuntirilgan.\n\nBoshlash uchun menyudan tanlang 👇",
+  'cmd.start.greeting': "👋 Assalomu alaykum, <b>{name}</b>!\n\n📄 Bu bot sud uchun rasmiy arizalarni bir daqiqada tayyorlab beradi — imzo va sanaga tayyor, bepul.",
+  'cmd.start.open_app': '🚀 Ilovani ochish',
+  'cmd.start.menu': 'Boshlash uchun menyudan tanlang 👇',
   'cmd.about': "<b>ℹ️ Bot haqida</b>\n\n<b>ArizaPro</b> — O‘zbekiston sudlari uchun rasmiy hujjatlarni bir necha daqiqada tayyorlab beradigan bot va mini-ilova. Advokatsiz, mustaqil ravishda: siz oddiy savollarga javob berasiz, bot esa tayyor hujjatni <b>PDF yoki Word</b> shaklida, 3 tilda tuzib beradi.\n\n<b>🤖 Bot nima qila oladi:</b>\n📄 <b>Ariza topshirish</b> — sud uchun rasmiy ariza tayyorlash (fuqarolik, jinoyat, ma'muriy, iqtisodiy ishlar bo‘yicha)\n📋 <b>Ishimni tekshirish</b> — sud majlislari jadvalini ko‘rish va o‘z ishingizni topish\n🏛 <b>Sudlar ma'lumoti</b> — har bir sudning manzili, telefoni va xaritadagi joylashuvi\n📖 <b>Qo‘llanma</b> — qaysi ariza qachon va qayerga topshirilishini tushuntiradi\n\n🎙 Ism, manzil kabi maydonlarni <b>ovozli xabar</b> bilan ham yuborsangiz bo‘ladi — bot uni o‘zi matnga aylantiradi.\n\n💯 Xizmat to‘liq <b>bepul</b>.\n\nSavol yoki taklifingiz bormi? Quyidagi tugma orqali bog‘laning 👇",
   'about.support_btn': "💬 Qo‘llab-quvvatlash",
   'about.channel_btn': "📢 Kanalga o‘tish",

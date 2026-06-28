@@ -670,6 +670,17 @@ export function courtInfoCardInline(locale: Locale, mapUrl: string) {
   ]);
 }
 
+/** Inline "🚀 Open the Mini App" button under the /start greeting.
+ *  Empty when no WEBAPP_URL is configured. Uses an inline web_app button
+ *  (not a reply-keyboard one) — initData is delivered reliably and the
+ *  bot's Mini App domain is registered via BotFather. */
+export function openAppInline(locale: Locale) {
+  if (!config.webappUrl) return Markup.inlineKeyboard([]);
+  return Markup.inlineKeyboard([
+    [Markup.button.webApp(t(locale, 'cmd.start.open_app'), config.webappUrl)],
+  ]);
+}
+
 /** "Use my saved value" button shown under an applicant field whose
  *  value is already in the user's «Мои данные» profile. */
 export function profileSuggestInline(_locale: Locale, value: string) {

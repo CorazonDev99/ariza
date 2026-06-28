@@ -16,6 +16,7 @@ import {
   jadvalTypesInline,
   languageInline,
   mainMenu,
+  openAppInline,
 } from './keyboards';
 import type { BotContext } from './context';
 import type { DocumentRepository } from '../repositories/document.repository';
@@ -53,10 +54,13 @@ function formatCount(n: number): string {
 export const actions = {
   async start(ctx: BotContext): Promise<void> {
     const name = ctx.from?.first_name ?? ctx.from?.username ?? '—';
-    await ctx.reply(
-      t(ctx.locale, 'cmd.start.greeting', { name }),
-      { parse_mode: 'HTML', ...mainMenu(ctx.locale) },
-    );
+    // Short greeting + inline "Open the Mini App" button.
+    await ctx.reply(t(ctx.locale, 'cmd.start.greeting', { name }), {
+      parse_mode: 'HTML',
+      ...openAppInline(ctx.locale),
+    });
+    // Persistent bottom menu (reply keyboard).
+    await ctx.reply(t(ctx.locale, 'cmd.start.menu'), mainMenu(ctx.locale));
   },
 
   async about(ctx: BotContext, deps: ActionDeps): Promise<void> {
