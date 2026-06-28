@@ -65,17 +65,27 @@ export function ArizaWizardPage(ctx: PageCtx) {
       nav('/ariza');
       return;
     }
-    api.template(ctx.picker.template)
-      .then((detail) => {
-        setTpl(detail);
+    let cancelled = false;
+    (async () => {
+      try {
+        const detail = await api.template(ctx.picker.template!);
         // «Мои данные» auto-fill — prefill the applicant's own identity
-        // fields from the saved profile, only where still empty.
-        api
-          .profile()
-          .then((p) => setValues((v) => mergeProfile(v, p)))
-          .catch(() => undefined);
-      })
-      .catch((e) => setError(String(e.message ?? e)));
+        // fields BEFORE the first field mounts (otherwise FieldEditor
+        // captures an empty initialValue for the very first field).
+        try {
+          const p = await api.profile();
+          if (!cancelled) setValues((v) => mergeProfile(v, p));
+        } catch {
+          /* profile optional — ignore */
+        }
+        if (!cancelled) setTpl(detail);
+      } catch (e) {
+        if (!cancelled) setError(String((e as Error).message ?? e));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [ctx.picker.template, nav]);
 
   // BackButton: previous non-skipped field, or back to template picker on
