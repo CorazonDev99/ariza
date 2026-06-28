@@ -1,28 +1,22 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../api';
 import { getTg } from '../tg';
 import { t } from '../i18n';
 import { useBackTo, type PageCtx } from '../App';
 import { Page } from '../components/Page';
-import { IconCamera, IconImage } from '../components/icons';
+import { IconCamera, IconImage, IconX } from '../components/icons';
 
-/** Downscale + re-encode a picked image to keep the upload small and fast. */
-function fileToDataUrl(file: File, maxSize = 1400, quality = 0.62): Promise<string> {
+const MAX_SIZE = 1400;
+const QUALITY = 0.62;
+
+/** Downscale + re-encode a picked image to keep the upload small. */
+function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       URL.revokeObjectURL(url);
-      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-      const w = Math.max(1, Math.round(img.width * scale));
-      const h = Math.max(1, Math.round(img.height * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      const c = canvas.getContext('2d');
-      if (!c) return reject(new Error('no_ctx'));
-      c.drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL('image/jpeg', quality));
+      resolve(drawToJpeg(img, img.width, img.height));
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
@@ -30,6 +24,24 @@ function fileToDataUrl(file: File, maxSize = 1400, quality = 0.62): Promise<stri
     };
     img.src = url;
   });
+}
+
+/** Draw a source (image/video) onto a downscaled canvas → JPEG data URL. */
+function drawToJpeg(
+  src: CanvasImageSource,
+  sw: number,
+  sh: number,
+): string {
+  const scale = Math.min(1, MAX_SIZE / Math.max(sw, sh));
+  const w = Math.max(1, Math.round(sw * scale));
+  const h = Math.max(1, Math.round(sh * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const c = canvas.getContext('2d');
+  if (!c) throw new Error('no_ctx');
+  c.drawImage(src, 0, 0, w, h);
+  return canvas.toDataURL('image/jpeg', QUALITY);
 }
 
 export function ScanPage(ctx: PageCtx) {
@@ -40,27 +52,33 @@ export function ScanPage(ctx: PageCtx) {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState(false);
-  // Two separate inputs: the camera one carries `capture`, which forces
-  // the device camera on mobile; the gallery one omits it so the user can
-  // pick an existing photo. Splitting them gives an explicit "take photo"
-  // option even on clients that otherwise default the picker to gallery.
-  const cameraRef = useRef<HTMLInputElement>(null);
-  const galleryRef = useRef<HTMLInputElement>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
-  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    getTg().HapticFeedback.impactOccurred('medium');
+  // Camera-fallback file input (capture) + gallery input.
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  // Attach the live stream once the <video> is mounted.
+  useEffect(() => {
+    if (cameraOpen && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(() => undefined);
+    }
+  }, [cameraOpen]);
+
+  // Stop the camera on unmount.
+  useEffect(() => () => stopStream(), []);
+
+  function stopStream() {
+    streamRef.current?.getTracks().forEach((tr) => tr.stop());
+    streamRef.current = null;
+  }
+
+  async function runAnalyze(dataUrl: string) {
     setResult(null);
     setError(false);
-    let dataUrl: string;
-    try {
-      dataUrl = await fileToDataUrl(file);
-    } catch {
-      setError(true);
-      return;
-    }
     setPreview(dataUrl);
     setBusy(true);
     try {
@@ -74,16 +92,53 @@ export function ScanPage(ctx: PageCtx) {
     }
   }
 
-  function reset() {
-    getTg().HapticFeedback.impactOccurred('light');
-    setPreview(null);
-    setResult(null);
-    setError(false);
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    getTg().HapticFeedback.impactOccurred('medium');
+    try {
+      await runAnalyze(await fileToDataUrl(file));
+    } catch {
+      setError(true);
+    }
   }
 
-  function openCamera() {
+  async function openCamera() {
     getTg().HapticFeedback.impactOccurred('medium');
-    cameraRef.current?.click();
+    // True in-app camera via WebRTC — works on desktop (webcam) and mobile.
+    if (navigator.mediaDevices?.getUserMedia) {
+      try {
+        streamRef.current = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false,
+        });
+        setCameraOpen(true);
+        return;
+      } catch {
+        /* denied / unsupported → fall back to the file input below */
+      }
+    }
+    cameraInputRef.current?.click();
+  }
+
+  function shoot() {
+    const v = videoRef.current;
+    if (!v || !v.videoWidth) return;
+    getTg().HapticFeedback.impactOccurred('heavy');
+    let dataUrl: string | null = null;
+    try {
+      dataUrl = drawToJpeg(v, v.videoWidth, v.videoHeight);
+    } catch {
+      /* ignore */
+    }
+    closeCamera();
+    if (dataUrl) void runAnalyze(dataUrl);
+  }
+
+  function closeCamera() {
+    stopStream();
+    setCameraOpen(false);
   }
 
   function openGallery() {
@@ -91,14 +146,20 @@ export function ScanPage(ctx: PageCtx) {
     galleryRef.current?.click();
   }
 
+  function reset() {
+    getTg().HapticFeedback.impactOccurred('light');
+    setPreview(null);
+    setResult(null);
+    setError(false);
+  }
+
   return (
     <Page
       title={t(ctx.locale, 'scan.title')}
       subtitle={t(ctx.locale, 'scan.subtitle')}
     >
-      {/* Camera (forces device camera on mobile) + gallery inputs. */}
       <input
-        ref={cameraRef}
+        ref={cameraInputRef}
         type="file"
         accept="image/*"
         capture="environment"
@@ -113,7 +174,7 @@ export function ScanPage(ctx: PageCtx) {
         className="hidden"
       />
 
-      {/* ── Empty state: camera card + gallery option ──────────── */}
+      {/* ── Empty state: camera + gallery ──────────────────────── */}
       {!preview && (
         <div className="reveal">
           <button
@@ -140,15 +201,11 @@ export function ScanPage(ctx: PageCtx) {
         </div>
       )}
 
-      {/* ── Result state: preview + analysis ───────────────────── */}
+      {/* ── Result state ───────────────────────────────────────── */}
       {preview && (
         <div className="reveal space-y-3">
           <div className="relative rounded-[20px] overflow-hidden card">
-            <img
-              src={preview}
-              alt=""
-              className="w-full max-h-56 object-cover"
-            />
+            <img src={preview} alt="" className="w-full max-h-56 object-cover" />
             {busy && (
               <div className="absolute inset-0 grid place-items-center bg-tg-bg/70 backdrop-blur-sm">
                 <div className="flex flex-col items-center gap-2">
@@ -191,6 +248,34 @@ export function ScanPage(ctx: PageCtx) {
               {t(ctx.locale, 'scan.again')}
             </button>
           )}
+        </div>
+      )}
+
+      {/* ── Live camera overlay ────────────────────────────────── */}
+      {cameraOpen && (
+        <div className="fixed inset-0 z-50 bg-black flex flex-col">
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            className="flex-1 w-full object-cover"
+          />
+          <button
+            onClick={closeCamera}
+            aria-label="Close"
+            className="absolute top-4 right-4 w-11 h-11 rounded-full grid place-items-center bg-black/50 text-white backdrop-blur"
+          >
+            <IconX className="w-6 h-6" />
+          </button>
+          <div className="absolute inset-x-0 bottom-0 pb-8 pt-6 flex items-center justify-center safe-bottom bg-gradient-to-t from-black/70 to-transparent">
+            <button
+              onClick={shoot}
+              aria-label="Shoot"
+              className="press w-[74px] h-[74px] rounded-full bg-white grid place-items-center ring-4 ring-white/30 active:scale-95"
+            >
+              <span className="w-[60px] h-[60px] rounded-full border-[3px] border-black/15" />
+            </button>
+          </div>
         </div>
       )}
     </Page>

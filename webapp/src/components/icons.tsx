@@ -112,6 +112,14 @@ export const IconCamera = (p: IconProps) => (
   </svg>
 );
 
+/** Close / cancel. */
+export const IconX = (p: IconProps) => (
+  <svg {...svg(p)}>
+    <path d="M18 6 6 18" />
+    <path d="m6 6 12 12" />
+  </svg>
+);
+
 /** Picture — choose from gallery. */
 export const IconImage = (p: IconProps) => (
   <svg {...svg(p)}>
