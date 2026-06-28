@@ -58,6 +58,7 @@ const DICT = {
     'profile.save': 'Сақлаш',
     'profile.saving': 'Сақланмоқда…',
     'profile.saved': '✓ Сақланди',
+    'profile.edit': 'Таҳрирлаш',
     'scan.disclaimer':
       'Бу — умумий ҳуқуқий маълумот, адвокат ўрнини босмайди.',
     'ci.title.regions': 'Ҳудудни танланг',
@@ -234,6 +235,7 @@ const DICT = {
     'profile.save': 'Saqlash',
     'profile.saving': 'Saqlanmoqda…',
     'profile.saved': '✓ Saqlandi',
+    'profile.edit': 'Tahrirlash',
     'scan.disclaimer':
       "Bu — umumiy huquqiy maʼlumot, advokat o‘rnini bosmaydi.",
     'ci.title.regions': 'Hududni tanlang',
@@ -405,6 +407,7 @@ const DICT = {
     'profile.save': 'Сохранить',
     'profile.saving': 'Сохранение…',
     'profile.saved': '✓ Сохранено',
+    'profile.edit': 'Изменить',
     'scan.disclaimer':
       'Это — общая юридическая информация, не заменяет адвоката.',
     'ci.title.regions': 'Выберите регион',
