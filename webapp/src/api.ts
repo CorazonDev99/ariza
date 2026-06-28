@@ -100,6 +100,19 @@ export interface MeResponse {
   language: 'uz_cyrillic' | 'uz_latin' | 'ru';
 }
 
+export interface ProfileData {
+  fullName: string;
+  address: string;
+  phone: string;
+}
+
+/** «Мои данные» → ariza applicant field keys (mirrors the backend). */
+export const APPLICANT_FIELD_KEYS: Record<keyof ProfileData, readonly string[]> = {
+  fullName: ['plaintiff_fio', 'collector_fio', 'first_spouse_fio'],
+  address: ['plaintiff_address', 'collector_address'],
+  phone: ['plaintiff_phone', 'collector_phone'],
+};
+
 export interface DocumentSummary {
   id: number;
   templateId: number;
@@ -182,6 +195,13 @@ export const api = {
 
   // authenticated
   me: () => request<MeResponse>('/me'),
+  profile: () => request<ProfileData>('/profile'),
+  saveProfile: (data: ProfileData) =>
+    request<ProfileData>('/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }),
   setLanguage: (language: string) =>
     request<MeResponse>('/language', {
       method: 'POST',

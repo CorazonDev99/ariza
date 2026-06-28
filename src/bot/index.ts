@@ -7,6 +7,7 @@ import { TemplateRepository } from '../repositories/template.repository';
 import { DraftRepository } from '../repositories/draft.repository';
 import { DocumentRepository } from '../repositories/document.repository';
 import { PaymentRepository } from '../repositories/payment.repository';
+import { ProfileRepository } from '../repositories/profile.repository';
 import { TemplateService } from '../services/template.service';
 import { DocxService } from '../services/docx.service';
 import { PdfService } from '../services/pdf.service';
@@ -40,6 +41,7 @@ export interface BotBundle {
     documentService: DocumentService;
     aiAssist: AiAssistService;
     transcription: TranscriptionService;
+    profiles: ProfileRepository;
   };
 }
 
@@ -49,6 +51,7 @@ export function createBot(): BotBundle {
   const draftRepo = new DraftRepository(prisma);
   const documentRepo = new DocumentRepository(prisma);
   const paymentRepo = new PaymentRepository(prisma);
+  const profileRepo = new ProfileRepository(prisma);
 
   const templateService = new TemplateService(templateRepo);
   const docxService = new DocxService();
@@ -101,6 +104,7 @@ export function createBot(): BotBundle {
     paymentService,
     aiAssist,
     transcription,
+    profiles: profileRepo,
   });
   const broadcastScene = buildBroadcastScene({
     broadcast: broadcastService,
@@ -145,6 +149,7 @@ export function createBot(): BotBundle {
       documentService,
       aiAssist,
       transcription,
+      profiles: profileRepo,
     },
   };
 }

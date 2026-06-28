@@ -132,6 +132,7 @@ export const uz_latin: Dict = {
   'wiz.intro': "📝 <b>Ma'lumotlarni to‘ldiring</b>\n\n⬅️ <i>Orqaga</i> — oldingi savol\n❌ <i>Bekor qilish</i> — sessiyani yopish",
   'wiz.progress': '📊 {bar} {current}/{total}',
   'wiz.use-default': '💡 Taxmin sifatida yuklash uchun «-» yuboring',
+  'wiz.profile.prompt': "💾 Saqlangan ma'lumotingiz — qo‘yish uchun bosing:",
   'wiz.empty': "⚠️ Bo‘sh qiymat qabul qilinmaydi. Qayta kiriting.",
   'wiz.at-start': "⬅️ Siz boshidasiz — orqaga qaytish mumkin emas.",
   'wiz.preview.title': "🧾 <b>Ma'lumotlarni tekshiring</b>",

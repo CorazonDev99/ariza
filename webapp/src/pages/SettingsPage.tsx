@@ -3,9 +3,10 @@ import { getTg } from '../tg';
 import type { Locale } from '../tg';
 import { t } from '../i18n';
 import { api } from '../api';
+import { useNavigate } from 'react-router-dom';
 import { useBackTo, type PageCtx } from '../App';
 import { Page } from '../components/Page';
-import { IconUsers } from '../components/icons';
+import { IconChevron, IconUser, IconUsers } from '../components/icons';
 
 interface LangOpt {
   code: Locale;
@@ -21,6 +22,7 @@ const LANGS: LangOpt[] = [
 
 export function SettingsPage(ctx: PageCtx) {
   useBackTo('/');
+  const nav = useNavigate();
 
   const [subs, setSubs] = useState<number | null>(null);
   useEffect(() => {
@@ -37,6 +39,28 @@ export function SettingsPage(ctx: PageCtx) {
 
   return (
     <Page title={t(ctx.locale, 'settings.title')}>
+      {/* «Мои данные» — saved applicant profile */}
+      <button
+        onClick={() => {
+          getTg().HapticFeedback.impactOccurred('light');
+          nav('/profile');
+        }}
+        className="row-tap w-full mb-5 rounded-[20px] card p-4 flex items-center gap-3"
+      >
+        <div className="shrink-0 w-11 h-11 rounded-2xl brand-bg grid place-items-center text-white ring-accent">
+          <IconUser className="w-[22px] h-[22px]" />
+        </div>
+        <div className="flex-1 text-left">
+          <div className="text-[15px] font-bold text-tg-text">
+            {t(ctx.locale, 'profile.title')}
+          </div>
+          <div className="text-[12px] text-tg-subtitle mt-0.5">
+            {t(ctx.locale, 'profile.menu.sub')}
+          </div>
+        </div>
+        <IconChevron className="shrink-0 w-5 h-5 text-tg-hint" />
+      </button>
+
       <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-tg-subtitle px-1 mb-1.5">
         {t(ctx.locale, 'settings.language')}
       </div>

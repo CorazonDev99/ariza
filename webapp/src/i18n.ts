@@ -44,6 +44,20 @@ const DICT = {
     'scan.camera': 'Камера',
     'scan.error':
       'Расмни таҳлил қилиб бўлмади. Аниқроқ суратга олиб қайта уриниб кўринг.',
+    'profile.title': 'Менинг маълумотларим',
+    'profile.subtitle': 'Бир марта киритинг — аризаларга ўзи қўйилади',
+    'profile.menu.sub': 'Ф.И.Ш., манзил, телефон',
+    'profile.fullName': 'Ф.И.Ш.',
+    'profile.fullName.ph': 'Каримов Алишер Ботирович',
+    'profile.address': 'Манзил',
+    'profile.address.ph': 'Тошкент ш., Юнусобод т., ...',
+    'profile.phone': 'Телефон',
+    'profile.phone.ph': '+998 90 123 45 67',
+    'profile.hint':
+      'Бу маълумотлар фақат сизнинг аризаларингизга қўйилади ва ариза тўлдирилганда автоматик сақланади.',
+    'profile.save': 'Сақлаш',
+    'profile.saving': 'Сақланмоқда…',
+    'profile.saved': '✓ Сақланди',
     'scan.disclaimer':
       'Бу — умумий ҳуқуқий маълумот, адвокат ўрнини босмайди.',
     'ci.title.regions': 'Ҳудудни танланг',
@@ -206,6 +220,20 @@ const DICT = {
     'scan.camera': 'Kamera',
     'scan.error':
       "Rasmni tahlil qilib bo‘lmadi. Aniqroq suratga olib qayta urinib ko‘ring.",
+    'profile.title': 'Mening maʼlumotlarim',
+    'profile.subtitle': 'Bir marta kiriting — arizalarga o‘zi qo‘yiladi',
+    'profile.menu.sub': 'F.I.SH., manzil, telefon',
+    'profile.fullName': 'F.I.SH.',
+    'profile.fullName.ph': 'Karimov Alisher Botirovich',
+    'profile.address': 'Manzil',
+    'profile.address.ph': 'Toshkent sh., Yunusobod t., ...',
+    'profile.phone': 'Telefon',
+    'profile.phone.ph': '+998 90 123 45 67',
+    'profile.hint':
+      'Bu maʼlumotlar faqat sizning arizalaringizga qo‘yiladi va ariza to‘ldirilganda avtomatik saqlanadi.',
+    'profile.save': 'Saqlash',
+    'profile.saving': 'Saqlanmoqda…',
+    'profile.saved': '✓ Saqlandi',
     'scan.disclaimer':
       "Bu — umumiy huquqiy maʼlumot, advokat o‘rnini bosmaydi.",
     'ci.title.regions': 'Hududni tanlang',
@@ -363,6 +391,20 @@ const DICT = {
     'scan.camera': 'Камера',
     'scan.error':
       'Не удалось разобрать фото. Снимите чётче и попробуйте снова.',
+    'profile.title': 'Мои данные',
+    'profile.subtitle': 'Введите один раз — подставится в заявления',
+    'profile.menu.sub': 'ФИО, адрес, телефон',
+    'profile.fullName': 'ФИО',
+    'profile.fullName.ph': 'Каримов Алишер Ботирович',
+    'profile.address': 'Адрес',
+    'profile.address.ph': 'г. Ташкент, Юнусабадский р-н, ...',
+    'profile.phone': 'Телефон',
+    'profile.phone.ph': '+998 90 123 45 67',
+    'profile.hint':
+      'Эти данные подставляются только в ваши заявления и автоматически сохраняются при заполнении аризы.',
+    'profile.save': 'Сохранить',
+    'profile.saving': 'Сохранение…',
+    'profile.saved': '✓ Сохранено',
     'scan.disclaimer':
       'Это — общая юридическая информация, не заменяет адвоката.',
     'ci.title.regions': 'Выберите регион',

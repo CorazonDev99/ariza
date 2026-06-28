@@ -129,6 +129,14 @@ export const IconImage = (p: IconProps) => (
   </svg>
 );
 
+/** Single person — «Мои данные». */
+export const IconUser = (p: IconProps) => (
+  <svg {...svg(p)}>
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
 /** People — subscriber count. */
 export const IconUsers = (p: IconProps) => (
   <svg {...svg(p)}>

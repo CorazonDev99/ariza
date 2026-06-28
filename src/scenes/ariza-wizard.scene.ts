@@ -7,6 +7,11 @@ import type { TemplateRepository } from '../repositories/template.repository';
 import type { PaymentService } from '../services/payment.service';
 import type { AiAssistService } from '../services/ai-assist.service';
 import type { TranscriptionService } from '../services/transcription.service';
+import type { ProfileRepository } from '../repositories/profile.repository';
+import {
+  profileKeyForField,
+  extractProfileFromValues,
+} from '../templates/applicant-fields';
 import { buildWhisperPrompt } from '../services/voice-prompts';
 import type { BotContext } from '../bot/context';
 import { actions, type ActionDeps } from '../bot/actions';
@@ -37,6 +42,7 @@ import {
   monthPickerInline,
   paymentInline,
   previewInline,
+  profileSuggestInline,
   progressBar,
   providerInline,
   regionsInline,
@@ -63,6 +69,7 @@ interface WizardDeps {
   paymentService: PaymentService;
   aiAssist: AiAssistService;
   transcription: TranscriptionService;
+  profiles: ProfileRepository;
 }
 
 export function buildArizaWizardScene(
@@ -244,6 +251,19 @@ export function buildArizaWizardScene(
       `${progress}\n\n${label}${hint}${dft}${voiceHint}`,
       { parse_mode: 'HTML', ...wizardMenu(ctx.locale) },
     );
+
+    // «Мои данные» auto-fill: for the applicant's own identity fields,
+    // offer their saved value as a one-tap button.
+    const pkey = profileKeyForField(f.key);
+    if (pkey && ctx.dbUser && !state.values[f.key]) {
+      const pr = await deps.profiles.get(ctx.dbUser.id);
+      const saved = pr?.[pkey];
+      if (saved) {
+        await ctx.reply(t(ctx.locale, 'wiz.profile.prompt'), {
+          ...profileSuggestInline(ctx.locale, saved),
+        });
+      }
+    }
 
     // For date fields (including composite splitDate) — show real
     // month-view calendar. Typing still works (text handler validates).
@@ -529,6 +549,28 @@ export function buildArizaWizardScene(
 
   scene.action(/^tmpl:(.+)$/, async (ctx) => {
     await selectTemplate(ctx, ctx.match[1]!, true);
+  });
+
+  // «Мои данные» — tap to fill the current applicant field with the
+  // saved profile value.
+  scene.action('prof:use', async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getState(ctx);
+    if (!state || !ctx.dbUser) return;
+    const fields = getFields(state);
+    const f = fields[state.currentFieldIndex];
+    if (!f) return;
+    const pkey = profileKeyForField(f.key);
+    if (!pkey) return;
+    const pr = await deps.profiles.get(ctx.dbUser.id);
+    const saved = pr?.[pkey];
+    if (!saved) return;
+    try {
+      await ctx.editMessageReplyMarkup(undefined);
+    } catch {
+      /* ignore */
+    }
+    await commitFieldValue(ctx, saved);
   });
 
   // ----------- back navigation between picker steps -----------
@@ -1224,6 +1266,10 @@ export function buildArizaWizardScene(
         locale: ctx.locale,
         paymentId: state.paymentId,
       });
+      // Auto-save the applicant's identity to «Мои данные» (best-effort).
+      deps.profiles
+        .merge(ctx.dbUser.id, extractProfileFromValues(state.values))
+        .catch((err) => logger.warn({ err }, 'profile auto-save failed'));
       await ctx.replyWithDocument({
         source: result.filePath,
         filename: result.filePath.split(/[\\/]/).pop(),

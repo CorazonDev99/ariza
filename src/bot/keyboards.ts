@@ -670,6 +670,15 @@ export function courtInfoCardInline(locale: Locale, mapUrl: string) {
   ]);
 }
 
+/** "Use my saved value" button shown under an applicant field whose
+ *  value is already in the user's «Мои данные» profile. */
+export function profileSuggestInline(_locale: Locale, value: string) {
+  const shown = value.length > 40 ? `${value.slice(0, 39)}…` : value;
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(`✅ ${shown}`, 'prof:use')],
+  ]);
+}
+
 /** Shown under AI-Yurist messages — lets the user leave the chat mode. */
 export function aiYuristExitInline(locale: Locale) {
   return Markup.inlineKeyboard([

@@ -2,7 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTg } from '../tg';
 import { t } from '../i18n';
-import { api, isFieldSkipped, type TemplateDetail } from '../api';
+import {
+  api,
+  isFieldSkipped,
+  APPLICANT_FIELD_KEYS,
+  type ProfileData,
+  type TemplateDetail,
+} from '../api';
 import { useBackTo, type PageCtx } from '../App';
 import { Page } from '../components/Page';
 import { Loader, ErrorBox } from '../components/Loader';
@@ -10,6 +16,20 @@ import { FieldEditor } from '../components/FieldEditor';
 
 const VALUES_KEY = 'ariza:values';
 const INDEX_KEY = 'ariza:fieldIndex';
+
+/** Fill applicant fields from the saved profile, keeping any existing input. */
+function mergeProfile(
+  values: Record<string, string>,
+  p: ProfileData,
+): Record<string, string> {
+  const next = { ...values };
+  (Object.keys(APPLICANT_FIELD_KEYS) as (keyof ProfileData)[]).forEach((pk) => {
+    const val = p[pk]?.trim();
+    if (!val) return;
+    for (const k of APPLICANT_FIELD_KEYS[pk]) if (!next[k]) next[k] = val;
+  });
+  return next;
+}
 
 /**
  * Field-collector loop: walks the template's `fields` array sequentially,
@@ -46,7 +66,15 @@ export function ArizaWizardPage(ctx: PageCtx) {
       return;
     }
     api.template(ctx.picker.template)
-      .then(setTpl)
+      .then((detail) => {
+        setTpl(detail);
+        // «Мои данные» auto-fill — prefill the applicant's own identity
+        // fields from the saved profile, only where still empty.
+        api
+          .profile()
+          .then((p) => setValues((v) => mergeProfile(v, p)))
+          .catch(() => undefined);
+      })
       .catch((e) => setError(String(e.message ?? e)));
   }, [ctx.picker.template, nav]);
 

@@ -35,6 +35,8 @@ import type { TemplateRepository } from '../repositories/template.repository';
 import type { DocumentService } from './document.service';
 import type { AiAssistService } from './ai-assist.service';
 import type { TranscriptionService } from './transcription.service';
+import type { ProfileRepository } from '../repositories/profile.repository';
+import { extractProfileFromValues } from '../templates/applicant-fields';
 import type { User } from '@prisma/client';
 import type { DocumentFormat, Values } from '../types';
 import { fileExists } from '../utils/fs';
@@ -55,6 +57,7 @@ export interface ApiServices {
   documentService: DocumentService;
   aiAssist: AiAssistService;
   transcription: TranscriptionService;
+  profiles: ProfileRepository;
 }
 
 export interface ApiContext {
@@ -238,6 +241,39 @@ export async function handleApi(ctx: ApiContext): Promise<boolean> {
     }
     const updated = await ctx.services.users.setLanguage(auth.user.id, lang);
     sendJson(ctx.res, 200, normalizeUser(updated));
+    return true;
+  }
+
+  // «Мои данные» — saved applicant profile (FIO / address / phone).
+  if (m === 'GET' && p === '/profile') {
+    const auth = await requireUser(ctx);
+    if (!auth) return true;
+    const pr = await ctx.services.profiles.get(auth.user.id);
+    sendJson(ctx.res, 200, {
+      fullName: pr?.fullName ?? '',
+      address: pr?.address ?? '',
+      phone: pr?.phone ?? '',
+    });
+    return true;
+  }
+  if (m === 'POST' && p === '/profile') {
+    const auth = await requireUser(ctx);
+    if (!auth) return true;
+    const body = await readJson<{
+      fullName?: string;
+      address?: string;
+      phone?: string;
+    }>(ctx);
+    const saved = await ctx.services.profiles.save(auth.user.id, {
+      fullName: body?.fullName ?? '',
+      address: body?.address ?? '',
+      phone: body?.phone ?? '',
+    });
+    sendJson(ctx.res, 200, {
+      fullName: saved.fullName ?? '',
+      address: saved.address ?? '',
+      phone: saved.phone ?? '',
+    });
     return true;
   }
 
@@ -467,6 +503,10 @@ async function handleGenerate(ctx: ApiContext, user: User): Promise<void> {
       format,
       locale,
     });
+    // Auto-save the applicant's identity for next time (best-effort).
+    ctx.services.profiles
+      .merge(user.id, extractProfileFromValues(values))
+      .catch((err) => logger.warn({ err }, 'profile auto-save failed'));
     sendJson(ctx.res, 200, {
       documentId: result.documentId,
       downloadToken: result.downloadToken,
