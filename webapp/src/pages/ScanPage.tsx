@@ -53,27 +53,48 @@ export function ScanPage(ctx: PageCtx) {
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [hasCamera, setHasCamera] = useState(false);
 
   // Camera-fallback file input (capture) + gallery input.
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const tileVideoRef = useRef<HTMLVideoElement>(null);
+  const fullVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Attach the live stream once the <video> is mounted.
+  // Start a live preview for the first grid cell (Telegram-style), once.
   useEffect(() => {
-    if (cameraOpen && videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
-      videoRef.current.play().catch(() => undefined);
-    }
-  }, [cameraOpen]);
+    void startPreview();
+    return () => stopStream();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Stop the camera on unmount.
-  useEffect(() => () => stopStream(), []);
+  // Attach the stream to whichever <video> is currently visible.
+  useEffect(() => {
+    const v = cameraOpen ? fullVideoRef.current : tileVideoRef.current;
+    if (v && streamRef.current) {
+      v.srcObject = streamRef.current;
+      v.play().catch(() => undefined);
+    }
+  }, [cameraOpen, hasCamera, preview]);
+
+  async function startPreview() {
+    if (!navigator.mediaDevices?.getUserMedia) return;
+    try {
+      streamRef.current = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false,
+      });
+      setHasCamera(true);
+    } catch {
+      setHasCamera(false);
+    }
+  }
 
   function stopStream() {
     streamRef.current?.getTracks().forEach((tr) => tr.stop());
     streamRef.current = null;
+    setHasCamera(false);
   }
 
   async function runAnalyze(dataUrl: string) {
@@ -106,13 +127,18 @@ export function ScanPage(ctx: PageCtx) {
 
   async function openCamera() {
     getTg().HapticFeedback.impactOccurred('medium');
-    // True in-app camera via WebRTC — works on desktop (webcam) and mobile.
+    if (streamRef.current) {
+      setCameraOpen(true);
+      return;
+    }
+    // No live stream yet — try to start it now (desktop webcam / mobile).
     if (navigator.mediaDevices?.getUserMedia) {
       try {
         streamRef.current = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: { ideal: 'environment' } },
           audio: false,
         });
+        setHasCamera(true);
         setCameraOpen(true);
         return;
       } catch {
@@ -123,7 +149,7 @@ export function ScanPage(ctx: PageCtx) {
   }
 
   function shoot() {
-    const v = videoRef.current;
+    const v = fullVideoRef.current;
     if (!v || !v.videoWidth) return;
     getTg().HapticFeedback.impactOccurred('heavy');
     let dataUrl: string | null = null;
@@ -132,12 +158,13 @@ export function ScanPage(ctx: PageCtx) {
     } catch {
       /* ignore */
     }
-    closeCamera();
+    stopStream();
+    setCameraOpen(false);
     if (dataUrl) void runAnalyze(dataUrl);
   }
 
+  /** Cancel the fullscreen camera but keep the live preview tile running. */
   function closeCamera() {
-    stopStream();
     setCameraOpen(false);
   }
 
@@ -151,6 +178,7 @@ export function ScanPage(ctx: PageCtx) {
     setPreview(null);
     setResult(null);
     setError(false);
+    void startPreview();
   }
 
   return (
@@ -174,30 +202,57 @@ export function ScanPage(ctx: PageCtx) {
         className="hidden"
       />
 
-      {/* ── Empty state: camera + gallery ──────────────────────── */}
+      {/* ── Empty state: Telegram-style grid (live camera + gallery) ── */}
       {!preview && (
         <div className="reveal">
-          <button
-            onClick={openCamera}
-            className="press w-full rounded-[24px] card card-float p-7 flex flex-col items-center text-center"
-          >
-            <div className="w-20 h-20 rounded-3xl brand-bg grid place-items-center text-white ring-accent">
-              <IconCamera className="w-10 h-10" />
-            </div>
-            <div className="mt-4 text-[17px] font-bold text-tg-text">
-              {t(ctx.locale, 'scan.cta')}
-            </div>
-            <div className="mt-1.5 text-[13px] leading-snug text-tg-subtitle max-w-[280px]">
-              {t(ctx.locale, 'scan.hint')}
-            </div>
-          </button>
-          <button
-            onClick={openGallery}
-            className="press mt-3 w-full rounded-2xl py-3.5 card flex items-center justify-center gap-2 text-[15px] font-semibold text-tg-text"
-          >
-            <IconImage className="w-5 h-5 text-tg-subtitle" />
-            {t(ctx.locale, 'scan.gallery')}
-          </button>
+          <div className="grid grid-cols-2 gap-2.5">
+            {/* First cell — live camera (tap → fullscreen + shutter) */}
+            <button
+              onClick={openCamera}
+              className="press relative aspect-square rounded-[20px] overflow-hidden card"
+            >
+              {hasCamera && (
+                <video
+                  ref={tileVideoRef}
+                  playsInline
+                  muted
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              )}
+              <div
+                className={`absolute inset-0 flex flex-col items-center justify-center gap-2 ${
+                  hasCamera ? 'bg-black/25' : ''
+                }`}
+              >
+                <div className="w-14 h-14 rounded-2xl brand-bg grid place-items-center text-white ring-accent">
+                  <IconCamera className="w-7 h-7" />
+                </div>
+                <span
+                  className={`text-[13px] font-bold ${
+                    hasCamera ? 'text-white' : 'text-tg-text'
+                  }`}
+                >
+                  {t(ctx.locale, 'scan.camera')}
+                </span>
+              </div>
+            </button>
+
+            {/* Second cell — gallery */}
+            <button
+              onClick={openGallery}
+              className="press relative aspect-square rounded-[20px] card flex flex-col items-center justify-center gap-2"
+            >
+              <div className="w-14 h-14 rounded-2xl grid place-items-center bg-tg-text/[0.06] text-tg-subtitle">
+                <IconImage className="w-7 h-7" />
+              </div>
+              <span className="text-[13px] font-bold text-tg-text">
+                {t(ctx.locale, 'scan.gallery')}
+              </span>
+            </button>
+          </div>
+          <p className="mt-3 px-1 text-[13px] leading-snug text-tg-subtitle text-center">
+            {t(ctx.locale, 'scan.hint')}
+          </p>
         </div>
       )}
 
@@ -255,7 +310,7 @@ export function ScanPage(ctx: PageCtx) {
       {cameraOpen && (
         <div className="fixed inset-0 z-50 bg-black flex flex-col">
           <video
-            ref={videoRef}
+            ref={fullVideoRef}
             playsInline
             muted
             className="flex-1 w-full object-cover"
