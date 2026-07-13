@@ -84,11 +84,19 @@ export class DocxService {
       const e = err as Error & {
         properties?: { errors?: Array<{ message: string }> };
       };
-      const inner = e.properties?.errors
-        ?.map((x) => x.message)
-        .join('; ');
+      // docxtemplater tag errors live in `properties.errors`; anything
+      // else (a filesystem write error, a PizZip failure, etc.) only has
+      // a plain `message` — surface it too so the real cause isn't hidden
+      // behind a generic "Failed to render DOCX".
+      const inner = e.properties?.errors?.map((x) => x.message).join('; ');
+      const detail =
+        inner || (err instanceof Error ? err.message : String(err));
+      logger.error(
+        { err, templatePath, outputPath },
+        'DOCX render failed',
+      );
       throw new DocxGenerationError(
-        `Failed to render DOCX${inner ? `: ${inner}` : ''}`,
+        `Failed to render DOCX${detail ? `: ${detail}` : ''}`,
         err,
       );
     }
