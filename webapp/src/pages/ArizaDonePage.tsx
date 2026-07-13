@@ -33,6 +33,24 @@ export function ArizaDonePage(ctx: PageCtx) {
   if (!doc) return null;
   const url = doc.downloadUrl;
 
+  function download() {
+    if (!doc) return;
+    const tg = getTg();
+    tg.HapticFeedback.impactOccurred('medium');
+    // Telegram's webview ignores <a download>; use the native download
+    // (Bot API 8.0+ → straight to Downloads) or fall back to opening the
+    // link in the browser, which serves the file as an attachment.
+    const absUrl = /^https?:\/\//.test(url)
+      ? url
+      : `${window.location.origin}${url}`;
+    const fileName = `ariza-${doc.documentId}.${doc.format}`;
+    if (typeof tg.downloadFile === 'function') {
+      tg.downloadFile({ url: absUrl, file_name: fileName });
+    } else {
+      tg.openLink(absUrl);
+    }
+  }
+
   return (
     <Page title={t(ctx.locale, 'wiz.done.title')} subtitle={doc.format.toUpperCase()}>
       <div className="card card-float rounded-[22px] p-7 text-center">
@@ -47,14 +65,12 @@ export function ArizaDonePage(ctx: PageCtx) {
         </div>
       </div>
       <div className="mt-4 flex flex-col gap-2">
-        <a
-          href={url}
-          download
-          onClick={() => getTg().HapticFeedback.impactOccurred('medium')}
+        <button
+          onClick={download}
           className="bg-tg-button text-tg-button-text rounded-2xl p-4 font-semibold text-center"
         >
           {t(ctx.locale, 'wiz.done.download')}
-        </a>
+        </button>
         <button
           onClick={() => {
             ctx.resetPicker();

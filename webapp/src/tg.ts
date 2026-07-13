@@ -73,6 +73,14 @@ export interface TgWebApp {
   showConfirm: (msg: string, cb?: (ok: boolean) => void) => void;
   onEvent: (event: string, cb: () => void) => void;
   offEvent: (event: string, cb: () => void) => void;
+  /** Open a URL in the system/in-app browser (since 6.1). */
+  openLink: (url: string, options?: { try_instant_view?: boolean }) => void;
+  /** Native file download to the device (Bot API 8.0+). Absent on older
+   *  clients — callers must fall back to openLink. */
+  downloadFile?: (
+    params: { url: string; file_name: string },
+    callback?: (accepted: boolean) => void,
+  ) => void;
 }
 
 declare global {
@@ -161,6 +169,7 @@ const SHIM: TgWebApp = {
   showConfirm: (msg, cb) => cb?.(window.confirm(msg)),
   onEvent: noop,
   offEvent: noop,
+  openLink: (url) => window.open(url, '_blank'),
 };
 
 /** Pick the user's preferred locale based on their Telegram language. */
