@@ -1,10 +1,16 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
+import os from 'node:os';
 import fs from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 import { config } from '../config';
 import { PdfConversionError } from '../utils/errors';
 import { ensureDir, fileExists, withExt } from '../utils/fs';
 import { logger } from '../utils/logger';
+
+/** Hard cap on a single conversion so a wedged soffice can never hang the
+ *  bot forever (a headless LibreOffice cold start is ~5–15s). */
+const CONVERT_TIMEOUT_MS = 90_000;
 
 /**
  * Converts DOCX to PDF using a headless LibreOffice binary.
@@ -20,9 +26,19 @@ export class PdfService {
     const outDir = outputDir ?? path.dirname(docxPath);
     await ensureDir(outDir);
 
+    // A private, per-conversion user profile. Critical on servers:
+    //   * ProtectHome=true (systemd) makes $HOME unreadable, so the default
+    //     ~/.config/libreoffice profile can't be created → soffice hangs.
+    //   * A stale lock left by a crashed soffice makes every later run hang.
+    // Isolating the profile per run sidesteps both. Lives under the private
+    // /tmp (PrivateTmp=true) and is removed afterwards.
+    const profileDir = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-profile-'));
+
     const args = [
+      `-env:UserInstallation=${pathToFileURL(profileDir).href}`,
       '--headless',
       '--norestore',
+      '--nolockcheck',
       '--nologo',
       '--nofirststartwizard',
       '--convert-to',
@@ -37,7 +53,13 @@ export class PdfService {
       'Running LibreOffice conversion',
     );
 
-    await this.runLibreOffice(args);
+    try {
+      await this.runLibreOffice(args);
+    } finally {
+      await fs.rm(profileDir, { recursive: true, force: true }).catch(() => {
+        /* best-effort cleanup */
+      });
+    }
 
     const expected = withExt(
       path.join(outDir, path.basename(docxPath)),
@@ -63,6 +85,25 @@ export class PdfService {
       });
 
       let stderr = '';
+      let settled = false;
+      const done = (fn: () => void) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        fn();
+      };
+
+      const timer = setTimeout(() => {
+        child.kill('SIGKILL');
+        done(() =>
+          reject(
+            new PdfConversionError(
+              `LibreOffice timed out after ${CONVERT_TIMEOUT_MS}ms (killed)`,
+            ),
+          ),
+        );
+      }, CONVERT_TIMEOUT_MS);
+
       child.stderr.on('data', (chunk) => {
         stderr += chunk.toString();
       });
@@ -71,24 +112,28 @@ export class PdfService {
       });
 
       child.on('error', (err) => {
-        reject(
-          new PdfConversionError(
-            `Failed to start LibreOffice (${config.libreofficeBin}): ${err.message}`,
-            err,
+        done(() =>
+          reject(
+            new PdfConversionError(
+              `Failed to start LibreOffice (${config.libreofficeBin}): ${err.message}`,
+              err,
+            ),
           ),
         );
       });
 
       child.on('close', (code) => {
-        if (code === 0) {
-          resolve();
-        } else {
-          reject(
-            new PdfConversionError(
-              `LibreOffice exited with code ${code}. stderr: ${stderr.trim()}`,
-            ),
-          );
-        }
+        done(() => {
+          if (code === 0) {
+            resolve();
+          } else {
+            reject(
+              new PdfConversionError(
+                `LibreOffice exited with code ${code}. stderr: ${stderr.trim()}`,
+              ),
+            );
+          }
+        });
       });
     });
   }
