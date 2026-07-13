@@ -33,6 +33,26 @@ export class PdfService {
     // Isolating the profile per run sidesteps both. Lives under the private
     // /tmp (PrivateTmp=true) and is removed afterwards.
     const profileDir = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-profile-'));
+    // soffice's GTK/dconf/cache layers write to $HOME/.cache, $HOME/.config
+    // etc. — on a locked-down server $HOME (e.g. /var/www/ariza) isn't
+    // writable, so it crashes (exit 137) with "dconf … Permission denied".
+    // Point HOME + all XDG dirs at the private profile so every write lands
+    // in a writable place.
+    const cacheDir = path.join(profileDir, '.cache');
+    const configDir = path.join(profileDir, '.config');
+    const runDir = path.join(profileDir, '.run');
+    await Promise.all([
+      ensureDir(cacheDir),
+      ensureDir(configDir),
+      ensureDir(runDir),
+    ]);
+    const env: NodeJS.ProcessEnv = {
+      ...process.env,
+      HOME: profileDir,
+      XDG_CACHE_HOME: cacheDir,
+      XDG_CONFIG_HOME: configDir,
+      XDG_RUNTIME_DIR: runDir,
+    };
 
     const args = [
       `-env:UserInstallation=${pathToFileURL(profileDir).href}`,
@@ -54,7 +74,7 @@ export class PdfService {
     );
 
     try {
-      await this.runLibreOffice(args);
+      await this.runLibreOffice(args, env);
     } finally {
       await fs.rm(profileDir, { recursive: true, force: true }).catch(() => {
         /* best-effort cleanup */
@@ -78,10 +98,14 @@ export class PdfService {
     return expected;
   }
 
-  private runLibreOffice(args: string[]): Promise<void> {
+  private runLibreOffice(
+    args: string[],
+    env: NodeJS.ProcessEnv,
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       const child = spawn(config.libreofficeBin, args, {
         stdio: ['ignore', 'pipe', 'pipe'],
+        env,
       });
 
       let stderr = '';
